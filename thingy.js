@@ -44,15 +44,11 @@ function Thingy(logEnabled = true) {
         this.TMS_UUID,
         this.TSS_UUID
     ];
+    
+    this.device = device;
 
     var device;
     var server;
-
-
-    this.device = device;
-
-
-
 
     this.sendData = function(char, dataArray) {
         this.isBusy = true;
@@ -73,6 +69,42 @@ function Thingy(logEnabled = true) {
                     console.log("Successfully sent ", dataArray);
             });
     };
+}
+
+
+Thingy.prototype.temperatureEnable = function(notifyHandler) {
+    notifyCharacteristic(environmentService, this.TES_TEMP_UUID, true, notifyHandler);
+}
+
+
+Thingy.prototype.notifyCharacteristic = function(service, characteristicUUID, enable, notifyHandler) {
+    if(enable) {
+        return service.getCharacteristic(characteristicUUID)
+        .then( characteristic => {
+            characteristic.startNotifications()
+            .then( () => {
+                if(this.logEnabled)
+                    console.log("Notifications enabled for " + characteristicUUID);
+                characteristic.addEventListener('characteristicvaluechanged', notifyHandler);
+            })
+        })    
+        .catch( error => {
+            console.log("Error when enabling notifications for " + characteristicUUID + ": " + error);
+        })
+    } else {
+        return service.getCharacteristic(characteristicUUID)
+        .then( characteristic => {
+            characteristic.stopNotifications()
+            .then( () => {
+                if(this.logEnabled)
+                    console.log("Notifications disabled for ", characteristicUUID);
+                characteristic.removeEventListener('characteristicvaluechanged', notifyHandler);
+            })
+        })
+        .catch( error => {
+            console.log("Error when disabling notifications for " + characteristicUUID + ": " + error);
+        })
+    }
 }
 
 Thingy.prototype.connect = function() {
@@ -98,11 +130,11 @@ Thingy.prototype.connect = function() {
 
             return Promise.all([
                 server.getPrimaryService(this.TCS_UUID)
-                    .then(service =>  {
-                        this.configurationService = service;
-                        if(this.logEnabled)
-                            console.log("Discovered Thingy configuration service");
-                    }),
+                .then(service =>  {
+                    this.configurationService = service;
+                    if(this.logEnabled)
+                        console.log("Discovered Thingy configuration service");
+                }),
                 server.getPrimaryService(this.TES_UUID)
                     .then(service => {
                         this.environmentService = service;
@@ -150,6 +182,8 @@ Thingy.prototype.disconnect = function() {
         }
     });
 };
+
+
 
 
 Thingy.prototype.temperature_enable = function(error) {
