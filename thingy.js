@@ -12,36 +12,37 @@
 
 
 function Thingy(logEnabled = true) {
+    this.logEnabled = logEnabled;
 
-    const TCS_UUID              = 'ef680100-9b35-4933-9b10-52ffa9740042';
+    this.TCS_UUID              = 'ef680100-9b35-4933-9b10-52ffa9740042';
 
-    const TES_UUID              = 'ef680200-9b35-4933-9b10-52ffa9740042';
-    const TES_TEMP_UUID         = 'ef680201-9b35-4933-9b10-52ffa9740042';
-    const TES_PRESS_UUID        = 'ef680202-9b35-4933-9b10-52ffa9740042';
-    const TES_HUMID_UUID        = 'ef680203-9b35-4933-9b10-52ffa9740042';
-    const TES_GAS_UUID          = 'ef680204-9b35-4933-9b10-52ffa9740042';
-    const TES_COLOR_UUID        = 'ef680205-9b35-4933-9b10-52ffa9740042';
-    const TES_CONF_UUID         = 'ef680206-9b35-4933-9b10-52ffa9740042';
+    this.TES_UUID              = 'ef680200-9b35-4933-9b10-52ffa9740042';
+    this.TES_TEMP_UUID         = 'ef680201-9b35-4933-9b10-52ffa9740042';
+    this.TES_PRESS_UUID        = 'ef680202-9b35-4933-9b10-52ffa9740042';
+    this.TES_HUMID_UUID        = 'ef680203-9b35-4933-9b10-52ffa9740042';
+    this.TES_GAS_UUID          = 'ef680204-9b35-4933-9b10-52ffa9740042';
+    this.TES_COLOR_UUID        = 'ef680205-9b35-4933-9b10-52ffa9740042';
+    this.TES_CONF_UUID         = 'ef680206-9b35-4933-9b10-52ffa9740042';
 
-    const UIS_UUID              = 'ef680300-9b35-4933-9b10-52ffa9740042';
-    const UIS_LED_UUID          = 'ef680301-9b35-4933-9b10-52ffa9740042';
-    const UIS_BTN_UUID          = 'ef680302-9b35-4933-9b10-52ffa9740042';
-    const UIS_PIN_UUID          = 'ef680303-9b35-4933-9b10-52ffa9740042';
+    this.UIS_UUID              = 'ef680300-9b35-4933-9b10-52ffa9740042';
+    this.UIS_LED_UUID          = 'ef680301-9b35-4933-9b10-52ffa9740042';
+    this.UIS_BTN_UUID          = 'ef680302-9b35-4933-9b10-52ffa9740042';
+    this.UIS_PIN_UUID          = 'ef680303-9b35-4933-9b10-52ffa9740042';
 
-    const TMS_UUID              = 'ef680400-9b35-4933-9b10-52ffa9740042';
+    this.TMS_UUID              = 'ef680400-9b35-4933-9b10-52ffa9740042';
 
-    const TSS_UUID              = 'ef680500-9b35-4933-9b10-52ffa9740042';
-    const TSS_CONF_UUID         = 'ef680501-9b35-4933-9b10-52ffa9740042';
-    const TSS_SPEAKER_DATA_UUID = 'ef680502-9b35-4933-9b10-52ffa9740042';
-    const TSS_SPEAKER_STAT_UUID = 'ef680503-9b35-4933-9b10-52ffa9740042';
-    const TSS_MIC_UUID          = 'ef680504-9b35-4933-9b10-52ffa9740042';
+    this.TSS_UUID              = 'ef680500-9b35-4933-9b10-52ffa9740042';
+    this.TSS_CONF_UUID         = 'ef680501-9b35-4933-9b10-52ffa9740042';
+    this.TSS_SPEAKER_DATA_UUID = 'ef680502-9b35-4933-9b10-52ffa9740042';
+    this.TSS_SPEAKER_STAT_UUID = 'ef680503-9b35-4933-9b10-52ffa9740042';
+    this.TSS_MIC_UUID          = 'ef680504-9b35-4933-9b10-52ffa9740042';
 
-    var serviceUUIDs = [
-        TCS_UUID,
-        TES_UUID,
-        UIS_UUID,
-        TMS_UUID,
-        TSS_UUID
+    this.serviceUUIDs = [
+        this.TES_UUID,
+        this.TCS_UUID,
+        this.UIS_UUID,
+        this.TMS_UUID,
+        this.TSS_UUID
     ];
 
     var device;
@@ -49,6 +50,7 @@ function Thingy(logEnabled = true) {
 
 
     this.device = device;
+
 
 
 
@@ -72,7 +74,7 @@ function Thingy(logEnabled = true) {
             });
     };
 }
-    
+
 Thingy.prototype.connect = function() {
     if (this.logEnabled)
         console.log("Scanning for devices with service UUID " + this.TCS_UUID);
@@ -85,23 +87,46 @@ Thingy.prototype.connect = function() {
         .then(d => {
             this.device = d;
             if (this.logEnabled)
-                console.log("Found Thingy: " + this.device + ", trying to connect");
+                console.log("Found Thingy named \"" + this.device.name + "\", trying to connect");
             return this.device.gatt.connect();
         })
         .then( server => {
             this.server = server;
 
+            if(this.logEnabled)
+                console.log("Connected to \"" + this.device.name + "\"");
+
             return Promise.all([
-                server.getPrimaryService(TCS_UUID)
-                    .then(service => this.configurationService = service),
-                server.getPrimaryService(TES_UUID)
-                    .then(service => this.environmentService = service),
-                server.getPrimaryService(UIS_UUID)
-                    .then(service => this.userInterfaceService = service),
-                server.getPrimaryService(TMS_UUID)
-                    .then(service => this.motionService = service),
-                server.getPrimaryService(TSS_UUID)
-                    .then(service => this.soundService = service)
+                server.getPrimaryService(this.TCS_UUID)
+                    .then(service =>  {
+                        this.configurationService = service;
+                        if(this.logEnabled)
+                            console.log("Discovered Thingy configuration service");
+                    }),
+                server.getPrimaryService(this.TES_UUID)
+                    .then(service => {
+                        this.environmentService = service;
+                        if(this.logEnabled)
+                            console.log("Discovered Thingy environment service");
+                    }),
+                server.getPrimaryService(this.UIS_UUID)
+                    .then(service => {
+                        this.userInterfaceService = service;
+                        if(this.logEnabled)
+                            console.log("Discovered Thingy user interface service");
+                    }),
+                server.getPrimaryService(this.TMS_UUID)
+                    .then(service => {
+                        this.motionService = service;
+                        if(this.logEnabled)
+                            console.log("Discovered Thingy motion service");
+                    }),
+                server.getPrimaryService(this.TSS_UUID)
+                    .then(service => {
+                        this.soundService = service;
+                        if(this.logEnabled)
+                            console.log("Discovered Thingy sound service");
+                    })
                 .catch(error => {
                     console.log("Error during service discovery: ", error);
                 })
@@ -111,6 +136,8 @@ Thingy.prototype.connect = function() {
             console.log("Error during connect: ", error);
         });
 };
+
+
 
 Thingy.prototype.disconnect = function() {
     return new Promise((resolve, reject) => {
