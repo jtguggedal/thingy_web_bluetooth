@@ -36,7 +36,7 @@ function Thingy(logEnabled = true) {
     const TSS_SPEAKER_STAT_UUID = 'ef680503-9b35-4933-9b10-52ffa9740042';
     const TSS_MIC_UUID          = 'ef680504-9b35-4933-9b10-52ffa9740042';
 
-    var services = [
+    var serviceUUIDs = [
         TCS_UUID,
         TES_UUID,
         UIS_UUID,
@@ -85,32 +85,31 @@ Thingy.prototype.connect = function() {
         .then(d => {
             this.device = d;
             if (this.logEnabled)
-                console.log("Found device " + this.device + ", trying to connect to GATT server");
+                console.log("Found Thingy: " + this.device + ", trying to connect");
             return this.device.gatt.connect();
         })
-        .then(s => {
-            server = s;
-            if (this.logEnabled)
-                console.log("Connected to server " + s + ", getting service");
-            return server.getPrimaryService(this.TES_UUID);
-        })
-        .then(sc => {
-            this.service = sc;
-            if (this.logEnabled)
-                console.log("Found service " + this.service + ", getting characteristic");
-            return this.service.getCharacteristic(this.TES_TEMP_UUID);
-        })
-        .then(ch => {
-            this.characteristic = ch;
-            if (this.logEnabled)
-                console.log("Characteristic " + this.characteristic + " found and available globally");
-                this.isConnected = true;
+        .then( server => {
+            this.server = server;
+
+            return Promise.all([
+                server.getPrimaryService(TCS_UUID)
+                    .then(service => this.configurationService = service),
+                server.getPrimaryService(TES_UUID)
+                    .then(service => this.environmentService = service),
+                server.getPrimaryService(UIS_UUID)
+                    .then(service => this.userInterfaceService = service),
+                server.getPrimaryService(TMS_UUID)
+                    .then(service => this.motionService = service),
+                server.getPrimaryService(TSS_UUID)
+                    .then(service => this.soundService = service)
+                .catch(error => {
+                    console.log("Error during service discovery: ", error);
+                })
+            ]);
         })
         .catch(error => {
-            console.log("Error during connect: " + error);
+            console.log("Error during connect: ", error);
         });
-
-    
 };
 
 Thingy.prototype.disconnect = function() {
@@ -127,5 +126,5 @@ Thingy.prototype.disconnect = function() {
 
 
 Thingy.prototype.temperature_enable = function(error) {
-    this.notifyCharacteristic(TES_UUID, TES_TEMP_UUID, true, this.onTempNotifBinded, error);
+    //this.notifyCharacteristic(TES_UUID, TES_TEMP_UUID, true, this.onTempNotifBinded, error);
   };
