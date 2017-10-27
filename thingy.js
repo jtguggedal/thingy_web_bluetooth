@@ -11,127 +11,121 @@
  */
 
 
-var Thingy = (function(serviceUUID, characteristicUUIDs) {
-    
-        const TCS_UUID              = 'ef6801009b3549339b1052ffa9740042';
-    
-        const TES_UUID              = 'ef6802009b3549339b1052ffa9740042';
-        const TES_TEMP_UUID         = 'ef6802019b3549339b1052ffa9740042';
-        const TES_PRESS_UUID        = 'ef6802029b3549339b1052ffa9740042';
-        const TES_HUMID_UUID        = 'ef6802039b3549339b1052ffa9740042';
-        const TES_GAS_UUID          = 'ef6802049b3549339b1052ffa9740042';
-        const TES_COLOR_UUID        = 'ef6802059b3549339b1052ffa9740042';
-        const TES_CONF_UUID         = 'ef6802069b3549339b1052ffa9740042';
-    
-        const UIS_UUID              = 'ef6803009b3549339b1052ffa9740042';
-        const UIS_LED_UUID          = 'ef6803019b3549339b1052ffa9740042';
-        const UIS_BTN_UUID          = 'ef6803029b3549339b1052ffa9740042';
-        const UIS_PIN_UUID          = 'ef6803039b3549339b1052ffa9740042';
-    
-        const TMS_UUID              = 'ef6804009b3549339b1052ffa9740042';
-    
-        const TSS_UUID              = 'ef6805009b3549339b1052ffa9740042';
-        const TSS_CONF_UUID         = 'ef6805019b3549339b1052ffa9740042';
-        const TSS_SPEAKER_DATA_UUID = 'ef6805029b3549339b1052ffa9740042';
-        const TSS_SPEAKER_STAT_UUID = 'ef6805039b3549339b1052ffa9740042';
-        const TSS_MIC_UUID          = 'ef6805049b3549339b1052ffa9740042';
-    
-        var services = [
-            TCS_UUID,
-            TES_UUID,
-            UIS_UUID,
-            TMS_UUID,
-            TSS_UUID
-        ];
-    
-        var device;
-        var server;
-        var service;
-        var characteristic;
-        var isConnected = false;
-        var isBusy = false;
-        var logEnabled = false;
-    
-        var connect = function(serviceUUID, characteristicUUID, _logEnabled) {
-            logEnabled = _logEnabled | logEnabled;
-            if (logEnabled)
-                console.log("Scanning for devices with service UUID " + serviceUUID);
-            return navigator.bluetooth.requestDevice({
-                    filters: [{
-                        services: services
-                    }]
-                })
-                .then(d => {
-                    device = d;
-                    if (logEnabled)
-                        console.log("Found device " + device + ", trying to connect to GATT server");
-                    return device.gatt.connect();
-                })
-                .then(s => {
-                    server = s;
-                    if (logEnabled)
-                        console.log("Connected to server " + s + ", getting service");
-                    return server.getPrimaryService(serviceUUID);
-                })
-                .then(sc => {
-                    service = sc;
-                    if (logEnabled)
-                        console.log("Found service " + service + ", getting characteristic");
-                    return service.getCharacteristic(characteristicUUID);
-                })
-                .then(ch => {
-                    characteristic = ch;
-                    if (logEnabled)
-                        console.log("Characteristic " + characteristic + " found and available globally");
-                    isConnected = true;
-                })
-                .catch(error => {
-                    console.log("Error during connect: " + error);
-                });
-        };
-    
-        var disconnect = function() {
-            return new Promise(function(resolve, reject) {
-                device.gatt.disconnect();
-                if (device.gatt.connected == false) {
-                    isConnected = false;
-                    resolve();
-                } else {
-                    reject(new Error("Error on disconnect"));
-                }
+function Thingy(logEnabled = true) {
+
+    const TCS_UUID              = 'ef680100-9b35-4933-9b10-52ffa9740042';
+
+    const TES_UUID              = 'ef680200-9b35-4933-9b10-52ffa9740042';
+    const TES_TEMP_UUID         = 'ef680201-9b35-4933-9b10-52ffa9740042';
+    const TES_PRESS_UUID        = 'ef680202-9b35-4933-9b10-52ffa9740042';
+    const TES_HUMID_UUID        = 'ef680203-9b35-4933-9b10-52ffa9740042';
+    const TES_GAS_UUID          = 'ef680204-9b35-4933-9b10-52ffa9740042';
+    const TES_COLOR_UUID        = 'ef680205-9b35-4933-9b10-52ffa9740042';
+    const TES_CONF_UUID         = 'ef680206-9b35-4933-9b10-52ffa9740042';
+
+    const UIS_UUID              = 'ef680300-9b35-4933-9b10-52ffa9740042';
+    const UIS_LED_UUID          = 'ef680301-9b35-4933-9b10-52ffa9740042';
+    const UIS_BTN_UUID          = 'ef680302-9b35-4933-9b10-52ffa9740042';
+    const UIS_PIN_UUID          = 'ef680303-9b35-4933-9b10-52ffa9740042';
+
+    const TMS_UUID              = 'ef680400-9b35-4933-9b10-52ffa9740042';
+
+    const TSS_UUID              = 'ef680500-9b35-4933-9b10-52ffa9740042';
+    const TSS_CONF_UUID         = 'ef680501-9b35-4933-9b10-52ffa9740042';
+    const TSS_SPEAKER_DATA_UUID = 'ef680502-9b35-4933-9b10-52ffa9740042';
+    const TSS_SPEAKER_STAT_UUID = 'ef680503-9b35-4933-9b10-52ffa9740042';
+    const TSS_MIC_UUID          = 'ef680504-9b35-4933-9b10-52ffa9740042';
+
+    var services = [
+        TCS_UUID,
+        TES_UUID,
+        UIS_UUID,
+        TMS_UUID,
+        TSS_UUID
+    ];
+
+    var device;
+    var server;
+
+
+    this.device = device;
+
+
+
+    this.sendData = function(char, dataArray) {
+        this.isBusy = true;
+        return char.writeValue(dataArray)
+            .then(() => {
+                this.isBusy = false;
+                if (logEnabled)
+                    console.log("Successfully sent ", dataArray);
             });
-        };
+    };
+
+    this.readData = function(char, dataArray) {
+        this.isBusy = true;
+        return char.readValue(dataArray)
+            .then(() => {
+                this.isBusy = false;
+                if (logEnabled)
+                    console.log("Successfully sent ", dataArray);
+            });
+    };
+}
     
-        var sendData = function(char, dataArray) {
-            isBusy = true;
-            return char.writeValue(dataArray)
-                .then(() => {
-                    isBusy = false;
-                    if (logEnabled)
-                        console.log("Successfully sent ", dataArray);
-                });
-        };
+Thingy.prototype.connect = function() {
+    if (this.logEnabled)
+        console.log("Scanning for devices with service UUID " + this.TCS_UUID);
+    return navigator.bluetooth.requestDevice({
+            filters: [{
+                services: [this.TCS_UUID]
+            }],
+            optionalServices: this.services
+        })
+        .then(d => {
+            this.device = d;
+            if (this.logEnabled)
+                console.log("Found device " + this.device + ", trying to connect to GATT server");
+            return this.device.gatt.connect();
+        })
+        .then(s => {
+            server = s;
+            if (this.logEnabled)
+                console.log("Connected to server " + s + ", getting service");
+            return server.getPrimaryService(this.TES_UUID);
+        })
+        .then(sc => {
+            this.service = sc;
+            if (this.logEnabled)
+                console.log("Found service " + this.service + ", getting characteristic");
+            return this.service.getCharacteristic(this.TES_TEMP_UUID);
+        })
+        .then(ch => {
+            this.characteristic = ch;
+            if (this.logEnabled)
+                console.log("Characteristic " + this.characteristic + " found and available globally");
+                this.isConnected = true;
+        })
+        .catch(error => {
+            console.log("Error during connect: " + error);
+        });
+
     
-        var readData = function(char, dataArray) {
-            isBusy = true;
-            return char.readValue(dataArray)
-                .then(() => {
-                    isBusy = false;
-                    if (logEnabled)
-                        console.log("Successfully sent ", dataArray);
-                });
-        };
-    
-        return {
-            getDevice: function() {
-                return device;
-            },
-            connect: connect,
-            disconnect: disconnect,
-            sendData: sendData,
-            isConnected: function() {
-                return isConnected;
-            }
-        };
-    })();
-    
+};
+
+Thingy.prototype.disconnect = function() {
+    return new Promise((resolve, reject) => {
+        this.device.gatt.disconnect();
+        if (this.device.gatt.connected == false) {
+            this.isConnected = false;
+            resolve();
+        } else {
+            reject(new Error("Error on disconnect"));
+        }
+    });
+};
+
+
+Thingy.prototype.temperature_enable = function(error) {
+    this.notifyCharacteristic(TES_UUID, TES_TEMP_UUID, true, this.onTempNotifBinded, error);
+  };
