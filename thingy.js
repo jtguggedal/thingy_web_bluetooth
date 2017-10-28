@@ -386,7 +386,12 @@ Thingy.prototype.temperatureNotifyHandler = function(event, eventHandler) {
 	var decimal = data.getUint8(1);
     var temperature = integer + (decimal/100);
 
-    eventHandler({ temperature: {value: temperature, unit: "Celsius" }});
+    eventHandler( { 
+            temperature: { 
+                value: temperature, 
+                unit: "Celsius" 
+            }
+        });
 }
 
 //  ******  //
@@ -445,9 +450,20 @@ Thingy.prototype.getLedStatus = function() {
 }
 
 Thingy.prototype.setLed = function(dataArray) {
-
+    return this.writeData(this.ledCharacteristic, dataArray);
 }
 
+Thingy.prototype.setLedConstant = function(r, g, b) {
+    return this.setLed(new Uint8Array([1, r, g, b]));
+}
+
+Thingy.prototype.setLedBreathe = function(color, intensity, delay) {
+    return this.setLed(new Uint8Array([2, color, intensity, (delay >> 8), delay]));
+}
+
+Thingy.prototype.setLedOneShot = function(color, intensity) {
+    return this.setLed(new Uint8Array([3, color, intensity]));
+}
 
 //  ******  //
 
