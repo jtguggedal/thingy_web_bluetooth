@@ -63,16 +63,33 @@ function Thingy(logEnabled = true) {
     ];
     
     this.device = device;
+    this.tempEventListeners = [,[]];
+    this.pressureEventListeners = [,[]];
+    this.humidityEventListeners = [,[]];
+    this.gasEventListeners = [,[]];
+    this.colorEventListeners = [,[]];
+    this.buttonEventListeners = [,[]];
+    this.tapEventListeners = [,[]];
+    this.orientationEventListeners = [,[]];
+    this.quaterionEventListeners = [,[]];
+    this.rawEventListeners = [,[]];
+    this.eulerEventListeners = [,[]];
+    this.rotationMatrixEventListeners = [,[]];
+    this.headingEventListeners = [,[]];
+    this.gravityEventListeners = [,[]];
+    this.speakerStatusEventListeners = [,[]];
+    this.micMatrixEventListeners = [,[]];
 
     var device;
     var server;
     var bleIsBusy = false;
 
-    this.writeData = function(char, dataArray) {
+
+    this.writeData = function(characteristic, dataArray) {
         return new Promise(function(resolve, reject) {
             if(!bleIsBusy){
                 bleIsBusy = true;
-                return char.writeValue(dataArray)
+                return characteristic.writeValue(dataArray)
                     .then( () => {
                         bleIsBusy = false;
                         if (logEnabled)
@@ -85,11 +102,11 @@ function Thingy(logEnabled = true) {
         })
     };
 
-    this.readData = function(char) {
+    this.readData = function(characteristic) {
         return new Promise(function(resolve, reject) {
             if(!bleIsBusy){
                 bleIsBusy = true;
-                char.readValue()
+                characteristic.readValue()
                     .then( (dataArray) => {
                         bleIsBusy = false;
                         if (logEnabled)
@@ -101,30 +118,6 @@ function Thingy(logEnabled = true) {
             }
         })
     };
-}
-
-Thingy.prototype.notifyCharacteristic = function(characteristic, enable, notifyHandler, eventHandler) {
-    if(enable) {
-        return characteristic.startNotifications()
-        .then( () => {
-            if(this.logEnabled)
-                console.log("Notifications enabled for " + characteristic.uuid);
-            characteristic.addEventListener('characteristicvaluechanged', event => { notifyHandler(event, eventHandler) });
-        })
-        .catch( error => {
-            console.log("Error when enabling notifications for " + characteristic.uuid + ": " + error);
-        })
-    } else {
-        return characteristic.stopNotifications()
-        .then( () => {
-            if(this.logEnabled)
-                console.log("Notifications disabled for ", characteristic.uuid);
-            characteristic.removeEventListener('characteristicvaluechanged', event => { notifyHandler(event, eventHandler) });
-        })
-        .catch( error => {
-            console.log("Error when disabling notifications for " + characteristic.uuid + ": " + error);
-        })
-    }
 }
 
 Thingy.prototype.connect = function() {
@@ -237,7 +230,7 @@ Thingy.prototype.connect = function() {
                         }),
                         service.getCharacteristic(this.UIS_PIN_UUID)
                         .then( characteristic => { 
-                            this.pinCharacteristic = characteristic 
+                            this.externalPinCharacteristic = characteristic 
                         })
                         .catch( error => { 
                             console.log("Error while getting characteristic: " + error)
@@ -346,6 +339,30 @@ Thingy.prototype.disconnect = function() {
     });
 };
 
+Thingy.prototype.notifyCharacteristic = function(characteristic, enable, notifyHandler) {
+    if(enable) {
+        return characteristic.startNotifications()
+        .then( () => {
+            if(this.logEnabled)
+                console.log("Notifications enabled for " + characteristic.uuid);
+            characteristic.addEventListener('characteristicvaluechanged', notifyHandler);
+        })
+        .catch( error => {
+            console.log("Error when enabling notifications for " + characteristic.uuid + ": " + error);
+        })
+    } else {
+        return characteristic.stopNotifications()
+        .then( () => {
+            if(this.logEnabled)
+                console.log("Notifications disabled for ", characteristic.uuid);
+            characteristic.removeEventListener('characteristicvaluechanged', notifyHandler);
+        })
+        .catch( error => {
+            console.log("Error when disabling notifications for " + characteristic.uuid + ": " + error);
+        })
+    }
+}
+
 
 /*  Configuration service  */
 
@@ -377,21 +394,139 @@ Thingy.prototype.setName = function(name) {
 /*  Environment service  */
 
 Thingy.prototype.temperatureEnable = function(eventHandler, enable) {
-    this.notifyCharacteristic(this.temperatureCharacteristic, enable, this.temperatureNotifyHandler, eventHandler);
+    if(enable) {
+        this.tempEventListeners[0] = this.temperatureNotifyHandler.bind(this);
+        this.tempEventListeners[1].push(eventHandler);
+    } else {
+        this.tempEventListeners[1].splice(this.tempEventListeners.indexOf(eventHandler, 1));
+    }
+    this.notifyCharacteristic(this.temperatureCharacteristic, enable, this.tempEventListeners[0]);
 }
 
-Thingy.prototype.temperatureNotifyHandler = function(event, eventHandler) {
+Thingy.prototype.temperatureNotifyHandler = function(event) {
     var data = event.target.value;
 	var integer = data.getUint8(0);
 	var decimal = data.getUint8(1);
     var temperature = integer + (decimal/100);
-
-    eventHandler( { 
+    
+    this.tempEventListeners[1].forEach( eventHandler => {
+        eventHandler( { 
             temperature: { 
                 value: temperature, 
                 unit: "Celsius" 
             }
         });
+    });
+}
+
+Thingy.prototype.pressureEnable = function(eventHandler, enable) {
+    if(enable) {
+        this.pressureEventListeners[0] = this.pressureNotifyHandler.bind(this);
+        this.pressureEventListeners[1].push(eventHandler);
+    } else {
+        this.pressureEventListeners[1].splice(this.pressureEventListeners.indexOf(eventHandler, 1));
+    }
+    this.notifyCharacteristic(this.pressureCharacteristic, enable, this.pressureEventListeners[0]);
+}
+
+Thingy.prototype.pressureNotifyHandler = function(event) {
+    var data = event.target.value;
+	var integer = data.getUint32(0, true);
+	var decimal = data.getUint8(4);
+    var pressure = integer + (decimal/100);
+
+    this.pressureEventListeners[1].forEach( eventHandler => {
+        eventHandler( { 
+            pressure: { 
+                value: pressure, 
+                unit: "hPa" 
+            }
+        });
+    });
+}
+
+Thingy.prototype.humidityEnable = function(eventHandler, enable) {
+    if(enable) {
+        this.humidityEventListeners[0] = this.humidityNotifyHandler.bind(this);
+        this.humidityEventListeners[1].push(eventHandler);
+    } else {
+        this.humidityEventListeners[1].splice(this.humidityEventListeners.indexOf(eventHandler, 1));
+    }
+    this.notifyCharacteristic(this.humidityCharacteristic, enable, this.humidityEventListeners[0]);
+}
+
+Thingy.prototype.humidityNotifyHandler = function(event) {
+    var data = event.target.value;
+	var humidity = data.getUint8(0);
+
+    this.humidityEventListeners[1].forEach( eventHandler => {
+        eventHandler( { 
+            humidity: { 
+                value: humidity, 
+                unit: "%" 
+            }
+        });
+    });
+}
+
+Thingy.prototype.gasEnable = function(eventHandler, enable) {
+    if(enable) {
+        this.gasEventListeners[0] = this.gasNotifyHandler.bind(this);
+        this.gasEventListeners[1].push(eventHandler);
+    } else {
+        this.gasEventListeners[1].splice(this.gasEventListeners.indexOf(eventHandler, 1));
+    }
+    this.notifyCharacteristic(this.gasCharacteristic, enable, this.gasEventListeners[0]);
+}
+
+Thingy.prototype.gasNotifyHandler = function(event) {
+    var data = event.target.value;
+	var eco2 = data.getUint16(0, true);
+	var tvoc = data.getUint16(2, true);
+
+    this.gasEventListeners[1].forEach( eventHandler => {
+        eventHandler( { 
+            gas: { 
+                eCO2 : {
+                    value: eco2, 
+                    unit: "ppm" 
+                },
+                TVOC : {
+                    value: tvoc, 
+                    unit: "ppb" 
+                }
+            }
+        });
+    });
+}
+
+Thingy.prototype.colorEnable = function(eventHandler, enable) {
+    if(enable) {
+        this.colorEventListeners[0] = this.colorNotifyHandler.bind(this);
+        this.colorEventListeners[1].push(eventHandler);
+    } else {
+        this.colorEventListeners[1].splice(this.colorEventListeners.indexOf(eventHandler, 1));
+    }
+    this.notifyCharacteristic(this.colorCharacteristic, enable, this.colorEventListeners[0]);
+}
+
+Thingy.prototype.colorNotifyHandler = function(event) {
+    var data = event.target.value;
+	var red = data.getUint16(0, true);
+	var green = data.getUint8(2, true);
+	var blue = data.getUint8(4, true);
+	var clear = data.getUint8(6, true);
+
+    this.colorEventListeners[1].forEach( eventHandler => {
+        eventHandler( { 
+            color: { 
+                red: red,
+                green: green,
+                blue: blue,
+                clear: clear
+            }
+        });
+    });
 }
 
 //  ******  //
@@ -401,10 +536,7 @@ Thingy.prototype.temperatureNotifyHandler = function(event, eventHandler) {
 /*  User interface service  */
 
 Thingy.prototype.getLedStatus = function() {
-    return this.userInterfaceService.getCharacteristic(this.UIS_LED_UUID)
-    .then( characteristic => {
-        return this.readData(characteristic)
-    })
+    return this.readData(ledCharacteristic)
     .then( data => {
         var mode = data.getUint8(0);
         var status;
@@ -458,11 +590,59 @@ Thingy.prototype.setLedConstant = function(r, g, b) {
 }
 
 Thingy.prototype.setLedBreathe = function(color, intensity, delay) {
-    return this.setLed(new Uint8Array([2, color, intensity, (delay >> 8), delay]));
+    return this.setLed(new Uint8Array([2, color, intensity, delay & 0xff, (delay >> 8) & 0xff]));
 }
 
 Thingy.prototype.setLedOneShot = function(color, intensity) {
     return this.setLed(new Uint8Array([3, color, intensity]));
+}
+
+Thingy.prototype.buttonEnable = function(eventHandler, enable) {
+    this.notifyCharacteristic(this.buttonCharacteristic, enable, this.buttonNotifyHandler, eventHandler);
+}
+
+Thingy.prototype.buttonNotifyHandler = function(event, eventHandler) {
+    var state = event.target.value.getUint8(0);
+    eventHandler({ buttonState: state });
+}
+
+Thingy.prototype.externalPinsGet = function() {
+    return this.readData(this.externalPinCharacteristic)
+    .then( data => {
+        pinStatus = {
+            pinStatus : {
+                pin1 : data.getUint8(0),
+                pin2 : data.getUint8(1),
+                pin3 : data.getUint8(2),
+                pin4 : data.getUint8(3)
+            }
+        }
+        return Promise.resolve(pinStatus);
+    })
+    .catch( error => {
+        console.log("Error when reading from external pin characteristic: " + error);
+    })
+}
+
+Thingy.prototype.externalPinSet = function(pin, value) {
+    if(pin < 1 || pin > 4)
+        return Promise.reject(new Error("Pin number must be 1, 2, 3 or 4"))
+    if(!(value == 0 || value == 255))
+        return Promise.reject(new Error("Pin status value must be 0 or 255"))
+    
+    // Preserve values for those pins that are not being set 
+    return this.readData(this.externalPinCharacteristic)
+    .then ( receivedData => {
+        var dataArray = new Uint8Array(4);
+        for(var i = 0; i < dataArray.length; i++) {
+            dataArray[i] = receivedData.getUint8(i);
+        }
+        dataArray[pin - 1] = value;
+        return this.writeData(this.externalPinCharacteristic, dataArray);
+    })
+    .catch( error => {
+        console.log("Error when setting external pins: " + error);
+    })
 }
 
 //  ******  //
