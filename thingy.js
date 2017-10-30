@@ -366,7 +366,7 @@ Thingy.prototype.notifyCharacteristic = function(characteristic, enable, notifyH
 
 /*  Configuration service  */
 
-Thingy.prototype.getName = function() {
+Thingy.prototype.nameGet = function() {
     return this.readData(this.nameCharacteristic)
     .then( receivedData => {
         var decoder = new TextDecoder('utf-8');
@@ -380,7 +380,7 @@ Thingy.prototype.getName = function() {
     })
 }
 
-Thingy.prototype.setName = function(name) {
+Thingy.prototype.nameSet = function(name) {
     var byteArray = new Uint8Array(name.length);
     for(var i = 0, j = name.length; i < j; ++i){
         byteArray[i] = name.charCodeAt(i);
