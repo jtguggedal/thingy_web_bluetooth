@@ -1,19 +1,17 @@
 
 /*
- *  Thingy:52 using Web Bluetooth
- *
- *  connect(serviceUUID, characteristicUUID) - returns promise
- *  disconnect() - returns promise
- *  sendData(dataArray) - dataArray: Uint8Array of maximum 20 bytes
- *  getDevice() - returns BLE device object
- *  isConnected() - returns bool if a peripheral is connected
- *
+ *  Thingy:52 Web Bluetooth API 
+ *  
+ *  Thingy:52 BLE service details: https://nordicplayground.github.io/Nordic-Thingy52-FW/documentation/firmware_architecture.html#fw_arch_ble_services
+ * 
  */
 
 
 function Thingy(logEnabled = true) {
     this.logEnabled = logEnabled;
 
+    // 
+    // TCS = Thingy Configuration Service
     this.TCS_UUID              = 'ef680100-9b35-4933-9b10-52ffa9740042';
     this.TCS_NAME_UUID         = 'ef680101-9b35-4933-9b10-52ffa9740042';
     this.TCS_ADV_PARAMS_UUID   = 'ef680102-9b35-4933-9b10-52ffa9740042';
@@ -23,6 +21,7 @@ function Thingy(logEnabled = true) {
     this.TCS_FW_VER_UUID       = 'ef680107-9b35-4933-9b10-52ffa9740042';
     this.TCS_MTU_REQUEST_UUID  = 'ef680108-9b35-4933-9b10-52ffa9740042';
 
+    // TES = Thingy Environment Service
     this.TES_UUID              = 'ef680200-9b35-4933-9b10-52ffa9740042';
     this.TES_TEMP_UUID         = 'ef680201-9b35-4933-9b10-52ffa9740042';
     this.TES_PRESSURE_UUID     = 'ef680202-9b35-4933-9b10-52ffa9740042';
@@ -31,11 +30,13 @@ function Thingy(logEnabled = true) {
     this.TES_COLOR_UUID        = 'ef680205-9b35-4933-9b10-52ffa9740042';
     this.TES_CONFIG_UUID       = 'ef680206-9b35-4933-9b10-52ffa9740042';
 
-    this.UIS_UUID              = 'ef680300-9b35-4933-9b10-52ffa9740042';
-    this.UIS_LED_UUID          = 'ef680301-9b35-4933-9b10-52ffa9740042';
-    this.UIS_BTN_UUID          = 'ef680302-9b35-4933-9b10-52ffa9740042';
-    this.UIS_PIN_UUID          = 'ef680303-9b35-4933-9b10-52ffa9740042';
+    // TUIS = Thingy User Interface Service
+    this.TUIS_UUID              = 'ef680300-9b35-4933-9b10-52ffa9740042';
+    this.TUIS_LED_UUID          = 'ef680301-9b35-4933-9b10-52ffa9740042';
+    this.TUIS_BTN_UUID          = 'ef680302-9b35-4933-9b10-52ffa9740042';
+    this.TUIS_PIN_UUID          = 'ef680303-9b35-4933-9b10-52ffa9740042';
 
+    // TMS = Thingy Motion Service
     this.TMS_UUID              = 'ef680400-9b35-4933-9b10-52ffa9740042';
     this.TMS_CONFIG_UUID       = 'ef680401-9b35-4933-9b10-52ffa9740042';
     this.TMS_TAP_UUID          = 'ef680402-9b35-4933-9b10-52ffa9740042';
@@ -48,6 +49,7 @@ function Thingy(logEnabled = true) {
     this.TMS_HEADING_UUID      = 'ef680409-9b35-4933-9b10-52ffa9740042';
     this.TMS_GRAVITY_UUID      = 'ef68040a-9b35-4933-9b10-52ffa9740042';
 
+    // TSS = Thingy Sound Service
     this.TSS_UUID              = 'ef680500-9b35-4933-9b10-52ffa9740042';
     this.TSS_CONFIG_UUID       = 'ef680501-9b35-4933-9b10-52ffa9740042';
     this.TSS_SPEAKER_DATA_UUID = 'ef680502-9b35-4933-9b10-52ffa9740042';
@@ -57,7 +59,7 @@ function Thingy(logEnabled = true) {
     this.serviceUUIDs = [
         this.TES_UUID,
         this.TCS_UUID,
-        this.UIS_UUID,
+        this.TUIS_UUID,
         this.TMS_UUID,
         this.TSS_UUID
     ];
@@ -84,7 +86,6 @@ function Thingy(logEnabled = true) {
     var server;
     var bleIsBusy = false;
 
-
     this.writeData = function(characteristic, dataArray) {
         return new Promise(function(resolve, reject) {
             if(!bleIsBusy){
@@ -92,7 +93,7 @@ function Thingy(logEnabled = true) {
                 return characteristic.writeValue(dataArray)
                     .then( () => {
                         bleIsBusy = false;
-                        if (logEnabled)
+                        if (this.logEnabled)
                             console.log("Successfully sent ", dataArray);
                         resolve();
                     });
@@ -109,7 +110,7 @@ function Thingy(logEnabled = true) {
                 characteristic.readValue()
                     .then( (dataArray) => {
                         bleIsBusy = false;
-                        if (logEnabled)
+                        if (this.logEnabled)
                             console.log("Received ", dataArray);
                         resolve(dataArray);
                     });
@@ -216,19 +217,19 @@ Thingy.prototype.connect = function() {
                     if(this.logEnabled)
                         console.log("Discovered Thingy environment service and its characteristics");
                 }),
-                server.getPrimaryService(this.UIS_UUID)
+                server.getPrimaryService(this.TUIS_UUID)
                 .then(service => {
                     this.userInterfaceService = service;
                     Promise.all([
-                        service.getCharacteristic(this.UIS_BTN_UUID)
+                        service.getCharacteristic(this.TUIS_BTN_UUID)
                         .then( characteristic => { 
                             this.buttonCharacteristic = characteristic 
                         }),
-                        service.getCharacteristic(this.UIS_LED_UUID)
+                        service.getCharacteristic(this.TUIS_LED_UUID)
                         .then( characteristic => { 
                             this.ledCharacteristic = characteristic 
                         }),
-                        service.getCharacteristic(this.UIS_PIN_UUID)
+                        service.getCharacteristic(this.TUIS_PIN_UUID)
                         .then( characteristic => { 
                             this.externalPinCharacteristic = characteristic 
                         })
