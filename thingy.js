@@ -535,7 +535,7 @@ Thingy.prototype.colorNotifyHandler = function(event) {
 
 /*  User interface service  */
 
-Thingy.prototype.getLedStatus = function() {
+Thingy.prototype.ledGetStatus = function() {
     return this.readData(ledCharacteristic)
     .then( data => {
         var mode = data.getUint8(0);
@@ -581,20 +581,20 @@ Thingy.prototype.getLedStatus = function() {
     });
 }
 
-Thingy.prototype.setLed = function(dataArray) {
+Thingy.prototype.ledSet = function(dataArray) {
     return this.writeData(this.ledCharacteristic, dataArray);
 }
 
-Thingy.prototype.setLedConstant = function(r, g, b) {
-    return this.setLed(new Uint8Array([1, r, g, b]));
+Thingy.prototype.ledSetConstant = function(r, g, b) {
+    return this.ledSet(new Uint8Array([1, r, g, b]));
 }
 
-Thingy.prototype.setLedBreathe = function(color, intensity, delay) {
-    return this.setLed(new Uint8Array([2, color, intensity, delay & 0xff, (delay >> 8) & 0xff]));
+Thingy.prototype.ledSetBreathe = function(color, intensity, delay) {
+    return this.ledSet(new Uint8Array([2, color, intensity, delay & 0xff, (delay >> 8) & 0xff]));
 }
 
-Thingy.prototype.setLedOneShot = function(color, intensity) {
-    return this.setLed(new Uint8Array([3, color, intensity]));
+Thingy.prototype.ledSetOneShot = function(color, intensity) {
+    return this.ledSet(new Uint8Array([3, color, intensity]));
 }
 
 Thingy.prototype.buttonEnable = function(eventHandler, enable) {
