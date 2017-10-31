@@ -1,19 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: thingy.js</title>
 
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: thingy.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
 /**
  *  Thingy:52 Web Bluetooth API 
  *  
- *  Thingy:52 BLE service details {@link https://nordicsemiconductor.github.io/Nordic-Thingy52-FW/documentation/firmware_architecture.html#fw_arch_ble_services here}
+ *  Thingy:52 BLE service details {@link https://nordicplayground.github.io/Nordic-Thingy52-FW/documentation/firmware_architecture.html#fw_arch_ble_services here}
  * 
  */
 
-/** 
- *  Thingy object
- *  @constructor   
- *  @param [logEnabled = true] Enables logging of all BLE actions.
-*/
+
 function Thingy(logEnabled = true) {
     this.logEnabled = logEnabled;
 
+    // 
     // TCS = Thingy Configuration Service
     this.TCS_UUID              = 'ef680100-9b35-4933-9b10-52ffa9740042';
     this.TCS_NAME_UUID         = 'ef680101-9b35-4933-9b10-52ffa9740042';
@@ -50,7 +75,7 @@ function Thingy(logEnabled = true) {
     this.TMS_EULER_UUID        = 'ef680407-9b35-4933-9b10-52ffa9740042';
     this.TMS_ROT_MATRIX_UUID   = 'ef680408-9b35-4933-9b10-52ffa9740042';
     this.TMS_HEADING_UUID      = 'ef680409-9b35-4933-9b10-52ffa9740042';
-    this.TMS_gravityVector_UUID      = 'ef68040a-9b35-4933-9b10-52ffa9740042';
+    this.TMS_GRAVITY_UUID      = 'ef68040a-9b35-4933-9b10-52ffa9740042';
 
     // TSS = Thingy Sound Service
     this.TSS_UUID              = 'ef680500-9b35-4933-9b10-52ffa9740042';
@@ -81,7 +106,7 @@ function Thingy(logEnabled = true) {
     this.eulerEventListeners = [,[]];
     this.rotationMatrixEventListeners = [,[]];
     this.headingEventListeners = [,[]];
-    this.gravityVectorEventListeners = [,[]];
+    this.gravityEventListeners = [,[]];
     this.speakerStatusEventListeners = [,[]];
     this.micMatrixEventListeners = [,[]];
 
@@ -89,16 +114,6 @@ function Thingy(logEnabled = true) {
     var server;
     var bleIsBusy = false;
 
-    /**
-     *  Method to write data to a Web Bluetooth characteristic.
-     *  Implements a simple solution to avoid starting new GATT requests while another is pending.
-     *  Any attempt to send data during another GATT operation will result in a rejected promise.
-     *  No retransmission is implemented at this level.
-     * 
-     *  @param {Object} characteristic - Web Bluetooth characteristic object
-     *  @param {Uint8Array} dataArray - Typed array of bytes to send
-     *  @return {Promise} 
-     */
     this.writeData = function(characteristic, dataArray) {
         return new Promise(function(resolve, reject) {
             if(!bleIsBusy){
@@ -116,14 +131,6 @@ function Thingy(logEnabled = true) {
         })
     };
 
-    /**
-     *  Method to read data from a Web Bluetooth characteristic. 
-     *  Implements a simple solution to avoid starting new GATT requests while another is pending.
-     *  Any attempt to read while another GATT operation is in progress, will result in a rejected promise.
-     * 
-     *  @param {Object} characteristic - Web Bluetooth characteristic object
-     *  @return {Promise<Uint8Array|Error>} Returns Uint8Array when resolved or an error when rejected
-     */
     this.readData = function(characteristic) {
         return new Promise(function(resolve, reject) {
             if(!bleIsBusy){
@@ -273,9 +280,9 @@ Thingy.prototype.connect = function() {
                         .then( characteristic => { 
                             this.eulerCharacteristic = characteristic 
                         }),
-                        service.getCharacteristic(this.TMS_gravityVector_UUID)
+                        service.getCharacteristic(this.TMS_GRAVITY_UUID)
                         .then( characteristic => { 
-                            this.gravityVectorCharacteristic = characteristic 
+                            this.gravityCharacteristic = characteristic 
                         }),
                         service.getCharacteristic(this.TMS_HEADING_UUID)
                         .then( characteristic => { 
@@ -404,7 +411,7 @@ Thingy.prototype.nameGet = function() {
 
 Thingy.prototype.nameSet = function(name) {
     var byteArray = new Uint8Array(name.length);
-    for(var i = 0, j = name.length; i < j; ++i){
+    for(var i = 0, j = name.length; i &lt; j; ++i){
         byteArray[i] = name.charCodeAt(i);
     }
     return this.writeData(nameCharacteristic, byteArray);
@@ -420,7 +427,7 @@ Thingy.prototype.temperatureEnable = function(eventHandler, enable) {
         this.tempEventListeners[0] = this.temperatureNotifyHandler.bind(this);
         this.tempEventListeners[1].push(eventHandler);
     } else {
-        this.tempEventListeners[1].splice(this.tempEventListeners.indexOf(eventHandler), 1);
+        this.tempEventListeners[1].splice(this.tempEventListeners.indexOf(eventHandler, 1));
     }
     this.notifyCharacteristic(this.temperatureCharacteristic, enable, this.tempEventListeners[0]);
 }
@@ -446,7 +453,7 @@ Thingy.prototype.pressureEnable = function(eventHandler, enable) {
         this.pressureEventListeners[0] = this.pressureNotifyHandler.bind(this);
         this.pressureEventListeners[1].push(eventHandler);
     } else {
-        this.pressureEventListeners[1].splice(this.pressureEventListeners.indexOf(eventHandler), 1);
+        this.pressureEventListeners[1].splice(this.pressureEventListeners.indexOf(eventHandler, 1));
     }
     this.notifyCharacteristic(this.pressureCharacteristic, enable, this.pressureEventListeners[0]);
 }
@@ -472,7 +479,7 @@ Thingy.prototype.humidityEnable = function(eventHandler, enable) {
         this.humidityEventListeners[0] = this.humidityNotifyHandler.bind(this);
         this.humidityEventListeners[1].push(eventHandler);
     } else {
-        this.humidityEventListeners[1].splice(this.humidityEventListeners.indexOf(eventHandler), 1);
+        this.humidityEventListeners[1].splice(this.humidityEventListeners.indexOf(eventHandler, 1));
     }
     this.notifyCharacteristic(this.humidityCharacteristic, enable, this.humidityEventListeners[0]);
 }
@@ -496,7 +503,7 @@ Thingy.prototype.gasEnable = function(eventHandler, enable) {
         this.gasEventListeners[0] = this.gasNotifyHandler.bind(this);
         this.gasEventListeners[1].push(eventHandler);
     } else {
-        this.gasEventListeners[1].splice(this.gasEventListeners.indexOf(eventHandler), 1);
+        this.gasEventListeners[1].splice(this.gasEventListeners.indexOf(eventHandler, 1));
     }
     this.notifyCharacteristic(this.gasCharacteristic, enable, this.gasEventListeners[0]);
 }
@@ -527,7 +534,7 @@ Thingy.prototype.colorEnable = function(eventHandler, enable) {
         this.colorEventListeners[0] = this.colorNotifyHandler.bind(this);
         this.colorEventListeners[1].push(eventHandler);
     } else {
-        this.colorEventListeners[1].splice(this.colorEventListeners.indexOf(eventHandler), 1);
+        this.colorEventListeners[1].splice(this.colorEventListeners.indexOf(eventHandler, 1));
     }
     this.notifyCharacteristic(this.colorCharacteristic, enable, this.colorEventListeners[0]);
 }
@@ -612,7 +619,7 @@ Thingy.prototype.ledSetConstant = function(r, g, b) {
 }
 
 Thingy.prototype.ledSetBreathe = function(color, intensity, delay) {
-    return this.ledSet(new Uint8Array([2, color, intensity, delay & 0xff, (delay >> 8) & 0xff]));
+    return this.ledSet(new Uint8Array([2, color, intensity, delay &amp; 0xff, (delay >> 8) &amp; 0xff]));
 }
 
 Thingy.prototype.ledSetOneShot = function(color, intensity) {
@@ -647,7 +654,7 @@ Thingy.prototype.externalPinsGet = function() {
 }
 
 Thingy.prototype.externalPinSet = function(pin, value) {
-    if(pin < 1 || pin > 4)
+    if(pin &lt; 1 || pin > 4)
         return Promise.reject(new Error("Pin number must be 1, 2, 3 or 4"))
     if(!(value == 0 || value == 255))
         return Promise.reject(new Error("Pin status value must be 0 or 255"))
@@ -656,7 +663,7 @@ Thingy.prototype.externalPinSet = function(pin, value) {
     return this.readData(this.externalPinCharacteristic)
     .then ( receivedData => {
         var dataArray = new Uint8Array(4);
-        for(var i = 0; i < dataArray.length; i++) {
+        for(var i = 0; i &lt; dataArray.length; i++) {
             dataArray[i] = receivedData.getUint8(i);
         }
         dataArray[pin - 1] = value;
@@ -672,268 +679,6 @@ Thingy.prototype.externalPinSet = function(pin, value) {
 
 
 /*  Motion service  */
-
-Thingy.prototype.tapEnable = function(eventHandler, enable) {
-    if(enable) {
-        this.tapEventListeners[0] = this.tapNotifyHandler.bind(this);
-        this.tapEventListeners[1].push(eventHandler);
-    } else {
-        this.tapEventListeners[1].splice(this.tapEventListeners.indexOf(eventHandler), 1);
-    }
-    this.notifyCharacteristic(this.tapCharacteristic, enable, this.tapEventListeners[0]);
-}
-
-Thingy.prototype.tapNotifyHandler = function(event) {
-    var data = event.target.value;
-	var direction = data.getUint8(0);
-	var count = data.getUint8(1);
-    
-    this.tapEventListeners[1].forEach( eventHandler => {
-        eventHandler( { 
-            tap: { 
-                direction: direction, 
-                count: count 
-            }
-        });
-    });
-}
-
-Thingy.prototype.orientationEnable = function(eventHandler, enable) {
-    if(enable) {
-        this.orientationEventListeners[0] = this.orientationNotifyHandler.bind(this);
-        this.orientationEventListeners[1].push(eventHandler);
-    } else {
-        this.orientationEventListeners[1].splice(this.orientationEventListeners.indexOf(eventHandler), 1);
-    }
-    this.notifyCharacteristic(this.orientationCharacteristic, enable, this.orientationEventListeners[0]);
-}
-
-Thingy.prototype.orientationNotifyHandler = function(event) {
-    var data = event.target.value;
-	var orientation = data.getUint8(0);
-    
-    this.orientationEventListeners[1].forEach( eventHandler => {
-        eventHandler( { 
-            orientation: orientation
-        });
-    });
-}
-
-Thingy.prototype.quaternionEnable = function(eventHandler, enable) {
-    if(enable) {
-        this.quaternionEventListeners[0] = this.quaternionNotifyHandler.bind(this);
-        this.quaternionEventListeners[1].push(eventHandler);
-    } else {
-        this.quaternionEventListeners[1].splice(this.quaternionEventListeners.indexOf(eventHandler), 1);
-    }
-    this.notifyCharacteristic(this.quaternionCharacteristic, enable, this.quaternionEventListeners[0]);
-}
-
-Thingy.prototype.quaternionNotifyHandler = function(event) {
-    var data = event.target.value;
-	var w = data.getUint32(0, true);
-	var x = data.getUint32(4, true);
-	var y = data.getUint32(8, true);
-	var z = data.getUint32(12, true);
-    
-    this.quaternionEventListeners[1].forEach( eventHandler => {
-        eventHandler( { 
-            quaternion: {
-                w: w,
-                x: x,
-                y: y,
-                z: z
-            }
-        });
-    });
-}
-
-Thingy.prototype.stepEnable = function(eventHandler, enable) {
-    if(enable) {
-        this.stepEventListeners[0] = this.stepNotifyHandler.bind(this);
-        this.stepEventListeners[1].push(eventHandler);
-    } else {
-        this.stepEventListeners[1].splice(this.stepEventListeners.indexOf(eventHandler), 1);
-    }
-    this.notifyCharacteristic(this.stepCharacteristic, enable, this.stepEventListeners[0]);
-}
-
-Thingy.prototype.stepNotifyHandler = function(event) {
-    var data = event.target.value;
-	var count = data.getUint32(0, true);
-	var time = data.getUint32(4, true);
-    
-    this.stepEventListeners[1].forEach( eventHandler => {
-        eventHandler( { 
-            steps: {
-                count: count,
-                time: {
-                    value: time,
-                    unit: "ms"
-                }
-            }
-        });
-    });
-}
-
-Thingy.prototype.rawEnable = function(eventHandler, enable) {
-    if(enable) {
-        this.rawEventListeners[0] = this.rawNotifyHandler.bind(this);
-        this.rawEventListeners[1].push(eventHandler);
-    } else {
-        this.rawEventListeners[1].splice(this.rawEventListeners.indexOf(eventHandler), 1);
-    }
-    this.notifyCharacteristic(this.rawCharacteristic, enable, this.rawEventListeners[0]);
-}
-
-Thingy.prototype.rawNotifyHandler = function(event) {
-    var data = event.target.value;
-	var accX = data.getInt16(0, true);
-	var accY = data.getInt16(2, true);
-	var accZ = data.getInt16(4, true);
-	var gyroX = data.getInt16(6, true);
-	var gyroY = data.getInt16(8, true);
-	var gyroZ = data.getInt16(10, true);
-	var compassX = data.getInt16(12, true);
-	var compassY = data.getInt16(14, true);
-	var compassZ = data.getInt16(16, true);
-    
-    this.rawEventListeners[1].forEach( eventHandler => {
-        eventHandler( { 
-            rawData: {
-                accelerometer: {
-                    x: accX,
-                    y: accY,
-                    z: accZ,
-                    unit: "G"
-                },
-                gyroscope: {
-                    x: gyroX,
-                    y: gyroY,
-                    z: gyroZ,
-                    unit: "deg/s"
-                },
-                compass: {
-                    x: compassX,
-                    y: compassY,
-                    z: compassZ,
-                    unit: "µT"
-                }
-            }
-        });
-    });
-}
-
-Thingy.prototype.eulerEnable = function(eventHandler, enable) {
-    if(enable) {
-        this.eulerEventListeners[0] = this.eulerNotifyHandler.bind(this);
-        this.eulerEventListeners[1].push(eventHandler);
-    } else {
-        this.eulerEventListeners[1].splice(this.eulerEventListeners.indexOf(eventHandler), 1);
-    }
-    this.notifyCharacteristic(this.eulerCharacteristic, enable, this.eulerEventListeners[0]);
-}
-
-Thingy.prototype.eulerNotifyHandler = function(event) {
-    var data = event.target.value;
-	var roll = data.getUint32(0, true);
-	var pitch = data.getUint32(4, true);
-	var yaw = data.getUint32(8, true);
-    
-    this.eulerEventListeners[1].forEach( eventHandler => {
-        eventHandler( { 
-            euler: {
-                roll: roll,
-                pitch: pitch,
-                yaw: yaw
-            }
-        });
-    });
-}
-
-Thingy.prototype.rotationMatrixEnable = function(eventHandler, enable) {
-    if(enable) {
-        this.rotationMatrixEventListeners[0] = this.rotationMatrixNotifyHandler.bind(this);
-        this.rotationMatrixEventListeners[1].push(eventHandler);
-    } else {
-        this.rotationMatrixEventListeners[1].splice(this.rotationMatrixEventListeners.indexOf(eventHandler), 1);
-    }
-    this.notifyCharacteristic(this.rotationMatrixCharacteristic, enable, this.rotationMatrixEventListeners[0]);
-}
-
-Thingy.prototype.rotationMatrixNotifyHandler = function(event) {
-    var data = event.target.value;
-	var r1c1 = data.getUint16(0, true);
-	var r1c2 = data.getUint16(0, true);
-	var r1c3 = data.getUint16(0, true);
-	var r2c1 = data.getUint16(0, true);
-	var r2c2 = data.getUint16(0, true);
-	var r2c3 = data.getUint16(0, true);
-	var r3c1 = data.getUint16(0, true);
-	var r3c2 = data.getUint16(0, true);
-	var r3c3 = data.getUint16(0, true);
-    
-    this.rotationMatrixEventListeners[1].forEach( eventHandler => {
-        eventHandler( { 
-            rotationMatrix: {
-                row1: [r1c1, r1c2, r1c3],
-                row2: [r2c1, r2c2, r2c3],
-                row3: [r3c1, r3c2, r3c3]
-            }
-        });
-    });
-}
-
-Thingy.prototype.headingEnable = function(eventHandler, enable) {
-    if(enable) {
-        this.headingEventListeners[0] = this.headingNotifyHandler.bind(this);
-        this.headingEventListeners[1].push(eventHandler);
-    } else {
-        this.headingEventListeners[1].splice(this.headingEventListeners.indexOf(eventHandler), 1);
-    }
-    this.notifyCharacteristic(this.headingCharacteristic, enable, this.headingEventListeners[0]);
-}
-
-Thingy.prototype.headingNotifyHandler = function(event) {
-    var data = event.target.value;
-	var heading = data.getUint32(0, true);
-    
-    this.headingEventListeners[1].forEach( eventHandler => {
-        eventHandler( { 
-            heading: {
-                value: heading,
-                unit: "degrees"
-            }
-        });
-    });
-}
-
-Thingy.prototype.gravityVectorEnable = function(eventHandler, enable) {
-    if(enable) {
-        this.gravityVectorEventListeners[0] = this.gravityVectorNotifyHandler.bind(this);
-        this.gravityVectorEventListeners[1].push(eventHandler);
-    } else {
-        this.gravityVectorEventListeners[1].splice(this.gravityVectorEventListeners.indexOf(eventHandler), 1);
-    }
-    this.notifyCharacteristic(this.gravityVectorCharacteristic, enable, this.gravityVectorEventListeners[0]);
-}
-
-Thingy.prototype.gravityVectorNotifyHandler = function(event) {
-    var data = event.target.value;
-	var x = data.getUint32(4, true).toFixed(3);
-	var y = data.getUint32(8, true).toFixed(3);
-	var z = data.getUint32(12, true).toFixed(3);
-    
-    this.gravityVectorEventListeners[1].forEach( eventHandler => {
-        eventHandler( { 
-            gravityVector: {
-                x: x,
-                y: y,
-                z: z
-            }
-        });
-    });
-}
 
 
 //  ******  //
@@ -954,3 +699,26 @@ Thingy.prototype.gravityVectorNotifyHandler = function(event) {
 
 
 
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#Thingy">Thingy</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Tue Oct 31 2017 19:55:39 GMT+0100 (CET)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
