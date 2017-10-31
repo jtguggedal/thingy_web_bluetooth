@@ -8,8 +8,10 @@
 
 /** 
  *  Thingy object
+ * 
  *  @constructor   
  *  @param [logEnabled = true] Enables logging of all BLE actions.
+ * 
 */
 function Thingy(logEnabled = true) {
     this.logEnabled = logEnabled;
@@ -122,7 +124,8 @@ function Thingy(logEnabled = true) {
      *  Any attempt to read while another GATT operation is in progress, will result in a rejected promise.
      * 
      *  @param {Object} characteristic - Web Bluetooth characteristic object
-     *  @return {Promise<Uint8Array|Error>} Returns Uint8Array when resolved or an error when rejected
+     *  @return {Promise<Uint8Array | Error>} Returns Uint8Array when resolved or an error when rejected
+     * 
      */
     this.readData = function(characteristic) {
         return new Promise(function(resolve, reject) {
@@ -142,6 +145,12 @@ function Thingy(logEnabled = true) {
     };
 }
 
+/**
+ *  Method to connect to Thingy
+ * 
+ *  @return {Promise<Error>} Returns promise with error on rejection
+ * 
+ */
 Thingy.prototype.connect = function() {
     if (this.logEnabled)
         console.log("Scanning for devices with service UUID " + this.TCS_UUID);
@@ -349,6 +358,13 @@ Thingy.prototype.connect = function() {
         });
 };
 
+/**
+ *  Method to disconnect from Thingy
+ * 
+ *  @return {Promise<Error>} Returns promise with error on rejection
+ * 
+ */
+
 Thingy.prototype.disconnect = function() {
     return new Promise((resolve, reject) => {
         this.device.gatt.disconnect();
@@ -360,6 +376,7 @@ Thingy.prototype.disconnect = function() {
         }
     });
 };
+
 
 Thingy.prototype.notifyCharacteristic = function(characteristic, enable, notifyHandler) {
     if(enable) {
