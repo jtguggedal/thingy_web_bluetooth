@@ -62,8 +62,8 @@ function Thingy(logEnabled = true) {
     this.TSS_MIC_UUID          = 'ef680504-9b35-4933-9b10-52ffa9740042';
 
     this.serviceUUIDs = [
-        this.TES_UUID,
         this.TCS_UUID,
+        this.TES_UUID,
         this.TUIS_UUID,
         this.TMS_UUID,
         this.TSS_UUID
@@ -78,8 +78,9 @@ function Thingy(logEnabled = true) {
     this.buttonEventListeners = [,[]];
     this.tapEventListeners = [,[]];
     this.orientationEventListeners = [,[]];
-    this.quaterionEventListeners = [,[]];
-    this.rawEventListeners = [,[]];
+    this.quaternionEventListeners = [,[]];
+    this.stepEventListeners = [,[]];
+    this.motionRawEventListeners = [,[]];
     this.eulerEventListeners = [,[]];
     this.rotationMatrixEventListeners = [,[]];
     this.headingEventListeners = [,[]];
@@ -158,7 +159,7 @@ Thingy.prototype.connect = function() {
             filters: [{
                 services: [this.TCS_UUID]
             }],
-            optionalServices: this.services
+            optionalServices: this.serviceUUIDs
         })
         .then(d => {
             this.device = d;
@@ -748,10 +749,21 @@ Thingy.prototype.quaternionEnable = function(eventHandler, enable) {
 
 Thingy.prototype.quaternionNotifyHandler = function(event) {
     var data = event.target.value;
-	var w = data.getUint32(0, true);
-	var x = data.getUint32(4, true);
-	var y = data.getUint32(8, true);
-	var z = data.getUint32(12, true);
+
+    // Divide by (1 << 30) according to sensor specification
+	var w = data.getInt32(0, true) / (1 << 30);
+	var x = data.getInt32(4, true) / (1 << 30);
+	var y = data.getInt32(8, true) / (1 << 30);
+    var z = data.getInt32(12, true) / (1 << 30);
+    
+    var magnitude = Math.sqrt(Math.pow(w, 2) + Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
+
+    if(magnitude != 0){
+        w /= magnitude;
+        x /= magnitude;
+        y /= magnitude;
+        z /= magnitude;
+    }
     
     this.quaternionEventListeners[1].forEach( eventHandler => {
         eventHandler( { 
@@ -793,29 +805,35 @@ Thingy.prototype.stepNotifyHandler = function(event) {
     });
 }
 
-Thingy.prototype.rawEnable = function(eventHandler, enable) {
+Thingy.prototype.motionRawEnable = function(eventHandler, enable) {
     if(enable) {
-        this.rawEventListeners[0] = this.rawNotifyHandler.bind(this);
-        this.rawEventListeners[1].push(eventHandler);
+        this.motionRawEventListeners[0] = this.motionRawNotifyHandler.bind(this);
+        this.motionRawEventListeners[1].push(eventHandler);
     } else {
-        this.rawEventListeners[1].splice(this.rawEventListeners.indexOf(eventHandler), 1);
+        this.motionRawEventListeners[1].splice(this.motionRawEventListeners.indexOf(eventHandler), 1);
     }
-    this.notifyCharacteristic(this.rawCharacteristic, enable, this.rawEventListeners[0]);
+    this.notifyCharacteristic(this.motionRawCharacteristic, enable, this.motionRawEventListeners[0]);
 }
 
-Thingy.prototype.rawNotifyHandler = function(event) {
-    var data = event.target.value;
-	var accX = data.getInt16(0, true);
-	var accY = data.getInt16(2, true);
-	var accZ = data.getInt16(4, true);
-	var gyroX = data.getInt16(6, true);
-	var gyroY = data.getInt16(8, true);
-	var gyroZ = data.getInt16(10, true);
-	var compassX = data.getInt16(12, true);
-	var compassY = data.getInt16(14, true);
-	var compassZ = data.getInt16(16, true);
+Thingy.prototype.motionRawNotifyHandler = function(event) {
+    var data        = event.target.value;
+
+    // Divide by 2^6 = 64 to get accelerometer correct values
+	var accX        = (data.getInt16(0, true) / 64);
+	var accY        = (data.getInt16(2, true) / 64);
+    var accZ        = (data.getInt16(4, true) / 64);
     
-    this.rawEventListeners[1].forEach( eventHandler => {
+    // Divide by 2^11 = 2048 to get correct gyroscope values
+	var gyroX       = (data.getInt16(6, true) / 2048);
+	var gyroY       = (data.getInt16(8, true) / 2048);
+    var gyroZ       = (data.getInt16(10, true) / 2048);
+    
+    // Divide by 2^12 = 4096 to get correct compass values
+	var compassX    = (data.getInt16(12, true) / 4096);
+	var compassY    = (data.getInt16(14, true) / 4096);
+	var compassZ    = (data.getInt16(16, true) / 4096);
+    
+    this.motionRawEventListeners[1].forEach( eventHandler => {
         eventHandler( { 
             rawData: {
                 accelerometer: {
@@ -834,7 +852,7 @@ Thingy.prototype.rawNotifyHandler = function(event) {
                     x: compassX,
                     y: compassY,
                     z: compassZ,
-                    unit: "µT"
+                    unit: "microTesla"
                 }
             }
         });
@@ -853,9 +871,11 @@ Thingy.prototype.eulerEnable = function(eventHandler, enable) {
 
 Thingy.prototype.eulerNotifyHandler = function(event) {
     var data = event.target.value;
-	var roll = data.getUint32(0, true);
-	var pitch = data.getUint32(4, true);
-	var yaw = data.getUint32(8, true);
+
+    // Divide by two bytes (1<<16 or 2^16 or 65536) to get correct value
+	var roll    = data.getInt32(0, true) / 65536;
+	var pitch   = data.getInt32(4, true) / 65536;
+	var yaw     = data.getInt32(8, true) / 65536;
     
     this.eulerEventListeners[1].forEach( eventHandler => {
         eventHandler( { 
@@ -880,15 +900,17 @@ Thingy.prototype.rotationMatrixEnable = function(eventHandler, enable) {
 
 Thingy.prototype.rotationMatrixNotifyHandler = function(event) {
     var data = event.target.value;
-	var r1c1 = data.getUint16(0, true);
-	var r1c2 = data.getUint16(0, true);
-	var r1c3 = data.getUint16(0, true);
-	var r2c1 = data.getUint16(0, true);
-	var r2c2 = data.getUint16(0, true);
-	var r2c3 = data.getUint16(0, true);
-	var r3c1 = data.getUint16(0, true);
-	var r3c2 = data.getUint16(0, true);
-	var r3c3 = data.getUint16(0, true);
+
+    // Divide by 2^2 = 4 to get correct values
+	var r1c1 = data.getInt16(0, true) / 4;
+	var r1c2 = data.getInt16(0, true) / 4;
+	var r1c3 = data.getInt16(0, true) / 4;
+	var r2c1 = data.getInt16(0, true) / 4;
+	var r2c2 = data.getInt16(0, true) / 4;
+	var r2c3 = data.getInt16(0, true) / 4;
+	var r3c1 = data.getInt16(0, true) / 4;
+	var r3c2 = data.getInt16(0, true) / 4;
+	var r3c3 = data.getInt16(0, true) / 4;
     
     this.rotationMatrixEventListeners[1].forEach( eventHandler => {
         eventHandler( { 
@@ -913,7 +935,9 @@ Thingy.prototype.headingEnable = function(eventHandler, enable) {
 
 Thingy.prototype.headingNotifyHandler = function(event) {
     var data = event.target.value;
-	var heading = data.getUint32(0, true);
+
+    // Divide by 2^16 = 65536 to get correct heading values
+	var heading = data.getInt32(0, true) / 65536;
     
     this.headingEventListeners[1].forEach( eventHandler => {
         eventHandler( { 
@@ -937,9 +961,9 @@ Thingy.prototype.gravityVectorEnable = function(eventHandler, enable) {
 
 Thingy.prototype.gravityVectorNotifyHandler = function(event) {
     var data = event.target.value;
-	var x = data.getUint32(4, true).toFixed(3);
-	var y = data.getUint32(8, true).toFixed(3);
-	var z = data.getUint32(12, true).toFixed(3);
+	var x = data.getFloat32(0, true);
+	var y = data.getFloat32(4, true);
+	var z = data.getFloat32(8, true);
     
     this.gravityVectorEventListeners[1].forEach( eventHandler => {
         eventHandler( { 
