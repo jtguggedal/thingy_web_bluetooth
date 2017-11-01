@@ -1191,7 +1191,7 @@ The function stores all discovered services and characteristics to the Thingy ob
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>colorSensorSet(r, g, b)</span>
+            <span class='code strong strong truncate'>colorSensorSet(red, green, blue)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -1202,7 +1202,7 @@ The function stores all discovered services and characteristics to the Thingy ob
   <p>Sets color sensor LED calibration parameters.</p>
 
 
-  <div class='pre p1 fill-light mt0'>colorSensorSet(r: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>, g: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>, b: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>): <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>></div>
+  <div class='pre p1 fill-light mt0'>colorSensorSet(red: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>, green: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>, blue: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>): <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>></div>
   
   
 
@@ -1219,7 +1219,7 @@ The function stores all discovered services and characteristics to the Thingy ob
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>r</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>)</code>
+            <span class='code bold'>red</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>)</code>
 	    The red intensity, ranging from 0 to 255.
 
           </div>
@@ -1228,7 +1228,7 @@ The function stores all discovered services and characteristics to the Thingy ob
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>g</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>)</code>
+            <span class='code bold'>green</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>)</code>
 	    The green intensity, ranging from 0 to 255.
 
           </div>
@@ -1237,7 +1237,7 @@ The function stores all discovered services and characteristics to the Thingy ob
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>b</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>)</code>
+            <span class='code bold'>blue</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>)</code>
 	    The blue intensity, ranging from 0 to 255.
 
           </div>
@@ -1716,7 +1716,7 @@ The function stores all discovered services and characteristics to the Thingy ob
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
             <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>ledSetConstant(r, g, b)</span>
+            <span class='code strong strong truncate'>ledSetConstant(red, green, blue)</span>
         </div>
       </div>
       <div class="clearfix display-none toggle-target">
@@ -1727,7 +1727,7 @@ The function stores all discovered services and characteristics to the Thingy ob
   <p>Sets the LED in constant mode with the specified RGB color.</p>
 
 
-  <div class='pre p1 fill-light mt0'>ledSetConstant(r: any, g: any, b: any): <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>></div>
+  <div class='pre p1 fill-light mt0'>ledSetConstant(red: any, green: any, blue: any): <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">Promise</a>&#x3C;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error">Error</a>></div>
   
   
 
@@ -1744,7 +1744,7 @@ The function stores all discovered services and characteristics to the Thingy ob
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>r</span> <code class='quiet'>(any)</code>
+            <span class='code bold'>red</span> <code class='quiet'>(any)</code>
 	    The value for red color in an RGB color. Ranges from 0 to 255.
 
           </div>
@@ -1753,7 +1753,7 @@ The function stores all discovered services and characteristics to the Thingy ob
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>g</span> <code class='quiet'>(any)</code>
+            <span class='code bold'>green</span> <code class='quiet'>(any)</code>
 	    The value for green color in an RGB color. Ranges from 0 to 255.
 
           </div>
@@ -1762,7 +1762,7 @@ The function stores all discovered services and characteristics to the Thingy ob
       
         <div class='space-bottom0'>
           <div>
-            <span class='code bold'>b</span> <code class='quiet'>(any)</code>
+            <span class='code bold'>blue</span> <code class='quiet'>(any)</code>
 	    The value for blue color in an RGB color. Ranges from 0 to 255.
 
           </div>

@@ -605,9 +605,9 @@ Thingy.prototype.gasModeSet = function(mode) {
 /**
  *  Sets color sensor LED calibration parameters. 
  * 
- *  @param {Number} r - The red intensity, ranging from 0 to 255.
- *  @param {Number} g - The green intensity, ranging from 0 to 255.
- *  @param {Number} b - The blue intensity, ranging from 0 to 255.
+ *  @param {Number} red - The red intensity, ranging from 0 to 255.
+ *  @param {Number} green - The green intensity, ranging from 0 to 255.
+ *  @param {Number} blue - The blue intensity, ranging from 0 to 255.
  *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
  * 
  */
@@ -871,9 +871,9 @@ Thingy.prototype.ledSet = function(dataArray) {
 /**
  *  Sets the LED in constant mode with the specified RGB color.
  * 
- *  @param r - The value for red color in an RGB color. Ranges from 0 to 255. 
- *  @param g - The value for green color in an RGB color. Ranges from 0 to 255. 
- *  @param b - The value for blue color in an RGB color. Ranges from 0 to 255. 
+ *  @param red - The value for red color in an RGB color. Ranges from 0 to 255. 
+ *  @param green - The value for green color in an RGB color. Ranges from 0 to 255. 
+ *  @param blue - The value for blue color in an RGB color. Ranges from 0 to 255. 
  *  @return {Promise<Error>} Returns a resolved promise or an error in a rejected promise.
  * 
  */
