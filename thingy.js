@@ -1,16 +1,12 @@
 
-/**
- *  Thingy:52 Web Bluetooth API 
- *  
- *  Thingy:52 BLE service details {@link https://nordicsemiconductor.github.io/Nordic-Thingy52-FW/documentation/firmware_architecture.html#fw_arch_ble_services here}
- * 
- */
 
 /** 
- *  Thingy object
+ *  Thingy:52 Web Bluetooth API. <br> 
+ *  BLE service details {@link https://nordicsemiconductor.github.io/Nordic-Thingy52-FW/documentation/firmware_architecture.html#fw_arch_ble_services here}
+ * 
  * 
  *  @constructor   
- *  @param [logEnabled = true] Enables logging of all BLE actions.
+ *  @param {bool} [logEnabled = true] Enables logging of all BLE actions.
  * 
 */
 function Thingy(logEnabled = true) {
