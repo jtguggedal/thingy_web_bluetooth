@@ -804,13 +804,13 @@ Thingy.prototype.externalPinSet = function(pin, value) {
  * 
  */
 Thingy.prototype.motionConfigGet = function() {
-    return this.readData(tmsConfigCharacteristic)
+    return this.readData(this.tmsConfigCharacteristic)
     .then( data => {
-        var stepCounterInterval                 = data.getUint16(0);
-        var tempCompInterval                    = data.getUint16(2);
-        var magnetCompInterval                  = data.getUint16(4);
-        var motionProcessingFrequency           = data.getUint16(6);
-        var wakeOnMotion                        = data.getUint8(8);
+        var stepCounterInterval                 = data.getUint16(0, true);
+        var tempCompInterval                    = data.getUint16(2, true);
+        var magnetCompInterval                  = data.getUint16(4, true);
+        var motionProcessingFrequency           = data.getUint16(6, true);
+        var wakeOnMotion                        = data.getUint8(8, true);
         var config = {
             stepCountInterval : stepCounterInterval,
             tempCompInterval: tempCompInterval,
@@ -832,7 +832,7 @@ Thingy.prototype.motionConfigGet = function() {
  *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
  * 
  */
-Thingy.prototype.setStepCounterInterval = function(interval) {
+Thingy.prototype.stepCounterIntervalSet = function(interval) {
 
     // Preserve values for those settings that are not being changed 
     return this.readData(this.tmsConfigCharacteristic)
@@ -857,7 +857,7 @@ Thingy.prototype.setStepCounterInterval = function(interval) {
  *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
  * 
  */
-Thingy.prototype.setTempCompInterval = function(interval) {
+Thingy.prototype.tempCompIntervalSet = function(interval) {
     
     // Preserve values for those settings that are not being changed 
     return this.readData(this.tmsConfigCharacteristic)
@@ -882,7 +882,7 @@ Thingy.prototype.setTempCompInterval = function(interval) {
  *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
  * 
  */
-Thingy.prototype.setMagnetCompInterval = function(interval) {
+Thingy.prototype.magnetCompIntervalSet = function(interval) {
     
     // Preserve values for those settings that are not being changed 
     return this.readData(this.tmsConfigCharacteristic)
@@ -907,7 +907,7 @@ Thingy.prototype.setMagnetCompInterval = function(interval) {
  *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
  * 
  */
-Thingy.prototype.setMotionProcessingFrequency = function(frequency) {
+Thingy.prototype.motionProcessingFrequencySet = function(frequency) {
     
     // Preserve values for those settings that are not being changed 
     return this.readData(this.tmsConfigCharacteristic)
@@ -932,7 +932,7 @@ Thingy.prototype.setMotionProcessingFrequency = function(frequency) {
  *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
  * 
  */
-Thingy.prototype.setWakeOnMotion = function(enable) {
+Thingy.prototype.wakeOnMotionSet = function(enable) {
     
     // Preserve values for those settings that are not being changed 
     return this.readData(this.tmsConfigCharacteristic)
