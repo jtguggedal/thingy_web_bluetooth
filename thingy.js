@@ -58,6 +58,7 @@ function Thingy(logEnabled = true) {
     this.TSS_MIC_UUID           = 'ef680504-9b35-4933-9b10-52ffa9740042';
 
     this.serviceUUIDs = [
+        'battery_service',
         this.TCS_UUID,
         this.TES_UUID,
         this.TUIS_UUID,
@@ -66,6 +67,7 @@ function Thingy(logEnabled = true) {
     ];
     
     this.device = device;
+    this.batteryLevelEventListeners     = [,[]];
     this.tempEventListeners             = [,[]];
     this.pressureEventListeners         = [,[]];
     this.humidityEventListeners         = [,[]];
@@ -171,8 +173,17 @@ Thingy.prototype.connect = function() {
                 console.log("Connected to \"" + this.device.name + "\"");
 
             return Promise.all([
+                server.getPrimaryService('battery_service')
+                .then( service => {
+                    service.getCharacteristic('battery_level')
+                    .then( characteristic => { 
+                        this.batteryCharacteristic = characteristic 
+                        if(this.logEnabled)
+                            console.log("Discovered battery service and battery level characteristic");
+                    })
+                }),
                 server.getPrimaryService(this.TCS_UUID)
-                .then(service =>  {
+                .then( service =>  {
                     this.configurationService = service;
                     Promise.all([
                         service.getCharacteristic(this.TCS_NAME_UUID)
@@ -211,7 +222,7 @@ Thingy.prototype.connect = function() {
                         console.log("Discovered Thingy configuration service and its characteristics");
                 }),
                 server.getPrimaryService(this.TES_UUID)
-                .then(service => {
+                .then( service => {
                     this.environmentService = service;
                     Promise.all([
                         service.getCharacteristic(this.TES_TEMP_UUID)
@@ -246,7 +257,7 @@ Thingy.prototype.connect = function() {
                         console.log("Discovered Thingy environment service and its characteristics");
                 }),
                 server.getPrimaryService(this.TUIS_UUID)
-                .then(service => {
+                .then( service => {
                     this.userInterfaceService = service;
                     Promise.all([
                         service.getCharacteristic(this.TUIS_BTN_UUID)
@@ -269,7 +280,7 @@ Thingy.prototype.connect = function() {
                         console.log("Discovered Thingy user interface service and its characteristics");
                 }),
                 server.getPrimaryService(this.TMS_UUID)
-                .then(service => {
+                .then( service => {
                     this.motionService = service;
                     Promise.all([
                         service.getCharacteristic(this.TMS_CONFIG_UUID)
@@ -320,7 +331,7 @@ Thingy.prototype.connect = function() {
                         console.log("Discovered Thingy motion service and its characteristics");
                 }),
                 server.getPrimaryService(this.TSS_UUID)
-                .then(service => {
+                .then( service => {
                     this.soundService = service;
                     Promise.all([
                         service.getCharacteristic(this.TSS_CONFIG_UUID)
@@ -1505,6 +1516,59 @@ Thingy.prototype.gravityVectorNotifyHandler = function(event) {
 
 /*  Battery service  */
 
+/**
+ *  Gets the battery level of Thingy.
+ * 
+ *  @return {Promise<number | Error>} Returns battery level in percentage when promise is resolved or an error if rejected.
+ * 
+ */
+Thingy.prototype.batteryLevelGet = function() {
+    return this.readData(this.batteryCharacteristic)
+    .then( receivedData => {
+        var level = receivedData.getUint8(0);
+        return Promise.resolve({ 
+            batteryLevel: {
+                value: level,
+                unit: "%"
+            }
+        });
+    })
+    .catch( error => {
+        return Promise.reject(error);
+    })
+}
+
+/**
+ *  Enables battery level notifications. 
+ * 
+ *  @param {function} eventHandler - The callback function that is triggered on battery level change. Will receive a battery level object as argument.
+ *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection 
+ * 
+ */
+Thingy.prototype.batteryLevelEnable = function(eventHandler, enable) {
+    if(enable) {
+        this.batteryLevelEventListeners[0] = this.batteryLevelNotifyHandler.bind(this);
+        this.batteryLevelEventListeners[1].push(eventHandler);
+    } else {
+        this.batteryLevelEventListeners[1].splice(this.batteryLevelEventListeners.indexOf(eventHandler), 1);
+    }
+    return this.notifyCharacteristic(this.batteryCharacteristic, enable, this.batteryLevelEventListeners[0]);
+}
+
+Thingy.prototype.batteryLevelNotifyHandler = function(event) {
+    var data = event.target.value;
+	var value = data.getUint8(0);
+    
+    this.batteryLevelEventListeners[1].forEach( eventHandler => {
+        eventHandler( { 
+            batteryLevel: {
+                value: value,
+                unit: "%"
+            }
+        });
+    });
+}
 
 //  ******  //
 
