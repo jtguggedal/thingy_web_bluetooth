@@ -611,7 +611,7 @@ Thingy.prototype.gasModeSet = function(mode) {
  *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
  * 
  */
-Thingy.prototype.colorSensorSet = function(r, g, b) {
+Thingy.prototype.colorSensorSet = function(red, green, blue) {
     
     // Preserve values for those settings that are not being changed 
     return this.readData(this.environmentConfigCharacteristic)
@@ -620,9 +620,9 @@ Thingy.prototype.colorSensorSet = function(r, g, b) {
         for(var i = 0; i < dataArray.length; i++) {
             dataArray[i] = receivedData.getUint8(i);
         }
-        dataArray[9] = r;
-        dataArray[10] = g;
-        dataArray[11] = b;
+        dataArray[9]    = red;
+        dataArray[10]   = green;
+        dataArray[11]   = blue;
         return this.writeData(this.environmentConfigCharacteristic, dataArray);
     })
     .catch( error => {
@@ -877,8 +877,8 @@ Thingy.prototype.ledSet = function(dataArray) {
  *  @return {Promise<Error>} Returns a resolved promise or an error in a rejected promise.
  * 
  */
-Thingy.prototype.ledSetConstant = function(r, g, b) {
-    return this.ledSet(new Uint8Array([1, r, g, b]));
+Thingy.prototype.ledSetConstant = function(red, green, blue) {
+    return this.ledSet(new Uint8Array([1, red, green, blue]));
 }
 
 /**
