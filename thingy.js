@@ -444,6 +444,191 @@ Thingy.prototype.nameSet = function(name) {
 
 /*  Environment service  */
 
+/**
+ *  Gets the current configuration of the Thingy environment module.
+ * 
+ *  @return {Promise<Object|Error>} Returns an environment configuration object when promise resolves, or an error if rejected.
+ * 
+ */
+Thingy.prototype.environmentConfigGet = function() {
+    return this.readData(this.environmentConfigCharacteristic)
+    .then( data => {
+        var tempInterval                = data.getUint16(0, true);
+        var pressureInterval            = data.getUint16(2, true);
+        var humidityInterval            = data.getUint16(4, true);
+        var colorInterval               = data.getUint16(6, true);
+        var gasMode                     = data.getUint8(8);
+        var colorSensorRed              = data.getUint8(9);
+        var colorSensorGreen            = data.getUint8(10);
+        var colorSensorBlue             = data.getUint8(11);
+        var config = {
+            tempInterval : tempInterval,
+            pressureInterval: pressureInterval,
+            humidityInterval: humidityInterval,
+            colorInterval: colorInterval,
+            gasMode: gasMode,
+            colorSensorRed: colorSensorRed,
+            colorSensorGreen: colorSensorGreen,
+            colorSensorBlue: colorSensorBlue
+        }
+        return Promise.resolve({ config: config });
+    })
+    .catch( error => {
+        return Promise.reject(new Error("Error when getting Thingy LED status: " + error));
+    });
+}
+
+/**
+ *  Sets the temperature measurement update interval.
+ * 
+ *  @param {Number} interval - Step counter interval in milliseconds. Must be in the range 100 ms to 60 000 ms. 
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
+ * 
+ */
+Thingy.prototype.tempIntervalSet = function(interval) {
+
+    // Preserve values for those settings that are not being changed 
+    return this.readData(this.environmentConfigCharacteristic)
+    .then ( receivedData => {
+        var dataArray = new Uint8Array(9);
+        for(var i = 0; i < dataArray.length; i++) {
+            dataArray[i] = receivedData.getUint8(i);
+        }
+        dataArray[0] = interval & 0xFF;
+        dataArray[1] = (interval >> 8) & 0xFF;
+        return this.writeData(this.environmentConfigCharacteristic, dataArray);
+    })
+    .catch( error => {
+        return Promise.reject(new Error("Error when setting new temperature update interval: " + error));
+    })
+}
+
+/**
+ *  Sets the pressure measurement update interval.
+ * 
+ *  @param {Number} interval - Step counter interval in milliseconds. Must be in the range 50 ms to 60 000 ms. 
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
+ * 
+ */
+Thingy.prototype.pressureIntervalSet = function(interval) {
+    
+    // Preserve values for those settings that are not being changed 
+    return this.readData(this.environmentConfigCharacteristic)
+    .then ( receivedData => {
+        var dataArray = new Uint8Array(9);
+        for(var i = 0; i < dataArray.length; i++) {
+            dataArray[i] = receivedData.getUint8(i);
+        }
+        dataArray[2] = interval & 0xFF;
+        dataArray[3] = (interval >> 8) & 0xFF;
+        return this.writeData(this.environmentConfigCharacteristic, dataArray);
+    })
+    .catch( error => {
+        return Promise.reject(new Error("Error when setting new pressure update interval: " + error));
+    })
+}
+
+/**
+ *  Sets the humidity measurement update interval.
+ * 
+ *  @param {Number} interval - Step counter interval in milliseconds. Must be in the range 100 ms to 60 000 ms. 
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
+ * 
+ */
+Thingy.prototype.humidityIntervalSet = function(interval) {
+    
+    // Preserve values for those settings that are not being changed 
+    return this.readData(this.environmentConfigCharacteristic)
+    .then ( receivedData => {
+        var dataArray = new Uint8Array(9);
+        for(var i = 0; i < dataArray.length; i++) {
+            dataArray[i] = receivedData.getUint8(i);
+        }
+        dataArray[4] = interval & 0xFF;
+        dataArray[5] = (interval >> 8) & 0xFF;
+        return this.writeData(this.environmentConfigCharacteristic, dataArray);
+    })
+    .catch( error => {
+        return Promise.reject(new Error("Error when setting new humidity update interval: " + error));
+    })
+}
+
+/**
+ *  Sets the color sensor update interval.
+ * 
+ *  @param {Number} interval - Step counter interval in milliseconds. Must be in the range 200 ms to 60 000 ms. 
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
+ * 
+ */
+Thingy.prototype.colorIntervalSet = function(interval) {
+    
+    // Preserve values for those settings that are not being changed 
+    return this.readData(this.environmentConfigCharacteristic)
+    .then ( receivedData => {
+        var dataArray = new Uint8Array(9);
+        for(var i = 0; i < dataArray.length; i++) {
+            dataArray[i] = receivedData.getUint8(i);
+        }
+        dataArray[6] = interval & 0xFF;
+        dataArray[7] = (interval >> 8) & 0xFF;
+        return this.writeData(this.environmentConfigCharacteristic, dataArray);
+    })
+    .catch( error => {
+        return Promise.reject(new Error("Error when setting new color sensor update interval: " + error));
+    })
+}
+
+/**
+ *  Sets the gas mode. 
+ * 
+ *  @param {Number} mode - 1 = 1 s update interval, 2 = 10 s update interval, 3 = 60 s update interval.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
+ * 
+ */
+Thingy.prototype.gasModeSet = function(mode) {
+    
+    // Preserve values for those settings that are not being changed 
+    return this.readData(this.environmentConfigCharacteristic)
+    .then ( receivedData => {
+        var dataArray = new Uint8Array(9);
+        for(var i = 0; i < dataArray.length; i++) {
+            dataArray[i] = receivedData.getUint8(i);
+        }
+        dataArray[8] = mode;
+        return this.writeData(this.environmentConfigCharacteristic, dataArray);
+    })
+    .catch( error => {
+        return Promise.reject(new Error("Error when setting new as mode: " + error));
+    })
+}
+
+/**
+ *  Sets color sensor LED calibration parameters. 
+ * 
+ *  @param {Number} r - The red intensity, ranging from 0 to 255.
+ *  @param {Number} g - The green intensity, ranging from 0 to 255.
+ *  @param {Number} b - The blue intensity, ranging from 0 to 255.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
+ * 
+ */
+Thingy.prototype.colorSensorSet = function(r, g, b) {
+    
+    // Preserve values for those settings that are not being changed 
+    return this.readData(this.environmentConfigCharacteristic)
+    .then ( receivedData => {
+        var dataArray = new Uint8Array(9);
+        for(var i = 0; i < dataArray.length; i++) {
+            dataArray[i] = receivedData.getUint8(i);
+        }
+        dataArray[9] = mode;
+        dataArray[10] = mode;
+        dataArray[11] = mode;
+        return this.writeData(this.environmentConfigCharacteristic, dataArray);
+    })
+    .catch( error => {
+        return Promise.reject(new Error("Error when setting new color sensor parameters: " + error));
+    })
+}
 
 /**
  *  Enables temperature notifications from Thingy. The assigned event handler will be called when notifications are received.
@@ -821,7 +1006,7 @@ Thingy.prototype.motionConfigGet = function() {
         return Promise.resolve({ config: config });
     })
     .catch( error => {
-        return Promise.reject(new Error("Error when getting Thingy LED status: " + error));
+        return Promise.reject(new Error("Error when getting Thingy motion module configuration: " + error));
     });
 }
 
