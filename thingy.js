@@ -13,23 +13,23 @@ function Thingy(logEnabled = true) {
     this.logEnabled = logEnabled;
 
     // TCS = Thingy Configuration Service
-    this.TCS_UUID              = 'ef680100-9b35-4933-9b10-52ffa9740042';
-    this.TCS_NAME_UUID         = 'ef680101-9b35-4933-9b10-52ffa9740042';
-    this.TCS_ADV_PARAMS_UUID   = 'ef680102-9b35-4933-9b10-52ffa9740042';
-    this.TCS_CONN_PARAMS_UUID  = 'ef680104-9b35-4933-9b10-52ffa9740042';
-    this.TCS_EDDYSTONE_UUID    = 'ef680105-9b35-4933-9b10-52ffa9740042';
-    this.TCS_CLOUD_TOKEN_UUID  = 'ef680106-9b35-4933-9b10-52ffa9740042';
-    this.TCS_FW_VER_UUID       = 'ef680107-9b35-4933-9b10-52ffa9740042';
-    this.TCS_MTU_REQUEST_UUID  = 'ef680108-9b35-4933-9b10-52ffa9740042';
+    this.TCS_UUID               = 'ef680100-9b35-4933-9b10-52ffa9740042';
+    this.TCS_NAME_UUID          = 'ef680101-9b35-4933-9b10-52ffa9740042';
+    this.TCS_ADV_PARAMS_UUID    = 'ef680102-9b35-4933-9b10-52ffa9740042';
+    this.TCS_CONN_PARAMS_UUID   = 'ef680104-9b35-4933-9b10-52ffa9740042';
+    this.TCS_EDDYSTONE_UUID     = 'ef680105-9b35-4933-9b10-52ffa9740042';
+    this.TCS_CLOUD_TOKEN_UUID   = 'ef680106-9b35-4933-9b10-52ffa9740042';
+    this.TCS_FW_VER_UUID        = 'ef680107-9b35-4933-9b10-52ffa9740042';
+    this.TCS_MTU_REQUEST_UUID   = 'ef680108-9b35-4933-9b10-52ffa9740042';
 
     // TES = Thingy Environment Service
-    this.TES_UUID              = 'ef680200-9b35-4933-9b10-52ffa9740042';
-    this.TES_TEMP_UUID         = 'ef680201-9b35-4933-9b10-52ffa9740042';
-    this.TES_PRESSURE_UUID     = 'ef680202-9b35-4933-9b10-52ffa9740042';
+    this.TES_UUID               = 'ef680200-9b35-4933-9b10-52ffa9740042';
+    this.TES_TEMP_UUID          = 'ef680201-9b35-4933-9b10-52ffa9740042';
+    this.TES_PRESSURE_UUID      = 'ef680202-9b35-4933-9b10-52ffa9740042';
     this.TES_HUMIDITY_UUID      = 'ef680203-9b35-4933-9b10-52ffa9740042';
-    this.TES_GAS_UUID          = 'ef680204-9b35-4933-9b10-52ffa9740042';
-    this.TES_COLOR_UUID        = 'ef680205-9b35-4933-9b10-52ffa9740042';
-    this.TES_CONFIG_UUID       = 'ef680206-9b35-4933-9b10-52ffa9740042';
+    this.TES_GAS_UUID           = 'ef680204-9b35-4933-9b10-52ffa9740042';
+    this.TES_COLOR_UUID         = 'ef680205-9b35-4933-9b10-52ffa9740042';
+    this.TES_CONFIG_UUID        = 'ef680206-9b35-4933-9b10-52ffa9740042';
 
     // TUIS = Thingy User Interface Service
     this.TUIS_UUID              = 'ef680300-9b35-4933-9b10-52ffa9740042';
@@ -38,24 +38,24 @@ function Thingy(logEnabled = true) {
     this.TUIS_PIN_UUID          = 'ef680303-9b35-4933-9b10-52ffa9740042';
 
     // TMS = Thingy Motion Service
-    this.TMS_UUID              = 'ef680400-9b35-4933-9b10-52ffa9740042';
-    this.TMS_CONFIG_UUID       = 'ef680401-9b35-4933-9b10-52ffa9740042';
-    this.TMS_TAP_UUID          = 'ef680402-9b35-4933-9b10-52ffa9740042';
-    this.TMS_ORIENTATION_UUID  = 'ef680403-9b35-4933-9b10-52ffa9740042';
-    this.TMS_QUATERNION_UUID   = 'ef680404-9b35-4933-9b10-52ffa9740042';
-    this.TMS_STEP_UUID         = 'ef680405-9b35-4933-9b10-52ffa9740042';
-    this.TMS_RAW_UUID          = 'ef680406-9b35-4933-9b10-52ffa9740042';
-    this.TMS_EULER_UUID        = 'ef680407-9b35-4933-9b10-52ffa9740042';
-    this.TMS_ROT_MATRIX_UUID   = 'ef680408-9b35-4933-9b10-52ffa9740042';
-    this.TMS_HEADING_UUID      = 'ef680409-9b35-4933-9b10-52ffa9740042';
-    this.TMS_gravityVector_UUID      = 'ef68040a-9b35-4933-9b10-52ffa9740042';
+    this.TMS_UUID               = 'ef680400-9b35-4933-9b10-52ffa9740042';
+    this.TMS_CONFIG_UUID        = 'ef680401-9b35-4933-9b10-52ffa9740042';
+    this.TMS_TAP_UUID           = 'ef680402-9b35-4933-9b10-52ffa9740042';
+    this.TMS_ORIENTATION_UUID   = 'ef680403-9b35-4933-9b10-52ffa9740042';
+    this.TMS_QUATERNION_UUID    = 'ef680404-9b35-4933-9b10-52ffa9740042';
+    this.TMS_STEP_UUID          = 'ef680405-9b35-4933-9b10-52ffa9740042';
+    this.TMS_RAW_UUID           = 'ef680406-9b35-4933-9b10-52ffa9740042';
+    this.TMS_EULER_UUID         = 'ef680407-9b35-4933-9b10-52ffa9740042';
+    this.TMS_ROT_MATRIX_UUID    = 'ef680408-9b35-4933-9b10-52ffa9740042';
+    this.TMS_HEADING_UUID       = 'ef680409-9b35-4933-9b10-52ffa9740042';
+    this.TMS_gravityVector_UUID = 'ef68040a-9b35-4933-9b10-52ffa9740042';
 
     // TSS = Thingy Sound Service
-    this.TSS_UUID              = 'ef680500-9b35-4933-9b10-52ffa9740042';
-    this.TSS_CONFIG_UUID       = 'ef680501-9b35-4933-9b10-52ffa9740042';
-    this.TSS_SPEAKER_DATA_UUID = 'ef680502-9b35-4933-9b10-52ffa9740042';
-    this.TSS_SPEAKER_STAT_UUID = 'ef680503-9b35-4933-9b10-52ffa9740042';
-    this.TSS_MIC_UUID          = 'ef680504-9b35-4933-9b10-52ffa9740042';
+    this.TSS_UUID               = 'ef680500-9b35-4933-9b10-52ffa9740042';
+    this.TSS_CONFIG_UUID        = 'ef680501-9b35-4933-9b10-52ffa9740042';
+    this.TSS_SPEAKER_DATA_UUID  = 'ef680502-9b35-4933-9b10-52ffa9740042';
+    this.TSS_SPEAKER_STAT_UUID  = 'ef680503-9b35-4933-9b10-52ffa9740042';
+    this.TSS_MIC_UUID           = 'ef680504-9b35-4933-9b10-52ffa9740042';
 
     this.serviceUUIDs = [
         this.TCS_UUID,
@@ -66,23 +66,23 @@ function Thingy(logEnabled = true) {
     ];
     
     this.device = device;
-    this.tempEventListeners = [,[]];
-    this.pressureEventListeners = [,[]];
-    this.humidityEventListeners = [,[]];
-    this.gasEventListeners = [,[]];
-    this.colorEventListeners = [,[]];
-    this.buttonEventListeners = [,[]];
-    this.tapEventListeners = [,[]];
-    this.orientationEventListeners = [,[]];
-    this.quaternionEventListeners = [,[]];
-    this.stepEventListeners = [,[]];
-    this.motionRawEventListeners = [,[]];
-    this.eulerEventListeners = [,[]];
-    this.rotationMatrixEventListeners = [,[]];
-    this.headingEventListeners = [,[]];
-    this.gravityVectorEventListeners = [,[]];
-    this.speakerStatusEventListeners = [,[]];
-    this.micMatrixEventListeners = [,[]];
+    this.tempEventListeners             = [,[]];
+    this.pressureEventListeners         = [,[]];
+    this.humidityEventListeners         = [,[]];
+    this.gasEventListeners              = [,[]];
+    this.colorEventListeners            = [,[]];
+    this.buttonEventListeners           = [,[]];
+    this.tapEventListeners              = [,[]];
+    this.orientationEventListeners      = [,[]];
+    this.quaternionEventListeners       = [,[]];
+    this.stepEventListeners             = [,[]];
+    this.motionRawEventListeners        = [,[]];
+    this.eulerEventListeners            = [,[]];
+    this.rotationMatrixEventListeners   = [,[]];
+    this.headingEventListeners          = [,[]];
+    this.gravityVectorEventListeners    = [,[]];
+    this.speakerStatusEventListeners    = [,[]];
+    this.micMatrixEventListeners        = [,[]];
 
     var device;
     var server;
@@ -741,7 +741,7 @@ Thingy.prototype.buttonNotifyHandler = function(event, eventHandler) {
 /**
  *  Gets the current external pin settings from the Thingy device. Returns an object with pin status information. 
  * 
- *  @return {Promise<Object>} Returns an external pin status object. 
+ *  @return {Promise<Object|Error>} Returns an external pin status object. 
  * 
  */
 Thingy.prototype.externalPinsGet = function() {
@@ -798,9 +798,161 @@ Thingy.prototype.externalPinSet = function(pin, value) {
 /**  Motion service  */
 
 /**
+ *  Gets the current configuration of the Thingy motion module.
+ * 
+ *  @return {Promise<Object|Error>} Returns a motion configuration object when promise resolves, or an error if rejected.
+ * 
+ */
+Thingy.prototype.motionConfigGet = function() {
+    return this.readData(tmsConfigCharacteristic)
+    .then( data => {
+        var stepCounterInterval                 = data.getUint16(0);
+        var tempCompInterval                    = data.getUint16(2);
+        var magnetCompInterval                  = data.getUint16(4);
+        var motionProcessingFrequency           = data.getUint16(6);
+        var wakeOnMotion                        = data.getUint8(8);
+        var config = {
+            stepCountInterval : stepCounterInterval,
+            tempCompInterval: tempCompInterval,
+            magnetCompInterval: magnetCompInterval,
+            motionProcessingFrequency: motionProcessingFrequency,
+            wakeOnMotion: wakeOnMotion
+        }
+        return Promise.resolve({ config: config });
+    })
+    .catch( error => {
+        return Promise.reject(new Error("Error when getting Thingy LED status: " + error));
+    });
+}
+
+/**
+ *  Sets the step counter interval.
+ * 
+ *  @param {Number} interval - Step counter interval in milliseconds. Must be in the range 100 ms to 5 000 ms. 
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
+ * 
+ */
+Thingy.prototype.setStepCounterInterval = function(interval) {
+
+    // Preserve values for those settings that are not being changed 
+    return this.readData(this.tmsConfigCharacteristic)
+    .then ( receivedData => {
+        var dataArray = new Uint8Array(9);
+        for(var i = 0; i < dataArray.length; i++) {
+            dataArray[i] = receivedData.getUint8(i);
+        }
+        dataArray[0] = interval & 0xFF;
+        dataArray[1] = (interval >> 8) & 0xFF;
+        return this.writeData(this.tmsConfigCharacteristic, dataArray);
+    })
+    .catch( error => {
+        return Promise.reject(new Error("Error when setting new step count interval: " + error));
+    })
+}
+
+/**
+ *  Sets the temperature compensation interval.
+ * 
+ *  @param {Number} interval - Temperature compensation interval in milliseconds. Must be in the range 100 ms to 5 000 ms. 
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
+ * 
+ */
+Thingy.prototype.setTempCompInterval = function(interval) {
+    
+    // Preserve values for those settings that are not being changed 
+    return this.readData(this.tmsConfigCharacteristic)
+    .then ( receivedData => {
+        var dataArray = new Uint8Array(9);
+        for(var i = 0; i < dataArray.length; i++) {
+            dataArray[i] = receivedData.getUint8(i);
+        }
+        dataArray[2] = interval & 0xFF;
+        dataArray[3] = (interval >> 8) & 0xFF;
+        return this.writeData(this.tmsConfigCharacteristic, dataArray);
+    })
+    .catch( error => {
+        return Promise.reject(new Error("Error when setting new temperature compensation interval: " + error));
+    })
+}    
+
+/**
+ *  Sets the magnetometer compensation interval.
+ * 
+ *  @param {Number} interval - Magnetometer compensation interval in milliseconds. Must be in the range 100 ms to 1 000 ms. 
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
+ * 
+ */
+Thingy.prototype.setMagnetCompInterval = function(interval) {
+    
+    // Preserve values for those settings that are not being changed 
+    return this.readData(this.tmsConfigCharacteristic)
+    .then ( receivedData => {
+        var dataArray = new Uint8Array(9);
+        for(var i = 0; i < dataArray.length; i++) {
+            dataArray[i] = receivedData.getUint8(i);
+        }
+        dataArray[4] = interval & 0xFF;
+        dataArray[5] = (interval >> 8) & 0xFF;
+        return this.writeData(this.tmsConfigCharacteristic, dataArray);
+    })
+    .catch( error => {
+        return Promise.reject(new Error("Error when setting new magnetometer compensation interval: " + error));
+    })
+}    
+
+/**
+ *  Sets motion processing unit update frequency.
+ * 
+ *  @param {Number} frequency - Motion processing frequency in Hz. The allowed range is 5 - 200 Hz. 
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
+ * 
+ */
+Thingy.prototype.setMotionProcessingFrequency = function(frequency) {
+    
+    // Preserve values for those settings that are not being changed 
+    return this.readData(this.tmsConfigCharacteristic)
+    .then ( receivedData => {
+        var dataArray = new Uint8Array(9);
+        for(var i = 0; i < dataArray.length; i++) {
+            dataArray[i] = receivedData.getUint8(i);
+        }
+        dataArray[6] = frequency & 0xFF;
+        dataArray[7] = (frequency >> 8) & 0xFF;
+        return this.writeData(this.tmsConfigCharacteristic, dataArray);
+    })
+    .catch( error => {
+        return Promise.reject(new Error("Error when setting new motion porcessing unit update frequency: " + error));
+    })
+}   
+
+/**
+ *  Sets wake-on-motion feature to enabled or disabled state.
+ * 
+ *  @param {bool} enable - Set to True to enable or False to disable wake-on-motion feature.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
+ * 
+ */
+Thingy.prototype.setWakeOnMotion = function(enable) {
+    
+    // Preserve values for those settings that are not being changed 
+    return this.readData(this.tmsConfigCharacteristic)
+    .then ( receivedData => {
+        var dataArray = new Uint8Array(9);
+        for(var i = 0; i < dataArray.length; i++) {
+            dataArray[i] = receivedData.getUint8(i);
+        }
+        dataArray[8] = enable ? 1 : 0;
+        return this.writeData(this.tmsConfigCharacteristic, dataArray);
+    })
+    .catch( error => {
+        return Promise.reject(new Error("Error when setting new magnetometer compensation interval: " + error));
+    })
+}   
+
+/**
  *  Enables tap detection notifications from Thingy. The assigned event handler will be called when notifications are received.
  * 
- *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a tap detection object as argument.
+ *  @param {callback} eventHandler - The callback function that is triggered on notification. Will receive a tap detection object as argument.
  *  @param {bool} enable - Enables notifications if true or disables them if set to false.
  *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection 
  * 
