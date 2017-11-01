@@ -490,7 +490,7 @@ Thingy.prototype.tempIntervalSet = function(interval) {
     // Preserve values for those settings that are not being changed 
     return this.readData(this.environmentConfigCharacteristic)
     .then ( receivedData => {
-        var dataArray = new Uint8Array(9);
+        var dataArray = new Uint8Array(12);
         for(var i = 0; i < dataArray.length; i++) {
             dataArray[i] = receivedData.getUint8(i);
         }
@@ -515,7 +515,7 @@ Thingy.prototype.pressureIntervalSet = function(interval) {
     // Preserve values for those settings that are not being changed 
     return this.readData(this.environmentConfigCharacteristic)
     .then ( receivedData => {
-        var dataArray = new Uint8Array(9);
+        var dataArray = new Uint8Array(12);
         for(var i = 0; i < dataArray.length; i++) {
             dataArray[i] = receivedData.getUint8(i);
         }
@@ -540,7 +540,7 @@ Thingy.prototype.humidityIntervalSet = function(interval) {
     // Preserve values for those settings that are not being changed 
     return this.readData(this.environmentConfigCharacteristic)
     .then ( receivedData => {
-        var dataArray = new Uint8Array(9);
+        var dataArray = new Uint8Array(12);
         for(var i = 0; i < dataArray.length; i++) {
             dataArray[i] = receivedData.getUint8(i);
         }
@@ -565,7 +565,7 @@ Thingy.prototype.colorIntervalSet = function(interval) {
     // Preserve values for those settings that are not being changed 
     return this.readData(this.environmentConfigCharacteristic)
     .then ( receivedData => {
-        var dataArray = new Uint8Array(9);
+        var dataArray = new Uint8Array(12);
         for(var i = 0; i < dataArray.length; i++) {
             dataArray[i] = receivedData.getUint8(i);
         }
@@ -590,7 +590,7 @@ Thingy.prototype.gasModeSet = function(mode) {
     // Preserve values for those settings that are not being changed 
     return this.readData(this.environmentConfigCharacteristic)
     .then ( receivedData => {
-        var dataArray = new Uint8Array(9);
+        var dataArray = new Uint8Array(12);
         for(var i = 0; i < dataArray.length; i++) {
             dataArray[i] = receivedData.getUint8(i);
         }
@@ -616,13 +616,13 @@ Thingy.prototype.colorSensorSet = function(r, g, b) {
     // Preserve values for those settings that are not being changed 
     return this.readData(this.environmentConfigCharacteristic)
     .then ( receivedData => {
-        var dataArray = new Uint8Array(9);
+        var dataArray = new Uint8Array(12);
         for(var i = 0; i < dataArray.length; i++) {
             dataArray[i] = receivedData.getUint8(i);
         }
-        dataArray[9] = mode;
-        dataArray[10] = mode;
-        dataArray[11] = mode;
+        dataArray[9] = r;
+        dataArray[10] = g;
+        dataArray[11] = b;
         return this.writeData(this.environmentConfigCharacteristic, dataArray);
     })
     .catch( error => {
