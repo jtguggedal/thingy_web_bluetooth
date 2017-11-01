@@ -147,9 +147,10 @@ function Thingy(logEnabled = true) {
 }
 
 /**
- *  Method to connect to Thingy
+ *  Connects to Thingy.
+ *  The function stores all discovered services and characteristics to the Thingy object.
  * 
- *  @return {Promise<Error>} Returns promise with error on rejection
+ *  @return {Promise<Error>} Returns an empty promise when resolved or a promise with error on rejection
  * 
  */
 Thingy.prototype.connect = function() {
@@ -360,9 +361,9 @@ Thingy.prototype.connect = function() {
 };
 
 /**
- *  Method to disconnect from Thingy
+ *  Method to disconnect from Thingy.
  * 
- *  @return {Promise<Error>} Returns promise with error on rejection
+ *  @return {Promise<Error>} Returns an empty promise when resolved or a promise with error on rejection.
  * 
  */
 
@@ -404,8 +405,14 @@ Thingy.prototype.notifyCharacteristic = function(characteristic, enable, notifyH
 }
 
 
-/*  Configuration service  */
+/**  Configuration service  */
 
+/**
+ *  Gets the name of the Thingy device.
+ * 
+ *  @return {Promise<string>} Returns a string with the name when resolved or a promise with error on rejection.
+ * 
+ */
 Thingy.prototype.nameGet = function() {
     return this.readData(this.nameCharacteristic)
     .then( receivedData => {
@@ -416,10 +423,18 @@ Thingy.prototype.nameGet = function() {
         return Promise.resolve(name);
     })
     .catch( error => {
-        console.log("Error reading from name characteristic:, configuration service: " + error);
+        return Promise.reject(error);
     })
 }
 
+
+/**
+ *  Sets the name of the Thingy device.
+ * 
+ *  @param {string} name - The name that will be given to the Thingy.
+ *  @return {Promise<string>} Returns a string with the name when resolved or a promise with error on rejection.
+ * 
+ */
 Thingy.prototype.nameSet = function(name) {
     var byteArray = new Uint8Array(name.length);
     for(var i = 0, j = name.length; i < j; ++i){
@@ -433,6 +448,15 @@ Thingy.prototype.nameSet = function(name) {
 
 /*  Environment service  */
 
+
+/**
+ *  Enables temperature notifications from Thingy. The assigned event handler will be called when notifications are received.
+ * 
+ *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a temperature object as argument.
+ *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection 
+ * 
+ */
 Thingy.prototype.temperatureEnable = function(eventHandler, enable) {
     if(enable) {
         this.tempEventListeners[0] = this.temperatureNotifyHandler.bind(this);
@@ -440,7 +464,7 @@ Thingy.prototype.temperatureEnable = function(eventHandler, enable) {
     } else {
         this.tempEventListeners[1].splice(this.tempEventListeners.indexOf(eventHandler), 1);
     }
-    this.notifyCharacteristic(this.temperatureCharacteristic, enable, this.tempEventListeners[0]);
+    return this.notifyCharacteristic(this.temperatureCharacteristic, enable, this.tempEventListeners[0]);
 }
 
 Thingy.prototype.temperatureNotifyHandler = function(event) {
@@ -459,6 +483,14 @@ Thingy.prototype.temperatureNotifyHandler = function(event) {
     });
 }
 
+/**
+ *  Enables pressure notifications from Thingy. The assigned event handler will be called when notifications are received.
+ * 
+ *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a pressure object as argument.
+ *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection 
+ * 
+ */
 Thingy.prototype.pressureEnable = function(eventHandler, enable) {
     if(enable) {
         this.pressureEventListeners[0] = this.pressureNotifyHandler.bind(this);
@@ -466,7 +498,7 @@ Thingy.prototype.pressureEnable = function(eventHandler, enable) {
     } else {
         this.pressureEventListeners[1].splice(this.pressureEventListeners.indexOf(eventHandler), 1);
     }
-    this.notifyCharacteristic(this.pressureCharacteristic, enable, this.pressureEventListeners[0]);
+    return this.notifyCharacteristic(this.pressureCharacteristic, enable, this.pressureEventListeners[0]);
 }
 
 Thingy.prototype.pressureNotifyHandler = function(event) {
@@ -485,6 +517,14 @@ Thingy.prototype.pressureNotifyHandler = function(event) {
     });
 }
 
+/**
+ *  Enables humidity notifications from Thingy. The assigned event handler will be called when notifications are received.
+ * 
+ *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a humidity object as argument.
+ *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection 
+ * 
+ */
 Thingy.prototype.humidityEnable = function(eventHandler, enable) {
     if(enable) {
         this.humidityEventListeners[0] = this.humidityNotifyHandler.bind(this);
@@ -492,7 +532,7 @@ Thingy.prototype.humidityEnable = function(eventHandler, enable) {
     } else {
         this.humidityEventListeners[1].splice(this.humidityEventListeners.indexOf(eventHandler), 1);
     }
-    this.notifyCharacteristic(this.humidityCharacteristic, enable, this.humidityEventListeners[0]);
+    return this.notifyCharacteristic(this.humidityCharacteristic, enable, this.humidityEventListeners[0]);
 }
 
 Thingy.prototype.humidityNotifyHandler = function(event) {
@@ -509,6 +549,14 @@ Thingy.prototype.humidityNotifyHandler = function(event) {
     });
 }
 
+/**
+ *  Enables gas notifications from Thingy. The assigned event handler will be called when notifications are received.
+ * 
+ *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a gas object as argument.
+ *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection 
+ * 
+ */
 Thingy.prototype.gasEnable = function(eventHandler, enable) {
     if(enable) {
         this.gasEventListeners[0] = this.gasNotifyHandler.bind(this);
@@ -516,7 +564,7 @@ Thingy.prototype.gasEnable = function(eventHandler, enable) {
     } else {
         this.gasEventListeners[1].splice(this.gasEventListeners.indexOf(eventHandler), 1);
     }
-    this.notifyCharacteristic(this.gasCharacteristic, enable, this.gasEventListeners[0]);
+    return this.notifyCharacteristic(this.gasCharacteristic, enable, this.gasEventListeners[0]);
 }
 
 Thingy.prototype.gasNotifyHandler = function(event) {
@@ -540,6 +588,14 @@ Thingy.prototype.gasNotifyHandler = function(event) {
     });
 }
 
+/**
+ *  Enables color sensor notifications from Thingy. The assigned event handler will be called when notifications are received.
+ * 
+ *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a color sensor object as argument.
+ *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection 
+ * 
+ */
 Thingy.prototype.colorEnable = function(eventHandler, enable) {
     if(enable) {
         this.colorEventListeners[0] = this.colorNotifyHandler.bind(this);
@@ -547,7 +603,7 @@ Thingy.prototype.colorEnable = function(eventHandler, enable) {
     } else {
         this.colorEventListeners[1].splice(this.colorEventListeners.indexOf(eventHandler), 1);
     }
-    this.notifyCharacteristic(this.colorCharacteristic, enable, this.colorEventListeners[0]);
+    return this.notifyCharacteristic(this.colorCharacteristic, enable, this.colorEventListeners[0]);
 }
 
 Thingy.prototype.colorNotifyHandler = function(event) {
@@ -575,6 +631,12 @@ Thingy.prototype.colorNotifyHandler = function(event) {
 
 /*  User interface service  */
 
+/**
+ *  Gets the current LED settings from the Thingy device. Returns an object with structure that depends on the settings. 
+ * 
+ *  @return {Promise<Object>} Returns a LED status object. The content and structure depends on the current mode.
+ * 
+ */
 Thingy.prototype.ledGetStatus = function() {
     return this.readData(ledCharacteristic)
     .then( data => {
@@ -617,7 +679,7 @@ Thingy.prototype.ledGetStatus = function() {
         return Promise.resolve(status);
     })
     .catch( error => {
-        console.log("Error when getting Thingy LED status: " + error);
+        return Promise.reject(new Error("Error when getting Thingy LED status: " + error));
     });
 }
 
@@ -625,18 +687,52 @@ Thingy.prototype.ledSet = function(dataArray) {
     return this.writeData(this.ledCharacteristic, dataArray);
 }
 
+/**
+ *  Sets the LED in constant mode with the specified RGB color.
+ * 
+ *  @param r - The value for red color in an RGB color. Ranges from 0 to 255. 
+ *  @param g - The value for green color in an RGB color. Ranges from 0 to 255. 
+ *  @param b - The value for blue color in an RGB color. Ranges from 0 to 255. 
+ *  @return {Promise<Error>} Returns a resolved promise or an error in a rejected promise.
+ * 
+ */
 Thingy.prototype.ledSetConstant = function(r, g, b) {
     return this.ledSet(new Uint8Array([1, r, g, b]));
 }
 
+/**
+ *  Sets the LED in "breathe" mode where the LED pulses with the specified color, intensity and delay between pulses.
+ * 
+ *  @param color - The color code. 1 = red, 2 = green, 3 = yellow, 4 = blue, 5 = purple, 6 = cyan, 7 = white.
+ *  @param intensity - Intensity of LED pulses. Range from 0 to 100 [%].
+ *  @param delay - Delay between pulses in milliseconds. Range from 50 ms to 10 000 ms.
+ *  @return {Promise<Error>} Returns a resolved promise or an error in a rejected promise.
+ * 
+ */
 Thingy.prototype.ledSetBreathe = function(color, intensity, delay) {
     return this.ledSet(new Uint8Array([2, color, intensity, delay & 0xff, (delay >> 8) & 0xff]));
 }
 
+/**
+ *  Sets the LED in one-shot mode
+ * 
+ *  @param color - The color code. 1 = red, 2 = green, 3 = yellow, 4 = blue, 5 = purple, 6 = cyan, 7 = white.
+ *  @param intensity - Intensity of LED pulses. Range from 0 to 100 [%].
+ *  @return {Promise<Error>} Returns a resolved promise or an error in a rejected promise.
+ * 
+ */
 Thingy.prototype.ledSetOneShot = function(color, intensity) {
     return this.ledSet(new Uint8Array([3, color, intensity]));
 }
 
+/**
+ *  Enables button notifications from Thingy. The assigned event handler will be called when the button on the Thingy is pushed or released.
+ * 
+ *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a button object as argument.
+ *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
+ * 
+ */
 Thingy.prototype.buttonEnable = function(eventHandler, enable) {
     this.notifyCharacteristic(this.buttonCharacteristic, enable, this.buttonNotifyHandler, eventHandler);
 }
@@ -646,6 +742,12 @@ Thingy.prototype.buttonNotifyHandler = function(event, eventHandler) {
     eventHandler({ buttonState: state });
 }
 
+/**
+ *  Gets the current external pin settings from the Thingy device. Returns an object with pin status information. 
+ * 
+ *  @return {Promise<Object>} Returns an external pin status object. 
+ * 
+ */
 Thingy.prototype.externalPinsGet = function() {
     return this.readData(this.externalPinCharacteristic)
     .then( data => {
@@ -660,10 +762,18 @@ Thingy.prototype.externalPinsGet = function() {
         return Promise.resolve(pinStatus);
     })
     .catch( error => {
-        console.log("Error when reading from external pin characteristic: " + error);
+        return Promise.reject(new Error("Error when reading from external pin characteristic: " + error));
     })
 }
 
+/**
+ *  Set an external pin to chosen state.
+ * 
+ *  @param pin - Determines which pin is set. Range 1 - 4.
+ *  @param value - Sets the value of the pin. 0 = OFF, 255 = ON.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
+ * 
+ */
 Thingy.prototype.externalPinSet = function(pin, value) {
     if(pin < 1 || pin > 4)
         return Promise.reject(new Error("Pin number must be 1, 2, 3 or 4"))
@@ -681,7 +791,7 @@ Thingy.prototype.externalPinSet = function(pin, value) {
         return this.writeData(this.externalPinCharacteristic, dataArray);
     })
     .catch( error => {
-        console.log("Error when setting external pins: " + error);
+        return Promise.reject(new Error("Error when setting external pins: " + error));
     })
 }
 
@@ -689,8 +799,16 @@ Thingy.prototype.externalPinSet = function(pin, value) {
 
 
 
-/*  Motion service  */
+/**  Motion service  */
 
+/**
+ *  Enables tap detection notifications from Thingy. The assigned event handler will be called when notifications are received.
+ * 
+ *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a tap detection object as argument.
+ *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection 
+ * 
+ */
 Thingy.prototype.tapEnable = function(eventHandler, enable) {
     if(enable) {
         this.tapEventListeners[0] = this.tapNotifyHandler.bind(this);
@@ -698,7 +816,7 @@ Thingy.prototype.tapEnable = function(eventHandler, enable) {
     } else {
         this.tapEventListeners[1].splice(this.tapEventListeners.indexOf(eventHandler), 1);
     }
-    this.notifyCharacteristic(this.tapCharacteristic, enable, this.tapEventListeners[0]);
+    return this.notifyCharacteristic(this.tapCharacteristic, enable, this.tapEventListeners[0]);
 }
 
 Thingy.prototype.tapNotifyHandler = function(event) {
@@ -716,6 +834,14 @@ Thingy.prototype.tapNotifyHandler = function(event) {
     });
 }
 
+/**
+ *  Enables orientation detection notifications from Thingy. The assigned event handler will be called when notifications are received.
+ * 
+ *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a orientation detection object as argument.
+ *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection 
+ * 
+ */
 Thingy.prototype.orientationEnable = function(eventHandler, enable) {
     if(enable) {
         this.orientationEventListeners[0] = this.orientationNotifyHandler.bind(this);
@@ -723,7 +849,7 @@ Thingy.prototype.orientationEnable = function(eventHandler, enable) {
     } else {
         this.orientationEventListeners[1].splice(this.orientationEventListeners.indexOf(eventHandler), 1);
     }
-    this.notifyCharacteristic(this.orientationCharacteristic, enable, this.orientationEventListeners[0]);
+    return this.notifyCharacteristic(this.orientationCharacteristic, enable, this.orientationEventListeners[0]);
 }
 
 Thingy.prototype.orientationNotifyHandler = function(event) {
@@ -737,6 +863,14 @@ Thingy.prototype.orientationNotifyHandler = function(event) {
     });
 }
 
+/**
+ *  Enables quaternion notifications from Thingy. The assigned event handler will be called when notifications are received.
+ * 
+ *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a quaternion object as argument.
+ *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection 
+ * 
+ */
 Thingy.prototype.quaternionEnable = function(eventHandler, enable) {
     if(enable) {
         this.quaternionEventListeners[0] = this.quaternionNotifyHandler.bind(this);
@@ -744,7 +878,7 @@ Thingy.prototype.quaternionEnable = function(eventHandler, enable) {
     } else {
         this.quaternionEventListeners[1].splice(this.quaternionEventListeners.indexOf(eventHandler), 1);
     }
-    this.notifyCharacteristic(this.quaternionCharacteristic, enable, this.quaternionEventListeners[0]);
+    return this.notifyCharacteristic(this.quaternionCharacteristic, enable, this.quaternionEventListeners[0]);
 }
 
 Thingy.prototype.quaternionNotifyHandler = function(event) {
@@ -777,6 +911,14 @@ Thingy.prototype.quaternionNotifyHandler = function(event) {
     });
 }
 
+/**
+ *  Enables step counter notifications from Thingy. The assigned event handler will be called when notifications are received.
+ * 
+ *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a step counter object as argument.
+ *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection 
+ * 
+ */
 Thingy.prototype.stepEnable = function(eventHandler, enable) {
     if(enable) {
         this.stepEventListeners[0] = this.stepNotifyHandler.bind(this);
@@ -784,7 +926,7 @@ Thingy.prototype.stepEnable = function(eventHandler, enable) {
     } else {
         this.stepEventListeners[1].splice(this.stepEventListeners.indexOf(eventHandler), 1);
     }
-    this.notifyCharacteristic(this.stepCharacteristic, enable, this.stepEventListeners[0]);
+    return this.notifyCharacteristic(this.stepCharacteristic, enable, this.stepEventListeners[0]);
 }
 
 Thingy.prototype.stepNotifyHandler = function(event) {
@@ -805,6 +947,14 @@ Thingy.prototype.stepNotifyHandler = function(event) {
     });
 }
 
+/**
+ *  Enables raw motion data notifications from Thingy. The assigned event handler will be called when notifications are received.
+ * 
+ *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a raw motion data object as argument.
+ *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection 
+ * 
+ */
 Thingy.prototype.motionRawEnable = function(eventHandler, enable) {
     if(enable) {
         this.motionRawEventListeners[0] = this.motionRawNotifyHandler.bind(this);
@@ -812,7 +962,7 @@ Thingy.prototype.motionRawEnable = function(eventHandler, enable) {
     } else {
         this.motionRawEventListeners[1].splice(this.motionRawEventListeners.indexOf(eventHandler), 1);
     }
-    this.notifyCharacteristic(this.motionRawCharacteristic, enable, this.motionRawEventListeners[0]);
+    return this.notifyCharacteristic(this.motionRawCharacteristic, enable, this.motionRawEventListeners[0]);
 }
 
 Thingy.prototype.motionRawNotifyHandler = function(event) {
@@ -859,6 +1009,14 @@ Thingy.prototype.motionRawNotifyHandler = function(event) {
     });
 }
 
+/**
+ *  Enables Euler angle data notifications from Thingy. The assigned event handler will be called when notifications are received.
+ * 
+ *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive an Euler angle data object as argument.
+ *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection 
+ * 
+ */
 Thingy.prototype.eulerEnable = function(eventHandler, enable) {
     if(enable) {
         this.eulerEventListeners[0] = this.eulerNotifyHandler.bind(this);
@@ -866,7 +1024,7 @@ Thingy.prototype.eulerEnable = function(eventHandler, enable) {
     } else {
         this.eulerEventListeners[1].splice(this.eulerEventListeners.indexOf(eventHandler), 1);
     }
-    this.notifyCharacteristic(this.eulerCharacteristic, enable, this.eulerEventListeners[0]);
+    return this.notifyCharacteristic(this.eulerCharacteristic, enable, this.eulerEventListeners[0]);
 }
 
 Thingy.prototype.eulerNotifyHandler = function(event) {
@@ -888,6 +1046,14 @@ Thingy.prototype.eulerNotifyHandler = function(event) {
     });
 }
 
+/**
+ *  Enables rotation matrix notifications from Thingy. The assigned event handler will be called when notifications are received.
+ * 
+ *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive an rotation matrix object as argument.
+ *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection 
+ * 
+ */
 Thingy.prototype.rotationMatrixEnable = function(eventHandler, enable) {
     if(enable) {
         this.rotationMatrixEventListeners[0] = this.rotationMatrixNotifyHandler.bind(this);
@@ -895,7 +1061,7 @@ Thingy.prototype.rotationMatrixEnable = function(eventHandler, enable) {
     } else {
         this.rotationMatrixEventListeners[1].splice(this.rotationMatrixEventListeners.indexOf(eventHandler), 1);
     }
-    this.notifyCharacteristic(this.rotationMatrixCharacteristic, enable, this.rotationMatrixEventListeners[0]);
+    return this.notifyCharacteristic(this.rotationMatrixCharacteristic, enable, this.rotationMatrixEventListeners[0]);
 }
 
 Thingy.prototype.rotationMatrixNotifyHandler = function(event) {
@@ -923,6 +1089,14 @@ Thingy.prototype.rotationMatrixNotifyHandler = function(event) {
     });
 }
 
+/**
+ *  Enables heading notifications from Thingy. The assigned event handler will be called when notifications are received.
+ * 
+ *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a heading object as argument.
+ *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection 
+ * 
+ */
 Thingy.prototype.headingEnable = function(eventHandler, enable) {
     if(enable) {
         this.headingEventListeners[0] = this.headingNotifyHandler.bind(this);
@@ -930,7 +1104,7 @@ Thingy.prototype.headingEnable = function(eventHandler, enable) {
     } else {
         this.headingEventListeners[1].splice(this.headingEventListeners.indexOf(eventHandler), 1);
     }
-    this.notifyCharacteristic(this.headingCharacteristic, enable, this.headingEventListeners[0]);
+    return this.notifyCharacteristic(this.headingCharacteristic, enable, this.headingEventListeners[0]);
 }
 
 Thingy.prototype.headingNotifyHandler = function(event) {
@@ -949,6 +1123,14 @@ Thingy.prototype.headingNotifyHandler = function(event) {
     });
 }
 
+/**
+ *  Enables gravity vector notifications from Thingy. The assigned event handler will be called when notifications are received.
+ * 
+ *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a heading object as argument.
+ *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+ *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection 
+ * 
+ */
 Thingy.prototype.gravityVectorEnable = function(eventHandler, enable) {
     if(enable) {
         this.gravityVectorEventListeners[0] = this.gravityVectorNotifyHandler.bind(this);
@@ -956,7 +1138,7 @@ Thingy.prototype.gravityVectorEnable = function(eventHandler, enable) {
     } else {
         this.gravityVectorEventListeners[1].splice(this.gravityVectorEventListeners.indexOf(eventHandler), 1);
     }
-    this.notifyCharacteristic(this.gravityVectorCharacteristic, enable, this.gravityVectorEventListeners[0]);
+    return this.notifyCharacteristic(this.gravityVectorCharacteristic, enable, this.gravityVectorEventListeners[0]);
 }
 
 Thingy.prototype.gravityVectorNotifyHandler = function(event) {
