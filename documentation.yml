@@ -1,0 +1,58 @@
+toc:
+  - name: General
+    children:
+      - connect
+      - disconnect
+      - readData
+      - writeData
+  - name: Configuration service
+    children:
+      - nameGet
+      - nameSet
+    description:
+      Service for configuring Thingy:52.
+  - name: Environment service
+    children:
+      - colorEnable
+      - colorIntervalSet
+      - colorSensorSet
+      - environmentConfigGet
+      - gasEnable
+      - gasModeSet
+      - humidityEnable
+      - humidityIntervalSet
+      - pressureEnable
+      - pressureIntervalSet
+      - temperatureCompIntervalSet
+      - temperatureEnable
+      - temperatureIntervalSet
+  - name: User interface service
+    children:
+      - buttonEnable
+      - externalPinSet
+      - externalPinsGet
+      - ledGetStatus
+      - ledSetBreathe
+      - ledSetConstant
+      - ledSetOneShot
+  - name: Motion service
+    children:
+      - eulerEnable
+      - gravityVectorEnable
+      - headingEnable
+      - magnetCompIntervalSet
+      - motionConfigGet
+      - motionProcessingFrequencySet
+      - motionRawEnable
+      - orientationEnable
+      - quaternionEnable
+      - rotationMatrixEnable
+      - stepCounterIntervalSet
+      - stepEnable
+      - tapEnable
+        wakeOnMotionSet
+  - name: Battery service
+    children:
+        batteryLevelEnable
+        batteryLevelGet
+  

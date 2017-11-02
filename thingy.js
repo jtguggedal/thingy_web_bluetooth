@@ -4,7 +4,7 @@
  *  Thingy:52 Web Bluetooth API. <br> 
  *  BLE service details {@link https://nordicsemiconductor.github.io/Nordic-Thingy52-FW/documentation/firmware_architecture.html#fw_arch_ble_services here}
  * 
- * 
+ *  
  *  @constructor   
  *  @param {bool} [logEnabled = true] Enables logging of all BLE actions.
  * 
@@ -496,7 +496,7 @@ Thingy.prototype.environmentConfigGet = function() {
  *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
  * 
  */
-Thingy.prototype.tempIntervalSet = function(interval) {
+Thingy.prototype.temperatureIntervalSet = function(interval) {
 
     // Preserve values for those settings that are not being changed 
     return this.readData(this.environmentConfigCharacteristic)
@@ -1053,7 +1053,7 @@ Thingy.prototype.stepCounterIntervalSet = function(interval) {
  *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
  * 
  */
-Thingy.prototype.tempCompIntervalSet = function(interval) {
+Thingy.prototype.temperatureCompIntervalSet = function(interval) {
     
     // Preserve values for those settings that are not being changed 
     return this.readData(this.tmsConfigCharacteristic)
