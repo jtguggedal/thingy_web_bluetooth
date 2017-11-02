@@ -926,13 +926,24 @@ Thingy.prototype.ledSetOneShot = function(color, intensity) {
  * 
  */
 Thingy.prototype.buttonEnable = function(eventHandler, enable) {
-    this.notifyCharacteristic(this.buttonCharacteristic, enable, this.buttonNotifyHandler, eventHandler);
+    if(enable) {
+        this.buttonEventListeners[0] = this.buttonNotifyHandler.bind(this);
+        this.buttonEventListeners[1].push(eventHandler);
+    } else {
+        this.buttonEventListeners[1].splice(this.buttonEventListeners.indexOf(eventHandler), 1);
+    }
+    return this.notifyCharacteristic(this.buttonCharacteristic, enable, this.buttonEventListeners[0]);
 }
 
-Thingy.prototype.buttonNotifyHandler = function(event, eventHandler) {
-    var state = event.target.value.getUint8(0);
-    eventHandler({ buttonState: state });
+Thingy.prototype.buttonNotifyHandler = function(event, eventHandler) {  
+    var data = event.target.value;
+    var state = data.getUint8(0);
+      
+    this.buttonEventListeners[1].forEach( eventHandler => {
+        eventHandler({ buttonState: state });
+    });
 }
+
 
 /**
  *  Gets the current external pin settings from the Thingy device. Returns an object with pin status information. 
