@@ -53,16 +53,18 @@ The following example will first connect to a thingy:52, then read its name and 
 ```
 var thingy = new Thingy();
 thingy.connect()
-.then(
-    thingy.getName()
-    .then( name => 
+.then( () => {
+    thingy.nameGet()
+    .then( name => {
         console.log("This Thingy:52 is called " + name)
-    );
-    thingy.ledSetBreathe(5, 20, 1500);
-)
-.catch( error =>
+    })
+    .then( () => { 
+        thingy.ledSetBreathe(5, 20, 1500); 
+    })
+})
+.catch( error => {
     console.log(error);
-)
+})
 ```
 
 

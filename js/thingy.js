@@ -185,7 +185,7 @@ Thingy.prototype.connect = function() {
                 server.getPrimaryService(this.TCS_UUID)
                 .then( service =>  {
                     this.configurationService = service;
-                    Promise.all([
+                    return Promise.all([
                         service.getCharacteristic(this.TCS_NAME_UUID)
                         .then( characteristic => { 
                             this.nameCharacteristic = characteristic 
@@ -217,14 +217,16 @@ Thingy.prototype.connect = function() {
                         .catch( error => { 
                             console.log("Error while getting characteristic: " + error)
                         })
-                    ]);
-                    if(this.logEnabled)
-                        console.log("Discovered Thingy configuration service and its characteristics");
+                    ])
+                    .then( () => {
+                        if(this.logEnabled)
+                            console.log("Discovered Thingy configuration service and its characteristics");
+                    })
                 }),
                 server.getPrimaryService(this.TES_UUID)
                 .then( service => {
                     this.environmentService = service;
-                    Promise.all([
+                    return Promise.all([
                         service.getCharacteristic(this.TES_TEMP_UUID)
                         .then( characteristic => { 
                             this.temperatureCharacteristic = characteristic 
@@ -252,14 +254,16 @@ Thingy.prototype.connect = function() {
                         .catch( error => { 
                             console.log("Error while getting characteristic: " + error)
                         })
-                    ]);
-                    if(this.logEnabled)
-                        console.log("Discovered Thingy environment service and its characteristics");
+                    ])
+                    .then( () => {
+                        if(this.logEnabled)
+                            console.log("Discovered Thingy environment service and its characteristics");
+                    })
                 }),
                 server.getPrimaryService(this.TUIS_UUID)
                 .then( service => {
                     this.userInterfaceService = service;
-                    Promise.all([
+                    return Promise.all([
                         service.getCharacteristic(this.TUIS_BTN_UUID)
                         .then( characteristic => { 
                             this.buttonCharacteristic = characteristic 
@@ -275,14 +279,16 @@ Thingy.prototype.connect = function() {
                         .catch( error => { 
                             console.log("Error while getting characteristic: " + error)
                         })
-                    ]);
-                    if(this.logEnabled)
-                        console.log("Discovered Thingy user interface service and its characteristics");
+                    ])
+                    .then( () => {
+                        if(this.logEnabled)
+                            console.log("Discovered Thingy user interface service and its characteristics");
+                    })
                 }),
                 server.getPrimaryService(this.TMS_UUID)
                 .then( service => {
                     this.motionService = service;
-                    Promise.all([
+                    return Promise.all([
                         service.getCharacteristic(this.TMS_CONFIG_UUID)
                         .then( characteristic => { 
                             this.tmsConfigCharacteristic = characteristic 
@@ -326,14 +332,16 @@ Thingy.prototype.connect = function() {
                         .catch( error => { 
                             console.log("Error while getting characteristic: " + error)
                         })
-                    ]);
-                    if(this.logEnabled)
-                        console.log("Discovered Thingy motion service and its characteristics");
+                    ])
+                    .then( () => {
+                        if(this.logEnabled)
+                            console.log("Discovered Thingy motion service and its characteristics");
+                    })
                 }),
                 server.getPrimaryService(this.TSS_UUID)
                 .then( service => {
                     this.soundService = service;
-                    Promise.all([
+                    return Promise.all([
                         service.getCharacteristic(this.TSS_CONFIG_UUID)
                         .then( characteristic => { 
                             this.tssConfigCharacteristic = characteristic 
@@ -353,14 +361,16 @@ Thingy.prototype.connect = function() {
                         .catch( error => { 
                             console.log("Error while getting characteristic: " + error)
                         })
-                    ]);
-                    if(this.logEnabled)
-                        console.log("Discovered Thingy sound service and its characteristics");
+                    ])
+                    .then( () => {
+                        if(this.logEnabled)
+                            console.log("Discovered Thingy sound service and its characteristics");
+                    })
                 })
                 .catch(error => {
                     console.log("Error during service discovery: ", error);
                 })
-            ]);
+            ])
         })
         .catch(error => {
             console.log("Error during connect: ", error);
@@ -447,7 +457,7 @@ Thingy.prototype.nameSet = function(name) {
     for(var i = 0, j = name.length; i < j; ++i){
         byteArray[i] = name.charCodeAt(i);
     }
-    return this.writeData(nameCharacteristic, byteArray);
+    return this.writeData(this.nameCharacteristic, byteArray);
 }
 
 //  ******  //
