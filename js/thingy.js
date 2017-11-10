@@ -530,8 +530,8 @@ Thingy.prototype.connParamsGet = function() {
 		.then( receivedData => {
 
 			// Connection intervals are given in units of 1.25 ms
-			var minConnInterval = parseInt(receivedData.getUint16(0, true) * 1.25);
-			var maxConnInterval = parseInt(receivedData.getUint16(2, true) * 1.25);
+			var minConnInterval = receivedData.getUint16(0, true) * 1.25;
+			var maxConnInterval = receivedData.getUint16(2, true) * 1.25;
 			var slaveLatency 	= receivedData.getUint16(4, true);
 
 			// Supervision timeout is given i units of 10 ms
@@ -648,6 +648,9 @@ Thingy.prototype.connTimeoutSet = function(timeout) {
 		return Promise.reject(new Error("The supervision timeout must be in the range from 100 ms to 32 000 ms."));
 	}
 
+	// The supervision timeout has to be set in units of 10 ms
+	timeout = parseInt(timeout / 10);
+
 	return this.readData(this.connParamsCharacteristic)
 		.then( receivedData => {
 			var dataArray = new Uint8Array(8);
@@ -666,7 +669,7 @@ Thingy.prototype.connTimeoutSet = function(timeout) {
 			}		
 
 			dataArray[6] = timeout & 0xFF;
-			dataArray[6] = (timeout >> 8) & 0xFF;
+			dataArray[7] = (timeout >> 8) & 0xFF;
 		
 			return this.writeData(this.connParamsCharacteristic, dataArray);
 		})
