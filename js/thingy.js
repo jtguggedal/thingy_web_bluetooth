@@ -724,12 +724,12 @@ Thingy.prototype.eddystoneSet = function(prefix, url, postfix = null) {
 	var byteArray = new Uint8Array(len);
 	byteArray[0] = prefix;
 
-	for(var i = 1, j = url.length; i < j; ++i){
-		byteArray[i] = url.charCodeAt(i);
+	for(var i = 1; i <= url.length; i++){
+		byteArray[i] = url.charCodeAt(i - 1);
 	}
 
 	if(postfix != null)
-		byteArray[-1] = postfix;
+		byteArray[len - 1] = postfix;
 
 	return this.writeData(this.eddystoneCharacteristic, byteArray);
 };
@@ -797,11 +797,11 @@ Thingy.prototype.mtuGet = function() {
  */
 Thingy.prototype.mtuSet = function(mtuSize, peripheralRequest = false) {
 	var dataArray = new Uint8Array(3);
-	dataArray[0] = peripheralRequest;
+	dataArray[0] = peripheralRequest ? 1 : 0;
 	dataArray[1] = mtuSize & 0xff;
 	dataArray[2] = (mtuSize >> 8) & 0xff;
 
-	return this.writeData(this.cloudTokenCharacteristic, encoder);
+	return this.writeData(this.mtuRequestCharacteristic, dataArray);
 };
 
 /**
