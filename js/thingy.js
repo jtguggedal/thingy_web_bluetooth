@@ -688,7 +688,7 @@ Thingy.prototype.eddystoneGet = function() {
 	return this.readData(this.eddystoneCharacteristic)
 		.then( receivedData => {
 			
-			// According to Eddystone URL encoding specification, certain element can be expanded: https://github.com/google/eddystone/tree/master/eddystone-url
+			// According to Eddystone URL encoding specification, certain elements can be expanded: https://github.com/google/eddystone/tree/master/eddystone-url
 			var prefixArray = ["http://www.", "https://www.", "http://", "https://"];
 			var expansionCodes = [	".com/", ".org/", ".edu/", ".net/", ".info/", 
 				".biz/", ".gov/", ".com", ".org", ".edu", ".net", 
@@ -702,7 +702,6 @@ Thingy.prototype.eddystoneGet = function() {
 
 			if(lastElement <= 0x0d)
 				url = url.slice(0, -1) + expansionCodes[lastElement];
-
 			
 			return Promise.resolve(url);
 		})
@@ -711,6 +710,99 @@ Thingy.prototype.eddystoneGet = function() {
 		});
 };
 
+/**
+ *  Sets the Eddystone URL
+ * 
+ * 	@param {number} prefix - Code for prefix, according to {@link https://github.com/google/eddystone/tree/master/eddystone-url#url-scheme-prefix specification}.
+ *  @param {string} url - The URL.
+ * 	@param {number} [postfix = null] - Optional code for postfix according to {@link https://github.com/google/eddystone/tree/master/eddystone-url#eddystone-url-http-url-encoding specification}. 
+ *  @return {Promise<Error>} Returns a promise.
+ * 
+ */
+Thingy.prototype.eddystoneSet = function(prefix, url, postfix = null) {
+	var len = (postfix == null) ? url.length + 1 : url.length + 2;
+	var byteArray = new Uint8Array(len);
+	byteArray[0] = prefix;
+
+	for(var i = 1, j = url.length; i < j; ++i){
+		byteArray[i] = url.charCodeAt(i);
+	}
+
+	if(postfix != null)
+		byteArray[-1] = postfix;
+
+	return this.writeData(this.eddystoneCharacteristic, byteArray);
+};
+
+/**
+ *  Gets the cloud token.
+ * 
+ *  @return {Promise<string|Error>} Returns a string with the cloud token when resolved or a promise with error on rejection.
+ * 
+ */
+Thingy.prototype.cloudTokenGet = function() {
+	return this.readData(this.cloudTokenCharacteristic)
+		.then( receivedData => {
+			var decoder = new TextDecoder("utf-8");
+			var token = decoder.decode(receivedData);
+			
+			return Promise.resolve(token);
+		})
+		.catch( error => {
+			return Promise.reject(error);
+		});
+};
+
+/**
+ *  Sets the cloud token.
+ * 
+ *  @param {string} token - The cloud token to be stored.
+ * 	@return {Promise<Error>} Returns a promise.
+ * 
+ */
+Thingy.prototype.cloudTokenSet = function(token) {
+	if(token.len > 250)
+		return Promise.reject(new Error("The cloud token can not exced 250 characters."));
+	
+	var encoder = new TextEncoder("utf-8").encode(token);
+
+	return this.writeData(this.cloudTokenCharacteristic, encoder);
+};
+
+/**
+ *  Gets the current Maximal Transmission Unit (MTU) 
+ * 
+ *  @return {Promise<number|Error>} Returns the MTU when resolved or a promise with error on rejection.
+ * 
+ */
+Thingy.prototype.mtuGet = function() {
+	return this.readData(this.mtuRequestCharacteristic)
+		.then( receivedData => {
+			var mtu = receivedData.getUint16(1, true);
+			
+			return Promise.resolve(mtu);
+		})
+		.catch( error => {
+			return Promise.reject(error);
+		});
+};
+
+/**
+ *  Sets the current Maximal Transmission Unit (MTU) 
+ * 
+ *  @param {number} mtuSize - The desired MTU size.
+ * 	@param {bool} [peripheralRequest = false] - Optional. Set to <code>true</code> if peripheral should send an MTU exchange request. Default is <code>false</code>; 
+ * 	@return {Promise<Error>} Returns a promise.
+ * 
+ */
+Thingy.prototype.mtuSet = function(mtuSize, peripheralRequest = false) {
+	var dataArray = new Uint8Array(3);
+	dataArray[0] = peripheralRequest;
+	dataArray[1] = mtuSize & 0xff;
+	dataArray[2] = (mtuSize >> 8) & 0xff;
+
+	return this.writeData(this.cloudTokenCharacteristic, encoder);
+};
 
 /**
  *  Gets the current firmware version.
