@@ -1,4 +1,4 @@
-# Nordic Thingy:52 Web Bluetooth API
+# Nordic Thingy:52 for Web Bluetooth
 **About Thingy:52**
 
 The Nordic Thingy:52™ is a compact, power-optimized, multi-sensor development kit. It is an easy-to-use development platform, designed to help you build IoT prototypes and demos, without the need to build hardware or write firmware. Read more about it [here](https://www.nordicsemi.com/eng/Products/Nordic-Thingy-52).
@@ -7,10 +7,16 @@ The Nordic Thingy:52™ is a compact, power-optimized, multi-sensor development 
 
 This repository is an attempt to make it easier to start developing applications for Thingy:52 using Web Bluetooth. Web Bluetooth is a JavaScript API that makes it possible to communicate with Bluetooth Low Energy devices in web browsers. The implementation status for different browsers and platforms can be seen [here](https://github.com/WebBluetoothCG/web-bluetooth/blob/gh-pages/implementation-status.md). Just like the Web Bluetooth API, the methods in the Thingy object return promises.
 
-This is work in progress, and for now this repository will help you connect to a Thingy:52 and access the following data:
+This is work in progress, and for now this repository will help you connect to a Thingy:52 and access the following services and characteristics:
 
 - Configuration
     - Name
+    - Advertising parameters
+    - Connection parameters
+    - Eddystone URL
+    - Cloud token
+    - Firmware version
+    - MTU request
 - Environment
     - Configuration of sensors
     - Temperature
@@ -71,19 +77,31 @@ thingy.connect()
 ### API documentation
 Documentation is also available in HTML format [here](https://jtguggedal.github.io/thingy_web_bluetooth).
 
+
 -   [Thingy](#thingy)
+    -   [advParamsGet](#advparamsget)
+    -   [advParamsSet](#advparamsset)
     -   [batteryLevelEnable](#batterylevelenable)
     -   [batteryLevelGet](#batterylevelget)
     -   [buttonEnable](#buttonenable)
+    -   [cloudTokenGet](#cloudtokenget)
+    -   [cloudTokenSet](#cloudtokenset)
     -   [colorEnable](#colorenable)
     -   [colorIntervalSet](#colorintervalset)
     -   [colorSensorSet](#colorsensorset)
+    -   [connIntervalSet](#connintervalset)
+    -   [connParamsGet](#connparamsget)
+    -   [connSlaveLatencySet](#connslavelatencyset)
+    -   [connTimeoutSet](#conntimeoutset)
     -   [connect](#connect)
     -   [disconnect](#disconnect)
+    -   [eddystoneGet](#eddystoneget)
+    -   [eddystoneSet](#eddystoneset)
     -   [environmentConfigGet](#environmentconfigget)
     -   [eulerEnable](#eulerenable)
     -   [externalPinSet](#externalpinset)
     -   [externalPinsGet](#externalpinsget)
+    -   [firmwareVersionGet](#firmwareversionget)
     -   [gasEnable](#gasenable)
     -   [gasModeSet](#gasmodeset)
     -   [gravityVectorEnable](#gravityvectorenable)
@@ -99,6 +117,8 @@ Documentation is also available in HTML format [here](https://jtguggedal.github.
     -   [motionConfigGet](#motionconfigget-1)
     -   [motionProcessingFrequencySet](#motionprocessingfrequencyset)
     -   [motionRawEnable](#motionrawenable)
+    -   [mtuGet](#mtuget)
+    -   [mtuSet](#mtuset)
     -   [nameGet](#nameget)
     -   [nameGet](#nameget-1)
     -   [nameSet](#nameset)
@@ -125,6 +145,23 @@ Thingy:52 Web Bluetooth API. <br>
 **Parameters**
 
 -   `logEnabled` **bool** Enables logging of all BLE actions. (optional, default `true`)
+
+### advParamsGet
+
+Gets the current advertising parameters
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns an object with the advertising parameters when resolved or a promise with error on rejection.
+
+### advParamsSet
+
+Sets the advertising parameters
+
+**Parameters**
+
+-   `interval` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The advertising interval in milliseconds in the range of 20 ms to 5 000 ms.
+-   `timeout` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The advertising timeout in seconds in the range 1 s to 180 s.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
 
 ### batteryLevelEnable
 
@@ -153,6 +190,22 @@ Enables button notifications from Thingy. The assigned event handler will be cal
 -   `enable` **bool** Enables notifications if true or disables them if set to false.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
+
+### cloudTokenGet
+
+Gets the cloud token.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns a string with the cloud token when resolved or a promise with error on rejection.
+
+### cloudTokenSet
+
+Sets the cloud token.
+
+**Parameters**
+
+-   `token` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The cloud token to be stored.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
 
 ### colorEnable
 
@@ -187,6 +240,45 @@ Sets color sensor LED calibration parameters.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
 
+### connIntervalSet
+
+Sets the connection interval
+
+**Parameters**
+
+-   `minInterval` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The minimum connection interval in milliseconds. Must be >= 7.5 ms.
+-   `maxInterval` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The maximum connection interval in milliseconds. Must be &lt;= 4 000 ms.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
+
+### connParamsGet
+
+Gets the current connection parameters.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns an object with the connection parameters when resolved or a promise with error on rejection.
+
+### connSlaveLatencySet
+
+Sets the connection slave latency
+
+**Parameters**
+
+-   `slaveLatency` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The desired slave latency in the range from 0 to 499 connection intervals.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns a promise.
+
+### connTimeoutSet
+
+Sets the connection supervision timeout
+	<b>Note:</b> According to the Bluetooth Low Energy specification, the supervision timeout in milliseconds must be greater
+ than (1 + slaveLatency) _ maxConnInterval _ 2, where maxConnInterval is also given in milliseconds.
+
+**Parameters**
+
+-   `timeout` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The desired connection supervision timeout in milliseconds and in the rango of 100 ms to 32 000 ms.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
+
 ### connect
 
 Connects to Thingy.
@@ -199,6 +291,24 @@ Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 Method to disconnect from Thingy.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns an empty promise when resolved or a promise with error on rejection.
+
+### eddystoneGet
+
+Gets the configured Eddystone URL
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns a string with the URL when resolved or a promise with error on rejection.
+
+### eddystoneSet
+
+Sets the Eddystone URL
+
+**Parameters**
+
+-   `prefix` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Code for prefix, according to [specification](https://github.com/google/eddystone/tree/master/eddystone-url#url-scheme-prefix).
+-   `url` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The URL.
+-   `postfix` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Optional code for postfix according to [specification](https://github.com/google/eddystone/tree/master/eddystone-url#eddystone-url-http-url-encoding). (optional, default `null`)
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
 
 ### environmentConfigGet
 
@@ -233,6 +343,12 @@ Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 Gets the current external pin settings from the Thingy device. Returns an object with pin status information.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns an external pin status object.
+
+### firmwareVersionGet
+
+Gets the current firmware version.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns a string with the firmware version or a promise with error on rejection.
 
 ### gasEnable
 
@@ -351,13 +467,13 @@ Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 
 ### motionConfigGet
 
-Motion service
-
-### motionConfigGet
-
 Gets the current configuration of the Thingy motion module.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns a motion configuration object when promise resolves, or an error if rejected.
+
+### motionConfigGet
+
+Motion service
 
 ### motionProcessingFrequencySet
 
@@ -380,11 +496,28 @@ Enables raw motion data notifications from Thingy. The assigned event handler wi
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection
 
+### mtuGet
+
+Gets the current Maximal Transmission Unit (MTU)
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns the MTU when resolved or a promise with error on rejection.
+
+### mtuSet
+
+Sets the current Maximal Transmission Unit (MTU)
+
+**Parameters**
+
+-   `mtuSize` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** The desired MTU size.
+-   `peripheralRequest` **bool** Optional. Set to <code>true</code> if peripheral should send an MTU exchange request. Default is <code>false</code>; (optional, default `false`)
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
+
 ### nameGet
 
 Gets the name of the Thingy device.
 
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>** Returns a string with the name when resolved or a promise with error on rejection.
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns a string with the name when resolved or a promise with error on rejection.
 
 ### nameGet
 
@@ -398,7 +531,7 @@ Sets the name of the Thingy device.
 
 -   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The name that will be given to the Thingy.
 
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)>** Returns a string with the name when resolved or a promise with error on rejection.
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
 
 ### orientationEnable
 
