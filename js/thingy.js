@@ -64,6 +64,9 @@ function Thingy(logEnabled = true) {
 		this.TMS_UUID,
 		this.TSS_UUID
 	];
+
+	let device;
+	let bleIsBusy = false;
     
 	this.device = device;
 	this.batteryLevelEventListeners     = [null, []];
@@ -85,8 +88,6 @@ function Thingy(logEnabled = true) {
 	this.speakerStatusEventListeners    = [null, []];
 	this.micMatrixEventListeners        = [null, []];
 
-	var device;
-	var bleIsBusy = false;
 
 	/**
      *  Method to write data to a Web Bluetooth characteristic.
@@ -420,7 +421,7 @@ Thingy.prototype.notifyCharacteristic = function(characteristic, enable, notifyH
 };
 
 
-/**  Configuration service  */
+/*  Configuration service  */
 
 /**
  *  Gets the name of the Thingy device.
@@ -431,8 +432,8 @@ Thingy.prototype.notifyCharacteristic = function(characteristic, enable, notifyH
 Thingy.prototype.nameGet = function() {
 	return this.readData(this.nameCharacteristic)
 		.then( receivedData => {
-			var decoder = new TextDecoder("utf-8");
-			var name = decoder.decode(receivedData);
+			let decoder = new TextDecoder("utf-8");
+			let name = decoder.decode(receivedData);
 			if(this.logEnabled)
 				console.log("Received device name: " + name);
 			return Promise.resolve(name);
@@ -450,8 +451,8 @@ Thingy.prototype.nameGet = function() {
  * 
  */
 Thingy.prototype.nameSet = function(name) {
-	var byteArray = new Uint8Array(name.length);
-	for(var i = 0, j = name.length; i < j; ++i){
+	let byteArray = new Uint8Array(name.length);
+	for(let i = 0, j = name.length; i < j; ++i){
 		byteArray[i] = name.charCodeAt(i);
 	}
 	return this.writeData(this.nameCharacteristic, byteArray);
@@ -467,18 +468,16 @@ Thingy.prototype.advParamsGet = function() {
 	return this.readData(this.advParamsCharacteristic)
 		.then( receivedData => {
 			// Interval is given in units of 0.625 milliseconds
-			var interval = parseInt(receivedData.getUint16(0, true) * 0.625);
-			var timeout = receivedData.getUint8(2);
-			var params = {
-				"advParams": {
-					"interval": {
-						"interval": interval,
-						"unit": "ms"
-					},
-					"timeout":  {
-						"timeout": timeout,
-						"unit": "s"
-					}
+			let interval = parseInt(receivedData.getUint16(0, true) * 0.625);
+			let timeout = receivedData.getUint8(2);
+			let params = {
+				"interval": {
+					"interval": interval,
+					"unit": "ms"
+				},
+				"timeout":  {
+					"timeout": timeout,
+					"unit": "s"
 				}
 			};
 			return Promise.resolve(params);
@@ -510,7 +509,7 @@ Thingy.prototype.advParamsSet = function(interval, timeout) {
 		return Promise.reject(new Error("The advertising timeout must be within the range of 0 to 180 s"));
 	}
 
-	var dataArray = new Uint8Array(3);
+	let dataArray = new Uint8Array(3);
     
 	dataArray[0] = interval & 0xFF;
 	dataArray[1] = (interval >> 8) & 0xFF;
@@ -530,27 +529,25 @@ Thingy.prototype.connParamsGet = function() {
 		.then( receivedData => {
 
 			// Connection intervals are given in units of 1.25 ms
-			var minConnInterval = receivedData.getUint16(0, true) * 1.25;
-			var maxConnInterval = receivedData.getUint16(2, true) * 1.25;
-			var slaveLatency 	= receivedData.getUint16(4, true);
+			let minConnInterval = receivedData.getUint16(0, true) * 1.25;
+			let maxConnInterval = receivedData.getUint16(2, true) * 1.25;
+			let slaveLatency 	= receivedData.getUint16(4, true);
 
 			// Supervision timeout is given i units of 10 ms
-			var supervisionTimeout 		= receivedData.getUint16(6, true) * 10;
-			var params = {
-				"connParams": {
-					"interval": {
-						"min": minConnInterval,
-						"max": maxConnInterval,
-						"unit": "ms"
-					},
-					"slaveLatency" : {
-						"value": slaveLatency,
-						"unit": "number of connection intervals"
-					},
-					"supervisionTimeout":  {
-						"timeout": supervisionTimeout,
-						"unit": "ms"
-					}
+			let supervisionTimeout 		= receivedData.getUint16(6, true) * 10;
+			let params = {
+				"interval": {
+					"min": minConnInterval,
+					"max": maxConnInterval,
+					"unit": "ms"
+				},
+				"slaveLatency" : {
+					"value": slaveLatency,
+					"unit": "number of connection intervals"
+				},
+				"supervisionTimeout":  {
+					"timeout": supervisionTimeout,
+					"unit": "ms"
 				}
 			};
 			return Promise.resolve(params);
@@ -585,8 +582,8 @@ Thingy.prototype.connIntervalSet = function(minInterval, maxInterval) {
 
 	return this.readData(this.connParamsCharacteristic)
 		.then( receivedData => {
-			var dataArray = new Uint8Array(8);
-			for(var i = 0; i < dataArray.length; i++) {
+			let dataArray = new Uint8Array(8);
+			for(let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
 			}
 			dataArray[0] = minInterval & 0xFF;
@@ -617,8 +614,8 @@ Thingy.prototype.connSlaveLatencySet = function(slaveLatency) {
 
 	return this.readData(this.connParamsCharacteristic)
 		.then( receivedData => {
-			var dataArray = new Uint8Array(8);
-			for(var i = 0; i < dataArray.length; i++) {
+			let dataArray = new Uint8Array(8);
+			for(let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
 			}
 
@@ -653,14 +650,14 @@ Thingy.prototype.connTimeoutSet = function(timeout) {
 
 	return this.readData(this.connParamsCharacteristic)
 		.then( receivedData => {
-			var dataArray = new Uint8Array(8);
-			for(var i = 0; i < dataArray.length; i++) {
+			let dataArray = new Uint8Array(8);
+			for(let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
 			}
 			
 			// Check that the timeout obeys  conn_sup_timeout * 4 > (1 + slave_latency) * max_conn_interval 
-			var maxConnInterval = receivedData.getUint16(2, true);
-			var slaveLatency 	= receivedData.getUint16(4, true);
+			let maxConnInterval = receivedData.getUint16(2, true);
+			let slaveLatency 	= receivedData.getUint16(4, true);
 
 			if(timeout * 4 < ((1 + slaveLatency) * maxConnInterval)) {
 				return Promise.reject(new Error("The supervision timeout in milliseconds must be greater than 	\
@@ -689,14 +686,14 @@ Thingy.prototype.eddystoneGet = function() {
 		.then( receivedData => {
 			
 			// According to Eddystone URL encoding specification, certain elements can be expanded: https://github.com/google/eddystone/tree/master/eddystone-url
-			var prefixArray = ["http://www.", "https://www.", "http://", "https://"];
-			var expansionCodes = [	".com/", ".org/", ".edu/", ".net/", ".info/", 
+			let prefixArray = ["http://www.", "https://www.", "http://", "https://"];
+			let expansionCodes = [	".com/", ".org/", ".edu/", ".net/", ".info/", 
 				".biz/", ".gov/", ".com", ".org", ".edu", ".net", 
 				".info", ".biz", ".gov"];
-			var prefix = prefixArray[receivedData.getUint8(0)];
-			var decoder = new TextDecoder("utf-8");
-			var url = decoder.decode(receivedData);
-			var lastElement = receivedData.getUint8(url.length - 1);
+			let prefix = prefixArray[receivedData.getUint8(0)];
+			let decoder = new TextDecoder("utf-8");
+			let url = decoder.decode(receivedData);
+			let lastElement = receivedData.getUint8(url.length - 1);
 			
 			url = prefix + url.slice(1);
 
@@ -720,11 +717,11 @@ Thingy.prototype.eddystoneGet = function() {
  * 
  */
 Thingy.prototype.eddystoneSet = function(prefix, url, postfix = null) {
-	var len = (postfix == null) ? url.length + 1 : url.length + 2;
-	var byteArray = new Uint8Array(len);
+	let len = (postfix == null) ? url.length + 1 : url.length + 2;
+	let byteArray = new Uint8Array(len);
 	byteArray[0] = prefix;
 
-	for(var i = 1; i <= url.length; i++){
+	for(let i = 1; i <= url.length; i++){
 		byteArray[i] = url.charCodeAt(i - 1);
 	}
 
@@ -743,8 +740,8 @@ Thingy.prototype.eddystoneSet = function(prefix, url, postfix = null) {
 Thingy.prototype.cloudTokenGet = function() {
 	return this.readData(this.cloudTokenCharacteristic)
 		.then( receivedData => {
-			var decoder = new TextDecoder("utf-8");
-			var token = decoder.decode(receivedData);
+			let decoder = new TextDecoder("utf-8");
+			let token = decoder.decode(receivedData);
 			
 			return Promise.resolve(token);
 		})
@@ -764,7 +761,7 @@ Thingy.prototype.cloudTokenSet = function(token) {
 	if(token.len > 250)
 		return Promise.reject(new Error("The cloud token can not exced 250 characters."));
 	
-	var encoder = new TextEncoder("utf-8").encode(token);
+	let encoder = new TextEncoder("utf-8").encode(token);
 
 	return this.writeData(this.cloudTokenCharacteristic, encoder);
 };
@@ -778,7 +775,7 @@ Thingy.prototype.cloudTokenSet = function(token) {
 Thingy.prototype.mtuGet = function() {
 	return this.readData(this.mtuRequestCharacteristic)
 		.then( receivedData => {
-			var mtu = receivedData.getUint16(1, true);
+			let mtu = receivedData.getUint16(1, true);
 			
 			return Promise.resolve(mtu);
 		})
@@ -796,7 +793,7 @@ Thingy.prototype.mtuGet = function() {
  * 
  */
 Thingy.prototype.mtuSet = function(mtuSize, peripheralRequest = false) {
-	var dataArray = new Uint8Array(3);
+	let dataArray = new Uint8Array(3);
 	dataArray[0] = peripheralRequest ? 1 : 0;
 	dataArray[1] = mtuSize & 0xff;
 	dataArray[2] = (mtuSize >> 8) & 0xff;
@@ -813,11 +810,11 @@ Thingy.prototype.mtuSet = function(mtuSize, peripheralRequest = false) {
 Thingy.prototype.firmwareVersionGet = function() {
 	return this.readData(this.firmwareVersionCharacteristic)
 		.then( receivedData => {
-			var major = receivedData.getUint8(0);
-			var minor = receivedData.getUint8(1);
-			var patch = receivedData.getUint8(2);
+			let major = receivedData.getUint8(0);
+			let minor = receivedData.getUint8(1);
+			let patch = receivedData.getUint8(2);
 
-			var version = `v${major}.${minor}.${patch}`;
+			let version = `v${major}.${minor}.${patch}`;
         
 			return Promise.resolve(version);
 		})
@@ -841,15 +838,15 @@ Thingy.prototype.firmwareVersionGet = function() {
 Thingy.prototype.environmentConfigGet = function() {
 	return this.readData(this.environmentConfigCharacteristic)
 		.then( data => {
-			var tempInterval                = data.getUint16(0, true);
-			var pressureInterval            = data.getUint16(2, true);
-			var humidityInterval            = data.getUint16(4, true);
-			var colorInterval               = data.getUint16(6, true);
-			var gasMode                     = data.getUint8(8);
-			var colorSensorRed              = data.getUint8(9);
-			var colorSensorGreen            = data.getUint8(10);
-			var colorSensorBlue             = data.getUint8(11);
-			var config = {
+			let tempInterval                = data.getUint16(0, true);
+			let pressureInterval            = data.getUint16(2, true);
+			let humidityInterval            = data.getUint16(4, true);
+			let colorInterval               = data.getUint16(6, true);
+			let gasMode                     = data.getUint8(8);
+			let colorSensorRed              = data.getUint8(9);
+			let colorSensorGreen            = data.getUint8(10);
+			let colorSensorBlue             = data.getUint8(11);
+			let config = {
 				"tempInterval" : tempInterval,
 				"pressureInterval": pressureInterval,
 				"humidityInterval": humidityInterval,
@@ -859,7 +856,7 @@ Thingy.prototype.environmentConfigGet = function() {
 				"colorSensorGreen": colorSensorGreen,
 				"colorSensorBlue": colorSensorBlue
 			};
-			return Promise.resolve({ config: config });
+			return Promise.resolve(config);
 		})
 		.catch( error => {
 			return Promise.reject(new Error("Error when getting Thingy LED status: " , error));
@@ -878,8 +875,8 @@ Thingy.prototype.temperatureIntervalSet = function(interval) {
 	// Preserve values for those settings that are not being changed 
 	return this.readData(this.environmentConfigCharacteristic)
 		.then ( receivedData => {
-			var dataArray = new Uint8Array(12);
-			for(var i = 0; i < dataArray.length; i++) {
+			let dataArray = new Uint8Array(12);
+			for(let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
 			}
 			dataArray[0] = interval & 0xFF;
@@ -903,8 +900,8 @@ Thingy.prototype.pressureIntervalSet = function(interval) {
 	// Preserve values for those settings that are not being changed 
 	return this.readData(this.environmentConfigCharacteristic)
 		.then ( receivedData => {
-			var dataArray = new Uint8Array(12);
-			for(var i = 0; i < dataArray.length; i++) {
+			let dataArray = new Uint8Array(12);
+			for(let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
 			}
 			dataArray[2] = interval & 0xFF;
@@ -928,8 +925,8 @@ Thingy.prototype.humidityIntervalSet = function(interval) {
 	// Preserve values for those settings that are not being changed 
 	return this.readData(this.environmentConfigCharacteristic)
 		.then ( receivedData => {
-			var dataArray = new Uint8Array(12);
-			for(var i = 0; i < dataArray.length; i++) {
+			let dataArray = new Uint8Array(12);
+			for(let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
 			}
 			dataArray[4] = interval & 0xFF;
@@ -953,8 +950,8 @@ Thingy.prototype.colorIntervalSet = function(interval) {
 	// Preserve values for those settings that are not being changed 
 	return this.readData(this.environmentConfigCharacteristic)
 		.then ( receivedData => {
-			var dataArray = new Uint8Array(12);
-			for(var i = 0; i < dataArray.length; i++) {
+			let dataArray = new Uint8Array(12);
+			for(let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
 			}
 			dataArray[6] = interval & 0xFF;
@@ -978,8 +975,8 @@ Thingy.prototype.gasModeSet = function(mode) {
 	// Preserve values for those settings that are not being changed 
 	return this.readData(this.environmentConfigCharacteristic)
 		.then ( receivedData => {
-			var dataArray = new Uint8Array(12);
-			for(var i = 0; i < dataArray.length; i++) {
+			let dataArray = new Uint8Array(12);
+			for(let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
 			}
 			dataArray[8] = mode;
@@ -1004,8 +1001,8 @@ Thingy.prototype.colorSensorSet = function(red, green, blue) {
 	// Preserve values for those settings that are not being changed 
 	return this.readData(this.environmentConfigCharacteristic)
 		.then ( receivedData => {
-			var dataArray = new Uint8Array(12);
-			for(var i = 0; i < dataArray.length; i++) {
+			let dataArray = new Uint8Array(12);
+			for(let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
 			}
 			dataArray[9]    = red;
@@ -1037,17 +1034,15 @@ Thingy.prototype.temperatureEnable = function(eventHandler, enable) {
 };
 
 Thingy.prototype.temperatureNotifyHandler = function(event) {
-	var data = event.target.value;
-	var integer = data.getUint8(0);
-	var decimal = data.getUint8(1);
-	var temperature = integer + (decimal/100);
+	let data = event.target.value;
+	let integer = data.getUint8(0);
+	let decimal = data.getUint8(1);
+	let temperature = integer + (decimal/100);
     
 	this.tempEventListeners[1].forEach( eventHandler => {
 		eventHandler( { 
-			"temperature": { 
-				"value": temperature, 
-				"unit": "Celsius" 
-			}
+			"value": temperature, 
+			"unit": "Celsius" 
 		});
 	});
 };
@@ -1071,17 +1066,15 @@ Thingy.prototype.pressureEnable = function(eventHandler, enable) {
 };
 
 Thingy.prototype.pressureNotifyHandler = function(event) {
-	var data = event.target.value;
-	var integer = data.getUint32(0, true);
-	var decimal = data.getUint8(4);
-	var pressure = integer + (decimal/100);
+	let data = event.target.value;
+	let integer = data.getUint32(0, true);
+	let decimal = data.getUint8(4);
+	let pressure = integer + (decimal/100);
 
 	this.pressureEventListeners[1].forEach( eventHandler => {
 		eventHandler( { 
-			"pressure": { 
-				"value": pressure, 
-				"unit": "hPa" 
-			}
+			"value": pressure, 
+			"unit": "hPa" 
 		});
 	});
 };
@@ -1105,15 +1098,13 @@ Thingy.prototype.humidityEnable = function(eventHandler, enable) {
 };
 
 Thingy.prototype.humidityNotifyHandler = function(event) {
-	var data = event.target.value;
-	var humidity = data.getUint8(0);
+	let data = event.target.value;
+	let humidity = data.getUint8(0);
 
 	this.humidityEventListeners[1].forEach( eventHandler => {
 		eventHandler( { 
-			"humidity": { 
-				"value": humidity, 
-				"unit": "%" 
-			}
+			"value": humidity, 
+			"unit": "%" 
 		});
 	});
 };
@@ -1137,21 +1128,19 @@ Thingy.prototype.gasEnable = function(eventHandler, enable) {
 };
 
 Thingy.prototype.gasNotifyHandler = function(event) {
-	var data = event.target.value;
-	var eco2 = data.getUint16(0, true);
-	var tvoc = data.getUint16(2, true);
+	let data = event.target.value;
+	let eco2 = data.getUint16(0, true);
+	let tvoc = data.getUint16(2, true);
 
 	this.gasEventListeners[1].forEach( eventHandler => {
 		eventHandler( { 
-			"gas": { 
-				"eCO2" : {
-					"value": eco2, 
-					"unit": "ppm" 
-				},
-				"TVOC" : {
-					"value": tvoc, 
-					"unit": "ppb" 
-				}
+			"eCO2" : {
+				"value": eco2, 
+				"unit": "ppm" 
+			},
+			"TVOC" : {
+				"value": tvoc, 
+				"unit": "ppb" 
 			}
 		});
 	});
@@ -1176,20 +1165,35 @@ Thingy.prototype.colorEnable = function(eventHandler, enable) {
 };
 
 Thingy.prototype.colorNotifyHandler = function(event) {
-	var data = event.target.value;
-	var red = data.getUint16(0, true);
-	var green = data.getUint8(2, true);
-	var blue = data.getUint8(4, true);
-	var clear = data.getUint8(6, true);
+	let data = event.target.value;
+	let r = data.getUint16(0, true);
+	let g = data.getUint16(2, true);
+	let b = data.getUint16(4, true);
+	let c = data.getUint16(6, true);
+
+	let rRatio = r / (r+g+b);
+	let gRatio = g / (r+g+b);
+	let bRatio = b / (r+g+b);
+	let clear_at_black = 300;
+	let clear_at_white = 400;
+	let clear_diff = clear_at_white - clear_at_black;
+	let clear_normalized = (c - clear_at_black) / clear_diff;
+	if (clear_normalized < 0)
+	{
+		clear_normalized = 0;
+	}        
+	let red = rRatio * 255.0 * 3 * clear_normalized;
+	if(red > 255) red = 255;
+	let green = gRatio * 255.0 * 3 * clear_normalized;
+	if(green > 255) green = 255;
+	let blue = bRatio * 255.0 * 3 * clear_normalized;
+	if(blue > 255) blue = 255;       
 
 	this.colorEventListeners[1].forEach( eventHandler => {
 		eventHandler( { 
-			"color": { 
-				"red": red,
-				"green": green,
-				"blue": blue,
-				"clear": clear
-			}
+				"red": red.toFixed(0),
+				"green": green.toFixed(0),
+				"blue": blue.toFixed(0)
 		});
 	});
 };
@@ -1209,39 +1213,33 @@ Thingy.prototype.colorNotifyHandler = function(event) {
 Thingy.prototype.ledGetStatus = function() {
 	return this.readData(this.ledCharacteristic)
 		.then( data => {
-			var mode = data.getUint8(0);
-			var status;
+			let mode = data.getUint8(0);
+			let status;
 			switch(mode) {
 			case 0:
 				status = { LEDstatus : { mode : mode }};
 				break;
 			case 1:
 				status = { 
-					"LEDstatus" : { 
-						"mode" : mode, 
-						"r" : data.getUint8(1),
-						"g" : data.getUint8(2),
-						"b" : data.getUint8(3)
-					}
+					"mode" : mode, 
+					"r" : data.getUint8(1),
+					"g" : data.getUint8(2),
+					"b" : data.getUint8(3)
 				};
 				break;
 			case 2:
 				status = { 
-					"LEDstatus" : { 
-						"mode" : mode, 
-						"color" : data.getUint8(1),
-						"intensity" : data.getUint8(2),
-						"delay" : data.getUint16(3)
-					}
+					"mode" : mode, 
+					"color" : data.getUint8(1),
+					"intensity" : data.getUint8(2),
+					"delay" : data.getUint16(3)
 				};
 				break;
 			case 3:
 				status = { 
-					"LEDstatus" : { 
-						"mode" : mode, 
-						"color" : data.getUint8(1),
-						"intensity" : data.getUint8(2)
-					}
+					"mode" : mode, 
+					"color" : data.getUint8(1),
+					"intensity" : data.getUint8(2)
 				};
 				break;
 			}
@@ -1299,7 +1297,7 @@ Thingy.prototype.ledSetOneShot = function(color, intensity) {
  * 
  *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a button object as argument.
  *  @param {bool} enable - Enables notifications if true or disables them if set to false.
- *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection. 
+ *  @return {Promise<Error>} Returns a promise with button state when resolved or a promise with an error on rejection. 
  * 
  */
 Thingy.prototype.buttonEnable = function(eventHandler, enable) {
@@ -1313,11 +1311,11 @@ Thingy.prototype.buttonEnable = function(eventHandler, enable) {
 };
 
 Thingy.prototype.buttonNotifyHandler = function(event) {  
-	var data = event.target.value;
-	var state = data.getUint8(0);
+	let data = event.target.value;
+	let state = data.getUint8(0);
       
 	this.buttonEventListeners[1].forEach( eventHandler => {
-		eventHandler({ buttonState: state });
+		eventHandler(state);
 	});
 };
 
@@ -1331,13 +1329,11 @@ Thingy.prototype.buttonNotifyHandler = function(event) {
 Thingy.prototype.externalPinsGet = function() {
 	return this.readData(this.externalPinCharacteristic)
 		.then( data => {
-			var pinStatus = {
-				"pinStatus" : {
-					"pin1" : data.getUint8(0),
-					"pin2" : data.getUint8(1),
-					"pin3" : data.getUint8(2),
-					"pin4" : data.getUint8(3)
-				}
+			let pinStatus = {
+				"pin1" : data.getUint8(0),
+				"pin2" : data.getUint8(1),
+				"pin3" : data.getUint8(2),
+				"pin4" : data.getUint8(3)
 			};
 			return Promise.resolve(pinStatus);
 		})
@@ -1363,8 +1359,8 @@ Thingy.prototype.externalPinSet = function(pin, value) {
 	// Preserve values for those pins that are not being set 
 	return this.readData(this.externalPinCharacteristic)
 		.then ( receivedData => {
-			var dataArray = new Uint8Array(4);
-			for(var i = 0; i < dataArray.length; i++) {
+			let dataArray = new Uint8Array(4);
+			for(let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
 			}
 			dataArray[pin - 1] = value;
@@ -1390,19 +1386,19 @@ Thingy.prototype.externalPinSet = function(pin, value) {
 Thingy.prototype.motionConfigGet = function() {
 	return this.readData(this.tmsConfigCharacteristic)
 		.then( data => {
-			var stepCounterInterval                 = data.getUint16(0, true);
-			var tempCompInterval                    = data.getUint16(2, true);
-			var magnetCompInterval                  = data.getUint16(4, true);
-			var motionProcessingFrequency           = data.getUint16(6, true);
-			var wakeOnMotion                        = data.getUint8(8, true);
-			var config = {
+			let stepCounterInterval                 = data.getUint16(0, true);
+			let tempCompInterval                    = data.getUint16(2, true);
+			let magnetCompInterval                  = data.getUint16(4, true);
+			let motionProcessingFrequency           = data.getUint16(6, true);
+			let wakeOnMotion                        = data.getUint8(8, true);
+			let config = {
 				"stepCountInterval" : stepCounterInterval,
 				"tempCompInterval": tempCompInterval,
 				"magnetCompInterval": magnetCompInterval,
 				"motionProcessingFrequency": motionProcessingFrequency,
 				"wakeOnMotion": wakeOnMotion
 			};
-			return Promise.resolve({ config: config });
+			return Promise.resolve(config);
 		})
 		.catch( error => {
 			return Promise.reject(new Error("Error when getting Thingy motion module configuration: " , error));
@@ -1421,8 +1417,8 @@ Thingy.prototype.stepCounterIntervalSet = function(interval) {
 	// Preserve values for those settings that are not being changed 
 	return this.readData(this.tmsConfigCharacteristic)
 		.then ( receivedData => {
-			var dataArray = new Uint8Array(9);
-			for(var i = 0; i < dataArray.length; i++) {
+			let dataArray = new Uint8Array(9);
+			for(let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
 			}
 			dataArray[0] = interval & 0xFF;
@@ -1446,8 +1442,8 @@ Thingy.prototype.temperatureCompIntervalSet = function(interval) {
 	// Preserve values for those settings that are not being changed 
 	return this.readData(this.tmsConfigCharacteristic)
 		.then ( receivedData => {
-			var dataArray = new Uint8Array(9);
-			for(var i = 0; i < dataArray.length; i++) {
+			let dataArray = new Uint8Array(9);
+			for(let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
 			}
 			dataArray[2] = interval & 0xFF;
@@ -1471,8 +1467,8 @@ Thingy.prototype.magnetCompIntervalSet = function(interval) {
 	// Preserve values for those settings that are not being changed 
 	return this.readData(this.tmsConfigCharacteristic)
 		.then ( receivedData => {
-			var dataArray = new Uint8Array(9);
-			for(var i = 0; i < dataArray.length; i++) {
+			let dataArray = new Uint8Array(9);
+			for(let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
 			}
 			dataArray[4] = interval & 0xFF;
@@ -1496,8 +1492,8 @@ Thingy.prototype.motionProcessingFrequencySet = function(frequency) {
 	// Preserve values for those settings that are not being changed 
 	return this.readData(this.tmsConfigCharacteristic)
 		.then ( receivedData => {
-			var dataArray = new Uint8Array(9);
-			for(var i = 0; i < dataArray.length; i++) {
+			let dataArray = new Uint8Array(9);
+			for(let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
 			}
 			dataArray[6] = frequency & 0xFF;
@@ -1521,8 +1517,8 @@ Thingy.prototype.wakeOnMotionSet = function(enable) {
 	// Preserve values for those settings that are not being changed 
 	return this.readData(this.tmsConfigCharacteristic)
 		.then ( receivedData => {
-			var dataArray = new Uint8Array(9);
-			for(var i = 0; i < dataArray.length; i++) {
+			let dataArray = new Uint8Array(9);
+			for(let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
 			}
 			dataArray[8] = enable ? 1 : 0;
@@ -1552,16 +1548,14 @@ Thingy.prototype.tapEnable = function(eventHandler, enable) {
 };
 
 Thingy.prototype.tapNotifyHandler = function(event) {
-	var data = event.target.value;
-	var direction = data.getUint8(0);
-	var count = data.getUint8(1);
+	let data = event.target.value;
+	let direction = data.getUint8(0);
+	let count = data.getUint8(1);
     
 	this.tapEventListeners[1].forEach( eventHandler => {
 		eventHandler( { 
-			"tap": { 
-				"direction": direction, 
-				"count": count 
-			}
+			"direction": direction, 
+			"count": count 
 		});
 	});
 };
@@ -1585,13 +1579,11 @@ Thingy.prototype.orientationEnable = function(eventHandler, enable) {
 };
 
 Thingy.prototype.orientationNotifyHandler = function(event) {
-	var data = event.target.value;
-	var orientation = data.getUint8(0);
+	let data = event.target.value;
+	let orientation = data.getUint8(0);
     
 	this.orientationEventListeners[1].forEach( eventHandler => {
-		eventHandler( { 
-			"orientation": orientation
-		});
+		eventHandler(orientation);
 	});
 };
 
@@ -1614,15 +1606,15 @@ Thingy.prototype.quaternionEnable = function(eventHandler, enable) {
 };
 
 Thingy.prototype.quaternionNotifyHandler = function(event) {
-	var data = event.target.value;
+	let data = event.target.value;
 
 	// Divide by (1 << 30) according to sensor specification
-	var w = data.getInt32(0, true) / (1 << 30);
-	var x = data.getInt32(4, true) / (1 << 30);
-	var y = data.getInt32(8, true) / (1 << 30);
-	var z = data.getInt32(12, true) / (1 << 30);
+	let w = data.getInt32(0, true) / (1 << 30);
+	let x = data.getInt32(4, true) / (1 << 30);
+	let y = data.getInt32(8, true) / (1 << 30);
+	let z = data.getInt32(12, true) / (1 << 30);
     
-	var magnitude = Math.sqrt(Math.pow(w, 2) + Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
+	let magnitude = Math.sqrt(Math.pow(w, 2) + Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
 
 	if(magnitude != 0){
 		w /= magnitude;
@@ -1633,12 +1625,10 @@ Thingy.prototype.quaternionNotifyHandler = function(event) {
     
 	this.quaternionEventListeners[1].forEach( eventHandler => {
 		eventHandler( { 
-			"quaternion": {
-				"w": w,
-				"x": x,
-				"y": y,
-				"z": z
-			}
+			"w": w,
+			"x": x,
+			"y": y,
+			"z": z
 		});
 	});
 };
@@ -1662,18 +1652,16 @@ Thingy.prototype.stepEnable = function(eventHandler, enable) {
 };
 
 Thingy.prototype.stepNotifyHandler = function(event) {
-	var data = event.target.value;
-	var count = data.getUint32(0, true);
-	var time = data.getUint32(4, true);
+	let data = event.target.value;
+	let count = data.getUint32(0, true);
+	let time = data.getUint32(4, true);
     
 	this.stepEventListeners[1].forEach( eventHandler => {
 		eventHandler( { 
-			"steps": {
-				"count": count,
-				"time": {
-					"value": time,
-					"unit": "ms"
-				}
+			"count": count,
+			"time": {
+				"value": time,
+				"unit": "ms"
 			}
 		});
 	});
@@ -1698,44 +1686,42 @@ Thingy.prototype.motionRawEnable = function(eventHandler, enable) {
 };
 
 Thingy.prototype.motionRawNotifyHandler = function(event) {
-	var data        = event.target.value;
+	let data        = event.target.value;
 
 	// Divide by 2^6 = 64 to get accelerometer correct values
-	var accX        = (data.getInt16(0, true) / 64);
-	var accY        = (data.getInt16(2, true) / 64);
-	var accZ        = (data.getInt16(4, true) / 64);
+	let accX        = (data.getInt16(0, true) / 64);
+	let accY        = (data.getInt16(2, true) / 64);
+	let accZ        = (data.getInt16(4, true) / 64);
     
 	// Divide by 2^11 = 2048 to get correct gyroscope values
-	var gyroX       = (data.getInt16(6, true) / 2048);
-	var gyroY       = (data.getInt16(8, true) / 2048);
-	var gyroZ       = (data.getInt16(10, true) / 2048);
+	let gyroX       = (data.getInt16(6, true) / 2048);
+	let gyroY       = (data.getInt16(8, true) / 2048);
+	let gyroZ       = (data.getInt16(10, true) / 2048);
     
 	// Divide by 2^12 = 4096 to get correct compass values
-	var compassX    = (data.getInt16(12, true) / 4096);
-	var compassY    = (data.getInt16(14, true) / 4096);
-	var compassZ    = (data.getInt16(16, true) / 4096);
+	let compassX    = (data.getInt16(12, true) / 4096);
+	let compassY    = (data.getInt16(14, true) / 4096);
+	let compassZ    = (data.getInt16(16, true) / 4096);
     
 	this.motionRawEventListeners[1].forEach( eventHandler => {
 		eventHandler( { 
-			"rawData": {
-				"accelerometer": {
-					"x": accX,
-					"y": accY,
-					"z": accZ,
-					"unit": "G"
-				},
-				"gyroscope": {
-					"x": gyroX,
-					"y": gyroY,
-					"z": gyroZ,
-					"unit": "deg/s"
-				},
-				"compass": {
-					"x": compassX,
-					"y": compassY,
-					"z": compassZ,
-					"unit": "microTesla"
-				}
+			"accelerometer": {
+				"x": accX,
+				"y": accY,
+				"z": accZ,
+				"unit": "G"
+			},
+			"gyroscope": {
+				"x": gyroX,
+				"y": gyroY,
+				"z": gyroZ,
+				"unit": "deg/s"
+			},
+			"compass": {
+				"x": compassX,
+				"y": compassY,
+				"z": compassZ,
+				"unit": "microTesla"
 			}
 		});
 	});
@@ -1760,20 +1746,18 @@ Thingy.prototype.eulerEnable = function(eventHandler, enable) {
 };
 
 Thingy.prototype.eulerNotifyHandler = function(event) {
-	var data = event.target.value;
+	let data = event.target.value;
 
 	// Divide by two bytes (1<<16 or 2^16 or 65536) to get correct value
-	var roll    = data.getInt32(0, true) / 65536;
-	var pitch   = data.getInt32(4, true) / 65536;
-	var yaw     = data.getInt32(8, true) / 65536;
+	let roll    = data.getInt32(0, true) / 65536;
+	let pitch   = data.getInt32(4, true) / 65536;
+	let yaw     = data.getInt32(8, true) / 65536;
     
 	this.eulerEventListeners[1].forEach( eventHandler => {
 		eventHandler( { 
-			"euler": {
-				"roll": roll,
-				"pitch": pitch,
-				"yaw": yaw
-			}
+			"roll": roll,
+			"pitch": pitch,
+			"yaw": yaw
 		});
 	});
 };
@@ -1797,26 +1781,24 @@ Thingy.prototype.rotationMatrixEnable = function(eventHandler, enable) {
 };
 
 Thingy.prototype.rotationMatrixNotifyHandler = function(event) {
-	var data = event.target.value;
+	let data = event.target.value;
 
 	// Divide by 2^2 = 4 to get correct values
-	var r1c1 = data.getInt16(0, true) / 4;
-	var r1c2 = data.getInt16(0, true) / 4;
-	var r1c3 = data.getInt16(0, true) / 4;
-	var r2c1 = data.getInt16(0, true) / 4;
-	var r2c2 = data.getInt16(0, true) / 4;
-	var r2c3 = data.getInt16(0, true) / 4;
-	var r3c1 = data.getInt16(0, true) / 4;
-	var r3c2 = data.getInt16(0, true) / 4;
-	var r3c3 = data.getInt16(0, true) / 4;
+	let r1c1 = data.getInt16(0, true) / 4;
+	let r1c2 = data.getInt16(0, true) / 4;
+	let r1c3 = data.getInt16(0, true) / 4;
+	let r2c1 = data.getInt16(0, true) / 4;
+	let r2c2 = data.getInt16(0, true) / 4;
+	let r2c3 = data.getInt16(0, true) / 4;
+	let r3c1 = data.getInt16(0, true) / 4;
+	let r3c2 = data.getInt16(0, true) / 4;
+	let r3c3 = data.getInt16(0, true) / 4;
     
 	this.rotationMatrixEventListeners[1].forEach( eventHandler => {
 		eventHandler( { 
-			"rotationMatrix": {
-				"row1": [r1c1, r1c2, r1c3],
-				"row2": [r2c1, r2c2, r2c3],
-				"row3": [r3c1, r3c2, r3c3]
-			}
+			"row1": [r1c1, r1c2, r1c3],
+			"row2": [r2c1, r2c2, r2c3],
+			"row3": [r3c1, r3c2, r3c3]
 		});
 	});
 };
@@ -1840,17 +1822,15 @@ Thingy.prototype.headingEnable = function(eventHandler, enable) {
 };
 
 Thingy.prototype.headingNotifyHandler = function(event) {
-	var data = event.target.value;
+	let data = event.target.value;
 
 	// Divide by 2^16 = 65536 to get correct heading values
-	var heading = data.getInt32(0, true) / 65536;
+	let heading = data.getInt32(0, true) / 65536;
     
 	this.headingEventListeners[1].forEach( eventHandler => {
 		eventHandler( { 
-			"heading": {
-				"value": heading,
-				"unit": "degrees"
-			}
+			"value": heading,
+			"unit": "degrees"
 		});
 	});
 };
@@ -1874,18 +1854,16 @@ Thingy.prototype.gravityVectorEnable = function(eventHandler, enable) {
 };
 
 Thingy.prototype.gravityVectorNotifyHandler = function(event) {
-	var data = event.target.value;
-	var x = data.getFloat32(0, true);
-	var y = data.getFloat32(4, true);
-	var z = data.getFloat32(8, true);
+	let data = event.target.value;
+	let x = data.getFloat32(0, true);
+	let y = data.getFloat32(4, true);
+	let z = data.getFloat32(8, true);
     
 	this.gravityVectorEventListeners[1].forEach( eventHandler => {
 		eventHandler( { 
-			"gravityVector": {
-				"x": x,
-				"y": y,
-				"z": z
-			}
+			"x": x,
+			"y": y,
+			"z": z
 		});
 	});
 };
@@ -1913,12 +1891,10 @@ Thingy.prototype.gravityVectorNotifyHandler = function(event) {
 Thingy.prototype.batteryLevelGet = function() {
 	return this.readData(this.batteryCharacteristic)
 		.then( receivedData => {
-			var level = receivedData.getUint8(0);
+			let level = receivedData.getUint8(0);
 			return Promise.resolve({ 
-				"batteryLevel": {
-					"value": level,
-					"unit": "%"
-				}
+				"value": level,
+				"unit": "%"
 			});
 		})
 		.catch( error => {
@@ -1945,15 +1921,13 @@ Thingy.prototype.batteryLevelEnable = function(eventHandler, enable) {
 };
 
 Thingy.prototype.batteryLevelNotifyHandler = function(event) {
-	var data = event.target.value;
-	var value = data.getUint8(0);
+	let data = event.target.value;
+	let value = data.getUint8(0);
     
 	this.batteryLevelEventListeners[1].forEach( eventHandler => {
 		eventHandler( { 
-			"batteryLevel": {
-				"value": value,
-				"unit": "%"
-			}
+			"value": value,
+			"unit": "%"
 		});
 	});
 };
