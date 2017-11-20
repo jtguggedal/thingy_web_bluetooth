@@ -56,7 +56,7 @@ This is work in progress, and for now this repository will help you connect to a
 ### Example
 The following example will first connect to a thingy:52, then read its name and configure the RGB LED to "breathe"  purple (color code 5, see [here](#ledsetbreathe)) pulses with 20% intensity and with 1500 ms delays between each pulse. 
 
-```
+```javascript
 var thingy = new Thingy();
 thingy.connect()
 .then( () => {
