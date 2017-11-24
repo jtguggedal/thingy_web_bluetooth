@@ -75,7 +75,7 @@ thingy.connect()
 
 
 ### API documentation
-Documentation is also available in HTML format [here](https://jtguggedal.github.io/thingy_web_bluetooth).
+Documentation is also available in HTML format [here](https://jtguggedal.github.io/thingy_web_bluetooth/docs).
 
 
 -   [Thingy](#thingy)
