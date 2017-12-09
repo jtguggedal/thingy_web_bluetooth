@@ -61,9 +61,9 @@ async function start() {
   try {
     const thingy = new Thingy();
     await thingy.connect();
-    const name = await thingy.nameGet();
+    const name = await thingy.name;
     console.log(`This Thingy:52 is called ${name}`);
-    thingy.ledSetBreathe(1, 20, 1500); 
+    thingy.ledBreathe(1, 20, 1500); 
   }
   catch(err) {
     console.error(err); 

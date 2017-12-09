@@ -48,7 +48,7 @@ class Thingy {
 		this.TMS_EULER_UUID = "ef680407-9b35-4933-9b10-52ffa9740042";
 		this.TMS_ROT_MATRIX_UUID = "ef680408-9b35-4933-9b10-52ffa9740042";
 		this.TMS_HEADING_UUID = "ef680409-9b35-4933-9b10-52ffa9740042";
-		this.TMS_gravityVector_UUID = "ef68040a-9b35-4933-9b10-52ffa9740042";
+		this.TMS_GRAVITY_UUID = "ef68040a-9b35-4933-9b10-52ffa9740042";
 
 		// TSS = Thingy Sound Service
 		this.TSS_UUID = "ef680500-9b35-4933-9b10-52ffa9740042";
@@ -95,7 +95,8 @@ class Thingy {
          *
          *  @param {Object} characteristic - Web Bluetooth characteristic object
          *  @return {Promise<Uint8Array|Error>} Returns Uint8Array when resolved or an error when rejected
-         *
+		 * 
+         *	@ignore
          */
 	async _readData(characteristic) {
 		if (!this.bleIsBusy) {
@@ -124,6 +125,8 @@ class Thingy {
          *  @param {Object} characteristic - Web Bluetooth characteristic object
          *  @param {Uint8Array} dataArray - Typed array of bytes to send
          *  @return {Promise}
+		 * 
+		 * 	@ignore
          */
 	async _writeData(characteristic, dataArray) {
 		if (!this.bleIsBusy) {
@@ -212,7 +215,7 @@ class Thingy {
 			this.motionService = await server.getPrimaryService(this.TMS_UUID);
 			this.tmsConfigCharacteristic = await this.motionService.getCharacteristic(this.TMS_CONFIG_UUID);
 			this.eulerCharacteristic = await this.motionService.getCharacteristic(this.TMS_EULER_UUID);
-			this.gravityVectorCharacteristic = await this.motionService.getCharacteristic(this.TMS_gravityVector_UUID);
+			this.gravityVectorCharacteristic = await this.motionService.getCharacteristic(this.TMS_GRAVITY_UUID);
 			this.headingCharacteristic = await this.motionService.getCharacteristic(this.TMS_HEADING_UUID);
 			this.orientationCharacteristic = await this.motionService.getCharacteristic(this.TMS_ORIENTATION_UUID);
 			this.quaternionCharacteristic = await this.motionService.getCharacteristic(this.TMS_QUATERNION_UUID);
@@ -285,6 +288,10 @@ class Thingy {
      *  @return {Promise<string|Error>} Returns a string with the name when resolved or a promise with error on rejection.
      *
      */
+	get name() {
+		return this.nameGet();
+	}
+
 	async nameGet() {
 		try {
 			const data = await this._readData(this.nameCharacteristic);
@@ -306,13 +313,18 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise.
      *
      */
-	nameSet(name) {
-		let byteArray = new Uint8Array(name.length);
+	set name(val) {
+		return this.nameSet(val);
+	}
+
+	async nameSet(name) {
+		const byteArray = new Uint8Array(name.length);
 		for (let i = 0, j = name.length; i < j; ++i) {
 			byteArray[i] = name.charCodeAt(i);
 		}
 		return this._writeData(this.nameCharacteristic, byteArray);
 	}
+
 
 	/**
      *  Gets the current advertising parameters
@@ -320,6 +332,10 @@ class Thingy {
      *  @return {Promise<Object|Error>} Returns an object with the advertising parameters when resolved or a promise with error on rejection.
      *
      */
+	get advParams() {
+		return this.advParamsGet();
+	}
+
 	async advParamsGet() {
 		try {
 			const receivedData = await this._readData(this.advParamsCharacteristic);
@@ -347,15 +363,25 @@ class Thingy {
 	/**
      *  Sets the advertising parameters
      *
-     *  @param {string} interval - The advertising interval in milliseconds in the range of 20 ms to 5 000 ms.
-     *  @param {string} timeout - The advertising timeout in seconds in the range 1 s to 180 s.
+	 * 	@param {object} params - Object with key/value pairs 'interval' and 'timeout': <code>{interval: someInterval, timeout: someTimeout}</code>.
+     *  @param {number} params.interval - The advertising interval in milliseconds in the range of 20 ms to 5 000 ms.
+     *  @param {number} params.timeout - The advertising timeout in seconds in the range 1 s to 180 s.
      *  @return {Promise<Error>} Returns a promise.
      *
      */
-	advParamsSet(interval, timeout) {
+	set advParams(params) {
+		return this._advParamsSet(params);
+	}
+
+	_advParamsSet(params) {
+
+		if((typeof(params) != "object") || !params.hasOwnProperty("interval") || !params.hasOwnProperty("timeout"))
+			return Promise.reject(new Error("The argument has to be an object with key/value pairs \
+											'interval' and 'timeout': {interval: someInterval, timeout: someTimeout}"));
 
 		// Interval is in units of 0.625 ms.
-		interval *= 1.6;
+		const interval = params.interval * 1.6;
+		const timeout = params.timeout;
 
 		// Check parameters
 		if ((interval < 32) || (interval > 8000)) {
@@ -365,7 +391,7 @@ class Thingy {
 			return Promise.reject(new Error("The advertising timeout must be within the range of 0 to 180 s"));
 		}
 
-		let dataArray = new Uint8Array(3);
+		const dataArray = new Uint8Array(3);
 		dataArray[0] = interval & 0xFF;
 		dataArray[1] = (interval >> 8) & 0xFF;
 		dataArray[2] = timeout;
@@ -379,7 +405,11 @@ class Thingy {
      *  @return {Promise<Object|Error>} Returns an object with the connection parameters when resolved or a promise with error on rejection.
      *
      */
-	async connParamsGet() {
+	get connParams() {
+		return this._connParamsGet();
+	}
+	
+	async _connParamsGet() {
 		try {
 			const receivedData = await this._readData(this.connParamsCharacteristic);
 
@@ -415,12 +445,23 @@ class Thingy {
 	/**
      *  Sets the connection interval
      *
-     *  @param {string} minInterval - The minimum connection interval in milliseconds. Must be >= 7.5 ms.
-     *  @param {string} maxInterval - The maximum connection interval in milliseconds. Must be <= 4 000 ms.
+	 * 	@param {object} params - Connection interval object: <code>{minInterval: someValue, maxInterval: someValue}</code>
+     *  @param {string} params.minInterval - The minimum connection interval in milliseconds. Must be >= 7.5 ms.
+     *  @param {string} params.maxInterval - The maximum connection interval in milliseconds. Must be <= 4 000 ms.
      *  @return {Promise<Error>} Returns a promise.
      *
      */
-	async connIntervalSet(minInterval, maxInterval) {
+	set connectionInterval(params) {
+		return this._connIntervalSet();
+	}
+
+	async _connIntervalSet(params) {
+
+		if((typeof(params) != "object") || !params.hasOwnProperty("minInterval") || !params.hasOwnProperty("maxInterval"))
+			return Promise.reject(new Error("The argument has to be an object: {minInterval: value, maxInterval: value}"));
+
+		let minInterval = params.minInterval;
+		let maxInterval = params.maxInterval;
 
 		if(minInterval == null || maxInterval == null)
 			return Promise.reject(new Error("Both minimum and maximum acceptable interval must be passed as arguments"));
@@ -440,7 +481,7 @@ class Thingy {
 			minInterval = parseInt(minInterval * 0.8);
 			maxInterval = parseInt(maxInterval * 0.8);
 			const receivedData = await this._readData(this.connParamsCharacteristic);
-			let dataArray = new Uint8Array(8);
+			const dataArray = new Uint8Array(8);
 
 			for (let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
@@ -466,7 +507,11 @@ class Thingy {
      *  @return {Promise<Object|Error>} Returns a promise.
      *
      */
-	async connSlaveLatencySet(slaveLatency) {
+	set connectionSlaveLatency(slaveLatency) {
+		return this._connSlaveLatencySet(slaveLatency);
+	}
+	
+	async _connSlaveLatencySet(slaveLatency) {
 
 		// Check parameters
 		if ((slaveLatency < 0) || (slaveLatency > 499)) {
@@ -475,7 +520,7 @@ class Thingy {
 
 		try {
 			const receivedData = await this._readData(this.connParamsCharacteristic);
-			let dataArray = new Uint8Array(8);
+			const dataArray = new Uint8Array(8);
 
 			for (let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
@@ -500,7 +545,11 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise.
      *
      */
-	async connTimeoutSet(timeout) {
+	set connectionTimeout(timeout) {
+		return this._connTimeoutSet(timeout);
+	}	
+
+	async _connTimeoutSet(timeout) {
 
 		// Check parameters
 		if ((timeout < 100) || (timeout > 32000)) {
@@ -512,7 +561,7 @@ class Thingy {
 			// The supervision timeout has to be set in units of 10 ms
 			timeout = parseInt(timeout / 10);
 			const receivedData = await this._readData(this.connParamsCharacteristic);
-			let dataArray = new Uint8Array(8);
+			const dataArray = new Uint8Array(8);
 
 			for (let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
@@ -544,7 +593,11 @@ class Thingy {
      *  @return {Promise<string|Error>} Returns a string with the URL when resolved or a promise with error on rejection.
      *
      */
-	async eddystoneGet() {
+	get eddystoneUrl() {
+		return this._eddystoneUrlGet();
+	}
+
+	async _eddystoneUrlGet() {
 		try {
 			const receivedData = await this._readData(this.eddystoneCharacteristic);
 
@@ -572,15 +625,33 @@ class Thingy {
 	/**
      *  Sets the Eddystone URL
      *
-     * 	@param {number} prefix - Code for prefix, according to {@link https://github.com/google/eddystone/tree/master/eddystone-url#url-scheme-prefix specification}.
-     *  @param {string} url - The URL.
-     * 	@param {number} [postfix = null] - Optional code for postfix according to {@link https://github.com/google/eddystone/tree/master/eddystone-url#eddystone-url-http-url-encoding specification}.
+	 * 	@param {object} params - Eddystone Url object: <code>{prefix: value, url: value, postfix: value}</code>
+     * 	@param {number} params.prefix - Code for prefix, according to {@link https://github.com/google/eddystone/tree/master/eddystone-url#url-scheme-prefix specification}.
+     *  @param {string} params.url - The URL.
+     * 	@param {number} [params.postfix = null] - Optional code for postfix according to {@link https://github.com/google/eddystone/tree/master/eddystone-url#eddystone-url-http-url-encoding specification}.
      *  @return {Promise<Error>} Returns a promise.
      *
      */
-	eddystoneSet(prefix, url, postfix = null) {
+	set eddystoneUrl(params) {
+
+		if((typeof(params) != "object") || !params.hasOwnProperty("prefix") || !params.hasOwnProperty("url"))
+			return Promise.reject(new Error("The argument has to be an object: {prefix: value, url: value, postfix: value}, where postfix is optional."));
+
+		const prefix = params.prefix;
+		const url = params.url;
+		const postfix = params.postfix || null;
+
+		if(prefix < 0 || prefix > 3)
+			return Promise.reject(new Error("The prefix must have a value between 0 - 3."));
+
+		if(url.length < 1 || url.length > 17)
+			return Promise.reject(new Error("The URL must be 1 - 17 characters."));
+
+		if(postfix < 0 || postfix > 13)
+			return Promise.reject(new Error("The postfix must have a value between 0 - 13."));
+
 		const len = (postfix == null) ? url.length + 1 : url.length + 2;
-		let byteArray = new Uint8Array(len);
+		const byteArray = new Uint8Array(len);
 		byteArray[0] = prefix;
 
 		for (let i = 1; i <= url.length; i++) {
@@ -594,12 +665,16 @@ class Thingy {
 	}
 
 	/**
-     *  Gets the cloud token.
+     *  Gets the configured cloud token.
      *
      *  @return {Promise<string|Error>} Returns a string with the cloud token when resolved or a promise with error on rejection.
      *
      */
-	async cloudTokenGet() {
+	get cloudToken() {
+		return this._cloudTokenGet();
+	}
+
+	async _cloudTokenGet() {
 		try {
 			const receivedData = await this._readData(this.cloudTokenCharacteristic);
 			const decoder = new TextDecoder("utf-8");
@@ -619,9 +694,9 @@ class Thingy {
      * 	@return {Promise<Error>} Returns a promise.
      *
      */
-	cloudTokenSet(token) {
+	set cloutToken(token) {
 		if (token.len > 250)
-			return Promise.reject(new Error("The cloud token can not exced 250 characters."));
+			return Promise.reject(new Error("The cloud token can not exceed 250 characters."));
 
 		const encoder = new TextEncoder("utf-8").encode(token);
 
@@ -634,6 +709,10 @@ class Thingy {
      *  @return {Promise<number|Error>} Returns the MTU when resolved or a promise with error on rejection.
      *
      */
+	get mtu() {
+		return this._mtuGet();
+	}
+
 	async mtuGet() {
 		try {
 			const receivedData = await this._readData(this.mtuRequestCharacteristic);
@@ -649,13 +728,23 @@ class Thingy {
 	/**
      *  Sets the current Maximal Transmission Unit (MTU)
      *
-     *  @param {number} mtuSize - The desired MTU size.
-     * 	@param {bool} [peripheralRequest = false] - Optional. Set to <code>true</code> if peripheral should send an MTU exchange request. Default is <code>false</code>;
+	 * 	@param {object} params - MTU settings object: {mtuSize: value, peripheralRequest: value}, where peripheralRequest is optional.
+     *  @param {number} params.mtuSize - The desired MTU size.
+     * 	@param {bool} [params.peripheralRequest = false] - Optional. Set to <code>true</code> if peripheral should send an MTU exchange request. Default is <code>false</code>;
      * 	@return {Promise<Error>} Returns a promise.
      *
      */
-	mtuSet(mtuSize, peripheralRequest = false) {
-		let dataArray = new Uint8Array(3);
+	set mtu(params) {
+		if((params != "object") || !params.hasOwnProperty("mtuSize"))
+			return Promise.reject(new Error("The argument has to be an object"));
+
+		const mtuSize = params.mtuSize;
+		const peripheralRequest = params.peripheralRequest || false;
+
+		if(mtuSize < 23 || mtuSize > 276)
+			return Promise.reject(new Error("MTU size must be in range 23 - 276 bytes"));
+
+		const dataArray = new Uint8Array(3);
 		dataArray[0] = peripheralRequest ? 1 : 0;
 		dataArray[1] = mtuSize & 0xff;
 		dataArray[2] = (mtuSize >> 8) & 0xff;
@@ -669,7 +758,11 @@ class Thingy {
      *  @return {Promise<string|Error>} Returns a string with the firmware version or a promise with error on rejection.
      *
      */
-	async firmwareVersionGet() {
+	get firmwareVersion() {
+		return this._firmwareVersionGet();
+	}
+
+	async _firmwareVersionGet() {
 		try {
 			const receivedData = await this._readData(this.firmwareVersionCharacteristic);
 			const major = receivedData.getUint8(0);
@@ -685,14 +778,21 @@ class Thingy {
 	}
 
 	//  ******  //
+
+
 	/*  Environment service  */
+
 	/**
      *  Gets the current configuration of the Thingy environment module.
      *
      *  @return {Promise<Object|Error>} Returns an environment configuration object when promise resolves, or an error if rejected.
      *
      */
-	async environmentConfigGet() {
+	get environmentConfig() {
+		return this._environmentConfigGet();
+	}
+
+	async _environmentConfigGet() {
 		try {
 			const data = await this._readData(this.environmentConfigCharacteristic);
 			const tempInterval = data.getUint16(0, true);
@@ -728,12 +828,16 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	async temperatureIntervalSet(interval) {
+	set temperatureInterval(interval) {
+		return this._temperatureIntervalSet();
+	} 
+
+	async _temperatureIntervalSet(interval) {
 		try {
 
 			// Preserve values for those settings that are not being changed 
 			const receivedData = await this._readData(this.environmentConfigCharacteristic);
-			let dataArray = new Uint8Array(12);
+			const dataArray = new Uint8Array(12);
 
 			for (let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
@@ -756,12 +860,16 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	async pressureIntervalSet(interval) {
+	set pressureInterval(interval) {
+		return this._pressureIntervalSet(interval);
+	}
+
+	async _pressureIntervalSet(interval) {
 		try {
 			
 			// Preserve values for those settings that are not being changed 
 			const receivedData = await this._readData(this.environmentConfigCharacteristic);
-			let dataArray = new Uint8Array(12);
+			const dataArray = new Uint8Array(12);
 
 			for (let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
@@ -784,11 +892,16 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	async humidityIntervalSet(interval) {
+	set humidityInterval(interval) {
+		return this._humidityIntervalSet(interval);
+	}
+
+	async _humidityIntervalSet(interval) {
 		try {
+
 			// Preserve values for those settings that are not being changed 
 			const receivedData = await this._readData(this.environmentConfigCharacteristic);
-			let dataArray = new Uint8Array(12);
+			const dataArray = new Uint8Array(12);
 
 			for (let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
@@ -811,12 +924,16 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	async colorIntervalSet(interval) {
+	set colorInterval(interval) {
+		return this._colorIntervalSet(interval);
+	}
+
+	async _colorIntervalSet(interval) {
 		try {
 
 			// Preserve values for those settings that are not being changed 
 			const receivedData = await this._readData(this.environmentConfigCharacteristic);
-			let dataArray = new Uint8Array(12);
+			const dataArray = new Uint8Array(12);
 
 			for (let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
@@ -839,12 +956,16 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	async gasModeSet(mode) {
+	set gasMode(mode) {
+		return this._gasModeSet(mode);
+	}
+
+	async _gasModeSet(mode) {
 		try {
 
 			// Preserve values for those settings that are not being changed 
 			const receivedData = await this._readData(this.environmentConfigCharacteristic);
-			let dataArray = new Uint8Array(12);
+			const dataArray = new Uint8Array(12);
 			
 			for (let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
@@ -860,7 +981,7 @@ class Thingy {
 	}
 
 	/**
-     *  Sets color sensor LED calibration parameters.
+     *  Configures color sensor LED calibration parameters.
      *
      *  @param {Number} red - The red intensity, ranging from 0 to 255.
      *  @param {Number} green - The green intensity, ranging from 0 to 255.
@@ -868,12 +989,12 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	async colorSensorSet(red, green, blue) {
+	async colorSensorCalibrate(red, green, blue) {
 		try {
 
 			// Preserve values for those settings that are not being changed 
 			const receivedData = await this._readData(this.environmentConfigCharacteristic);
-			let dataArray = new Uint8Array(12);
+			const dataArray = new Uint8Array(12);
 
 			for (let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
@@ -1094,7 +1215,11 @@ class Thingy {
      *  @return {Promise<Object>} Returns a LED status object. The content and structure depends on the current mode.
      *
      */
-	async ledGetStatus() {
+	get ledStatus() {
+		return this._ledStatusGet();
+	}
+
+	async _ledStatusGet() {
 		try {
 			const data = await this._readData(this.ledCharacteristic);
 			const mode = data.getUint8(0);
@@ -1135,7 +1260,7 @@ class Thingy {
 		}
 	}
 
-	ledSet(dataArray) {
+	_ledSet(dataArray) {
 		return this._writeData(this.ledCharacteristic, dataArray);
 	}
 
@@ -1148,8 +1273,8 @@ class Thingy {
      *  @return {Promise<Error>} Returns a resolved promise or an error in a rejected promise.
      *
      */
-	ledSetConstant(red, green, blue) {
-		return this.ledSet(new Uint8Array([1, red, green, blue]));
+	ledConstant(red, green, blue) {
+		return this._ledSet(new Uint8Array([1, red, green, blue]));
 	}
 
 	/**
@@ -1161,8 +1286,8 @@ class Thingy {
      *  @return {Promise<Error>} Returns a resolved promise or an error in a rejected promise.
      *
      */
-	ledSetBreathe(color, intensity, delay) {
-		return this.ledSet(new Uint8Array([2, color, intensity, delay & 0xff, (delay >> 8) & 0xff]));
+	ledBreathe(color, intensity, delay) {
+		return this._ledSet(new Uint8Array([2, color, intensity, delay & 0xff, (delay >> 8) & 0xff]));
 	}
 
 	/**
@@ -1173,8 +1298,8 @@ class Thingy {
      *  @return {Promise<Error>} Returns a resolved promise or an error in a rejected promise.
      *
      */
-	ledSetOneShot(color, intensity) {
-		return this.ledSet(new Uint8Array([3, color, intensity]));
+	ledOneShot(color, intensity) {
+		return this._ledSet(new Uint8Array([3, color, intensity]));
 	}
 
 	/**
@@ -1210,7 +1335,7 @@ class Thingy {
      *  @return {Promise<Object|Error>} Returns an external pin status object.
      *
      */
-	async externalPinsGet() {
+	async externalPinsStatus() {
 		try {
 			const data = await this._readData(this.externalPinCharacteristic);
 			const pinStatus = {
@@ -1229,14 +1354,14 @@ class Thingy {
 	/**
      *  Set an external pin to chosen state.
      *
-     *  @param pin - Determines which pin is set. Range 1 - 4.
-     *  @param value - Sets the value of the pin. 0 = OFF, 255 = ON.
+     *  @param {number} pin - Determines which pin is set. Range 1 - 4.
+     *  @param {number} value - Sets the value of the pin. 0 = OFF, 255 = ON.
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	async externalPinSet(pin, value) {
+	async externalPinControl(pin, value) {
 		if (pin < 1 || pin > 4)
-			return Promise.reject(new Error("Pin number must be 1, 2, 3 or 4"));
+			return Promise.reject(new Error("Pin number must be 1 - 4"));
 		if (!(value == 0 || value == 255))
 			return Promise.reject(new Error("Pin status value must be 0 or 255"));
 
@@ -1244,7 +1369,7 @@ class Thingy {
 
 			// Preserve values for those pins that are not being set 
 			const receivedData = await this._readData(this.externalPinCharacteristic);
-			let dataArray = new Uint8Array(4);
+			const dataArray = new Uint8Array(4);
 
 			for (let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
@@ -1267,7 +1392,11 @@ class Thingy {
      *  @return {Promise<Object|Error>} Returns a motion configuration object when promise resolves, or an error if rejected.
      *
      */
-	async motionConfigGet() {
+	get motionConfig() {
+		return this._motionConfigGet();
+	}
+
+	async _motionConfigGet() {
 		try {
 			const data = await this._readData(this.tmsConfigCharacteristic);
 			const stepCounterInterval = data.getUint16(0, true);
@@ -1297,12 +1426,18 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	async stepCounterIntervalSet(interval) {
+	set stepCounterInterval(interval) {
+		return this._stepCounterIntervalSet(interval);
+	}
+
+	async _stepCounterIntervalSet(interval) {
 		try {
-			
+			if(interval < 100 || interval > 5000) 
+				return Promise.reject(new Error("The interval has to be in the range 100 - 5000 ms."));
+
 			// Preserve values for those settings that are not being changed 
 			const receivedData = await this._readData(this.tmsConfigCharacteristic);
-			let dataArray = new Uint8Array(9);
+			const dataArray = new Uint8Array(9);
 
 			for (let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
@@ -1325,12 +1460,18 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	async temperatureCompIntervalSet(interval) {
+	set temperatureCompInterval(interval) {
+		return this._temperatureCompIntervalSet(interval);
+	}
+
+	async _temperatureCompIntervalSet(interval) {
 		try {
+			if(interval < 100 || interval > 5000) 
+				return Promise.reject(new Error("The interval has to be in the range 100 - 5000 ms."));
 
 			// Preserve values for those settings that are not being changed 
 			const receivedData = await this._readData(this.tmsConfigCharacteristic);
-			let dataArray = new Uint8Array(9);
+			const dataArray = new Uint8Array(9);
 
 			for (let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
@@ -1353,12 +1494,18 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	async magnetCompIntervalSet(interval) {
+	set magnetCompInterval(interval) {
+		return this._magnetCompIntervalSet(interval);
+	}
+
+	async _magnetCompIntervalSet(interval) {
 		try {
+			if(interval < 100 || interval > 1000) 
+				return Promise.reject(new Error("The interval has to be in the range 100 - 1000 ms."));
 
 			// Preserve values for those settings that are not being changed 
 			const receivedData = await this._readData(this.tmsConfigCharacteristic);
-			let dataArray = new Uint8Array(9);
+			const dataArray = new Uint8Array(9);
 
 			for (let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
@@ -1381,12 +1528,18 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	async motionProcessingFrequencySet(frequency) {
+	set motionProcessFrequency(frequency) {
+		return this._motionProcessFrequencySet(frequency);
+	}
+
+	async _motionProcessFrequencySet(frequency) {
 		try {
+			if(frequency < 100 || frequency > 200) 
+				return Promise.reject(new Error("The interval has to be in the range 5 - 200 Hz."));
 
 			// Preserve values for those settings that are not being changed 
 			const receivedData = await this._readData(this.tmsConfigCharacteristic);
-			let dataArray = new Uint8Array(9);
+			const dataArray = new Uint8Array(9);
 
 			for (let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
@@ -1409,12 +1562,18 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	async wakeOnMotionSet(enable) {
+	set wakeOnMotion(enable) {
+		return this._wakeOnMotionSet(enable);
+	}
+
+	async _wakeOnMotionSet(enable) {
 		try {
+			if(enable < 0 || enable > 1) 
+				return Promise.reject(new Error("The argument must be 0 or 1."));
 		
 			// Preserve values for those settings that are not being changed 
 			const receivedData = await this._readData(this.tmsConfigCharacteristic);
-			let dataArray = new Uint8Array(9);
+			const dataArray = new Uint8Array(9);
 
 			for (let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
@@ -1796,7 +1955,11 @@ class Thingy {
      *  @return {Promise<number | Error>} Returns battery level in percentage when promise is resolved or an error if rejected.
      *
      */
-	async batteryLevelGet() {
+	get batteryLevel() {
+		return this._batteryLevelGet();
+	}
+
+	async _batteryLevelGet() {
 		try {
 			const receivedData = await this._readData(this.batteryCharacteristic);
 			const level = receivedData.getUint8(0);
