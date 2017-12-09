@@ -11,6 +11,7 @@ class Thingy {
 	*/
 	constructor(logEnabled = true) {
 		this.logEnabled = logEnabled;
+
 		// TCS = Thingy Configuration Service
 		this.TCS_UUID = "ef680100-9b35-4933-9b10-52ffa9740042";
 		this.TCS_NAME_UUID = "ef680101-9b35-4933-9b10-52ffa9740042";
@@ -20,6 +21,7 @@ class Thingy {
 		this.TCS_CLOUD_TOKEN_UUID = "ef680106-9b35-4933-9b10-52ffa9740042";
 		this.TCS_FW_VER_UUID = "ef680107-9b35-4933-9b10-52ffa9740042";
 		this.TCS_MTU_REQUEST_UUID = "ef680108-9b35-4933-9b10-52ffa9740042";
+
 		// TES = Thingy Environment Service
 		this.TES_UUID = "ef680200-9b35-4933-9b10-52ffa9740042";
 		this.TES_TEMP_UUID = "ef680201-9b35-4933-9b10-52ffa9740042";
@@ -28,11 +30,13 @@ class Thingy {
 		this.TES_GAS_UUID = "ef680204-9b35-4933-9b10-52ffa9740042";
 		this.TES_COLOR_UUID = "ef680205-9b35-4933-9b10-52ffa9740042";
 		this.TES_CONFIG_UUID = "ef680206-9b35-4933-9b10-52ffa9740042";
+
 		// TUIS = Thingy User Interface Service
 		this.TUIS_UUID = "ef680300-9b35-4933-9b10-52ffa9740042";
 		this.TUIS_LED_UUID = "ef680301-9b35-4933-9b10-52ffa9740042";
 		this.TUIS_BTN_UUID = "ef680302-9b35-4933-9b10-52ffa9740042";
 		this.TUIS_PIN_UUID = "ef680303-9b35-4933-9b10-52ffa9740042";
+
 		// TMS = Thingy Motion Service
 		this.TMS_UUID = "ef680400-9b35-4933-9b10-52ffa9740042";
 		this.TMS_CONFIG_UUID = "ef680401-9b35-4933-9b10-52ffa9740042";
@@ -45,12 +49,14 @@ class Thingy {
 		this.TMS_ROT_MATRIX_UUID = "ef680408-9b35-4933-9b10-52ffa9740042";
 		this.TMS_HEADING_UUID = "ef680409-9b35-4933-9b10-52ffa9740042";
 		this.TMS_gravityVector_UUID = "ef68040a-9b35-4933-9b10-52ffa9740042";
+
 		// TSS = Thingy Sound Service
 		this.TSS_UUID = "ef680500-9b35-4933-9b10-52ffa9740042";
 		this.TSS_CONFIG_UUID = "ef680501-9b35-4933-9b10-52ffa9740042";
 		this.TSS_SPEAKER_DATA_UUID = "ef680502-9b35-4933-9b10-52ffa9740042";
 		this.TSS_SPEAKER_STAT_UUID = "ef680503-9b35-4933-9b10-52ffa9740042";
 		this.TSS_MIC_UUID = "ef680504-9b35-4933-9b10-52ffa9740042";
+
 		this.serviceUUIDs = [
 			"battery_service",
 			this.TCS_UUID,
@@ -59,6 +65,7 @@ class Thingy {
 			this.TMS_UUID,
 			this.TSS_UUID
 		];
+
 		this.bleIsBusy = false;
 		this.device;
 		this.batteryLevelEventListeners = [null, []];
@@ -97,7 +104,7 @@ class Thingy {
 				const dataArray = await characteristic.readValue();
 				this.bleIsBusy = false;
 
-				return Promise.resolve(dataArray);
+				return dataArray;
 			}
 			catch(error) {
 				return error;
@@ -121,8 +128,14 @@ class Thingy {
 	async _writeData(characteristic, dataArray) {
 		if (!this.bleIsBusy) {
 			this.bleIsBusy = true;
-			await characteristic.writeValue(dataArray);
+			try {
+				await characteristic.writeValue(dataArray);
+			}
+			catch(error) {
+				return error;
+			}
 			this.bleIsBusy = false;
+
 			return Promise.resolve();
 		}
 		else {
@@ -183,14 +196,14 @@ class Thingy {
 			this.gasCharacteristic = await this.environmentService.getCharacteristic(this.TES_GAS_UUID);
 			this.humidityCharacteristic = await this.environmentService.getCharacteristic(this.TES_HUMIDITY_UUID);
 			this.pressureCharacteristic = await this.environmentService.getCharacteristic(this.TES_PRESSURE_UUID);
-			this.environmentConfigCharacteristic = this.environmentService.getCharacteristic(this.TES_CONFIG_UUID);
+			this.environmentConfigCharacteristic = await this.environmentService.getCharacteristic(this.TES_CONFIG_UUID);
 			if (this.logEnabled)
 				console.log("Discovered Thingy environment service and its characteristics");
 
 			// Thingy user interface service
 			this.userInterfaceService = await server.getPrimaryService(this.TUIS_UUID);
 			this.buttonCharacteristic = await this.userInterfaceService.getCharacteristic(this.TUIS_BTN_UUID);
-			this.ledCharacteristic = await this.userInterfaceService.getCharacteristic(this.TUIS_BTN_UUID);
+			this.ledCharacteristic = await this.userInterfaceService.getCharacteristic(this.TUIS_LED_UUID);
 			this.externalPinCharacteristic = await this.userInterfaceService.getCharacteristic(this.TUIS_PIN_UUID);
 			if (this.logEnabled)
 				console.log("Discovered Thingy user interface service and its characteristics");
@@ -438,7 +451,7 @@ class Thingy {
 			dataArray[2] = maxInterval & 0xFF;
 			dataArray[3] = (maxInterval >> 8) & 0xFF;
 
-			return this._writeData(this.connParamsCharacteristic, dataArray);
+			return await this._writeData(this.connParamsCharacteristic, dataArray);
 			
 		}
 		catch(error) {
@@ -453,24 +466,29 @@ class Thingy {
      *  @return {Promise<Object|Error>} Returns a promise.
      *
      */
-	connSlaveLatencySet(slaveLatency) {
+	async connSlaveLatencySet(slaveLatency) {
+
 		// Check parameters
 		if ((slaveLatency < 0) || (slaveLatency > 499)) {
 			return Promise.reject(new Error("The slave latency must be in the range from 0 to 499 connection intervals."));
 		}
-		return this._readData(this.connParamsCharacteristic)
-			.then(receivedData => {
-				let dataArray = new Uint8Array(8);
-				for (let i = 0; i < dataArray.length; i++) {
-					dataArray[i] = receivedData.getUint8(i);
-				}
-				dataArray[4] = slaveLatency & 0xFF;
-				dataArray[5] = (slaveLatency >> 8) & 0xFF;
-				return this._writeData(this.connParamsCharacteristic, dataArray);
-			})
-			.catch(error => {
-				return Promise.reject(new Error("Error when updating slave latency: ", error));
-			});
+
+		try {
+			const receivedData = await this._readData(this.connParamsCharacteristic);
+			let dataArray = new Uint8Array(8);
+
+			for (let i = 0; i < dataArray.length; i++) {
+				dataArray[i] = receivedData.getUint8(i);
+			}
+
+			dataArray[4] = slaveLatency & 0xFF;
+			dataArray[5] = (slaveLatency >> 8) & 0xFF;
+
+			return await this._writeData(this.connParamsCharacteristic, dataArray);
+		}
+		catch(error) {
+			return new Error("Error when updating slave latency: ", error);
+		}
 	}
 
 	/**
@@ -482,34 +500,42 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise.
      *
      */
-	connTimeoutSet(timeout) {
+	async connTimeoutSet(timeout) {
+
 		// Check parameters
 		if ((timeout < 100) || (timeout > 32000)) {
 			return Promise.reject(new Error("The supervision timeout must be in the range from 100 ms to 32 000 ms."));
 		}
-		// The supervision timeout has to be set in units of 10 ms
-		timeout = parseInt(timeout / 10);
-		return this._readData(this.connParamsCharacteristic)
-			.then(receivedData => {
-				let dataArray = new Uint8Array(8);
-				for (let i = 0; i < dataArray.length; i++) {
-					dataArray[i] = receivedData.getUint8(i);
-				}
-				// Check that the timeout obeys  conn_sup_timeout * 4 > (1 + slave_latency) * max_conn_interval 
-				let maxConnInterval = receivedData.getUint16(2, true);
-				let slaveLatency = receivedData.getUint16(4, true);
-				if (timeout * 4 < ((1 + slaveLatency) * maxConnInterval)) {
-					return Promise.reject(new Error("The supervision timeout in milliseconds must be greater than 	\
+
+		try {
+
+			// The supervision timeout has to be set in units of 10 ms
+			timeout = parseInt(timeout / 10);
+			const receivedData = await this._readData(this.connParamsCharacteristic);
+			let dataArray = new Uint8Array(8);
+
+			for (let i = 0; i < dataArray.length; i++) {
+				dataArray[i] = receivedData.getUint8(i);
+			}
+
+			// Check that the timeout obeys  conn_sup_timeout * 4 > (1 + slave_latency) * max_conn_interval 
+			const maxConnInterval = receivedData.getUint16(2, true);
+			const slaveLatency = receivedData.getUint16(4, true);
+
+			if (timeout * 4 < ((1 + slaveLatency) * maxConnInterval)) {
+				return Promise.reject(new Error("The supervision timeout in milliseconds must be greater than 	\
 												(1 + slaveLatency) * maxConnInterval * 2, 						\
 												where maxConnInterval is also given in milliseconds."));
-				}
-				dataArray[6] = timeout & 0xFF;
-				dataArray[7] = (timeout >> 8) & 0xFF;
-				return this._writeData(this.connParamsCharacteristic, dataArray);
-			})
-			.catch(error => {
-				return Promise.reject(new Error("Error when updating the supervision timeout: ", error));
-			});
+			}
+
+			dataArray[6] = timeout & 0xFF;
+			dataArray[7] = (timeout >> 8) & 0xFF;
+
+			return await this._writeData(this.connParamsCharacteristic, dataArray);
+		}
+		catch(error) {
+			return new Error("Error when updating the supervision timeout: ", error);
+		}
 	}
 
 	/**
@@ -518,26 +544,29 @@ class Thingy {
      *  @return {Promise<string|Error>} Returns a string with the URL when resolved or a promise with error on rejection.
      *
      */
-	eddystoneGet() {
-		return this._readData(this.eddystoneCharacteristic)
-			.then(receivedData => {
-				// According to Eddystone URL encoding specification, certain elements can be expanded: https://github.com/google/eddystone/tree/master/eddystone-url
-				let prefixArray = ["http://www.", "https://www.", "http://", "https://"];
-				let expansionCodes = [".com/", ".org/", ".edu/", ".net/", ".info/",
-					".biz/", ".gov/", ".com", ".org", ".edu", ".net",
-					".info", ".biz", ".gov"];
-				let prefix = prefixArray[receivedData.getUint8(0)];
-				let decoder = new TextDecoder("utf-8");
-				let url = decoder.decode(receivedData);
-				let lastElement = receivedData.getUint8(url.length - 1);
-				url = prefix + url.slice(1);
-				if (lastElement <= 0x0d)
-					url = url.slice(0, -1) + expansionCodes[lastElement];
-				return Promise.resolve(url);
-			})
-			.catch(error => {
-				return Promise.reject(error);
-			});
+	async eddystoneGet() {
+		try {
+			const receivedData = await this._readData(this.eddystoneCharacteristic);
+
+			// According to Eddystone URL encoding specification, certain elements can be expanded: https://github.com/google/eddystone/tree/master/eddystone-url
+			const prefixArray = ["http://www.", "https://www.", "http://", "https://"];
+			const expansionCodes = [".com/", ".org/", ".edu/", ".net/", ".info/",
+				".biz/", ".gov/", ".com", ".org", ".edu", ".net",
+				".info", ".biz", ".gov"];
+			const prefix = prefixArray[receivedData.getUint8(0)];
+			const decoder = new TextDecoder("utf-8");
+			let url = decoder.decode(receivedData);
+			const lastElement = receivedData.getUint8(url.length - 1);
+			url = prefix + url.slice(1);
+
+			if (lastElement <= 0x0d)
+				url = url.slice(0, -1) + expansionCodes[lastElement];
+
+			return url;
+		}
+		catch(error) {
+			return error;
+		}
 	}
 
 	/**
@@ -550,14 +579,17 @@ class Thingy {
      *
      */
 	eddystoneSet(prefix, url, postfix = null) {
-		let len = (postfix == null) ? url.length + 1 : url.length + 2;
+		const len = (postfix == null) ? url.length + 1 : url.length + 2;
 		let byteArray = new Uint8Array(len);
 		byteArray[0] = prefix;
+
 		for (let i = 1; i <= url.length; i++) {
 			byteArray[i] = url.charCodeAt(i - 1);
 		}
+
 		if (postfix != null)
 			byteArray[len - 1] = postfix;
+
 		return this._writeData(this.eddystoneCharacteristic, byteArray);
 	}
 
@@ -567,16 +599,17 @@ class Thingy {
      *  @return {Promise<string|Error>} Returns a string with the cloud token when resolved or a promise with error on rejection.
      *
      */
-	cloudTokenGet() {
-		return this._readData(this.cloudTokenCharacteristic)
-			.then(receivedData => {
-				let decoder = new TextDecoder("utf-8");
-				let token = decoder.decode(receivedData);
-				return Promise.resolve(token);
-			})
-			.catch(error => {
-				return Promise.reject(error);
-			});
+	async cloudTokenGet() {
+		try {
+			const receivedData = await this._readData(this.cloudTokenCharacteristic);
+			const decoder = new TextDecoder("utf-8");
+			const token = decoder.decode(receivedData);
+
+			return token;
+		}
+		catch(error) {
+			return error;
+		}
 	}
 
 	/**
@@ -589,7 +622,9 @@ class Thingy {
 	cloudTokenSet(token) {
 		if (token.len > 250)
 			return Promise.reject(new Error("The cloud token can not exced 250 characters."));
-		let encoder = new TextEncoder("utf-8").encode(token);
+
+		const encoder = new TextEncoder("utf-8").encode(token);
+
 		return this._writeData(this.cloudTokenCharacteristic, encoder);
 	}
 
@@ -599,15 +634,16 @@ class Thingy {
      *  @return {Promise<number|Error>} Returns the MTU when resolved or a promise with error on rejection.
      *
      */
-	mtuGet() {
-		return this._readData(this.mtuRequestCharacteristic)
-			.then(receivedData => {
-				let mtu = receivedData.getUint16(1, true);
-				return Promise.resolve(mtu);
-			})
-			.catch(error => {
-				return Promise.reject(error);
-			});
+	async mtuGet() {
+		try {
+			const receivedData = await this._readData(this.mtuRequestCharacteristic);
+			const mtu = receivedData.getUint16(1, true);
+
+			return mtu;
+		}
+		catch(error) {
+			return error;
+		}
 	}
 
 	/**
@@ -623,6 +659,7 @@ class Thingy {
 		dataArray[0] = peripheralRequest ? 1 : 0;
 		dataArray[1] = mtuSize & 0xff;
 		dataArray[2] = (mtuSize >> 8) & 0xff;
+
 		return this._writeData(this.mtuRequestCharacteristic, dataArray);
 	}
 
@@ -632,18 +669,19 @@ class Thingy {
      *  @return {Promise<string|Error>} Returns a string with the firmware version or a promise with error on rejection.
      *
      */
-	firmwareVersionGet() {
-		return this._readData(this.firmwareVersionCharacteristic)
-			.then(receivedData => {
-				let major = receivedData.getUint8(0);
-				let minor = receivedData.getUint8(1);
-				let patch = receivedData.getUint8(2);
-				let version = `v${major}.${minor}.${patch}`;
-				return Promise.resolve(version);
-			})
-			.catch(error => {
-				return Promise.reject(error);
-			});
+	async firmwareVersionGet() {
+		try {
+			const receivedData = await this._readData(this.firmwareVersionCharacteristic);
+			const major = receivedData.getUint8(0);
+			const minor = receivedData.getUint8(1);
+			const patch = receivedData.getUint8(2);
+			const version = `v${major}.${minor}.${patch}`;
+
+			return version;
+		}
+		catch(error) {
+			return error;
+		}
 	}
 
 	//  ******  //
@@ -654,32 +692,33 @@ class Thingy {
      *  @return {Promise<Object|Error>} Returns an environment configuration object when promise resolves, or an error if rejected.
      *
      */
-	environmentConfigGet() {
-		return this._readData(this.environmentConfigCharacteristic)
-			.then(data => {
-				let tempInterval = data.getUint16(0, true);
-				let pressureInterval = data.getUint16(2, true);
-				let humidityInterval = data.getUint16(4, true);
-				let colorInterval = data.getUint16(6, true);
-				let gasMode = data.getUint8(8);
-				let colorSensorRed = data.getUint8(9);
-				let colorSensorGreen = data.getUint8(10);
-				let colorSensorBlue = data.getUint8(11);
-				let config = {
-					"tempInterval": tempInterval,
-					"pressureInterval": pressureInterval,
-					"humidityInterval": humidityInterval,
-					"colorInterval": colorInterval,
-					"gasMode": gasMode,
-					"colorSensorRed": colorSensorRed,
-					"colorSensorGreen": colorSensorGreen,
-					"colorSensorBlue": colorSensorBlue
-				};
-				return Promise.resolve(config);
-			})
-			.catch(error => {
-				return Promise.reject(new Error("Error when getting Thingy LED status: ", error));
-			});
+	async environmentConfigGet() {
+		try {
+			const data = await this._readData(this.environmentConfigCharacteristic);
+			const tempInterval = data.getUint16(0, true);
+			const pressureInterval = data.getUint16(2, true);
+			const humidityInterval = data.getUint16(4, true);
+			const colorInterval = data.getUint16(6, true);
+			const gasMode = data.getUint8(8);
+			const colorSensorRed = data.getUint8(9);
+			const colorSensorGreen = data.getUint8(10);
+			const colorSensorBlue = data.getUint8(11);
+			const config = {
+				"tempInterval": tempInterval,
+				"pressureInterval": pressureInterval,
+				"humidityInterval": humidityInterval,
+				"colorInterval": colorInterval,
+				"gasMode": gasMode,
+				"colorSensorRed": colorSensorRed,
+				"colorSensorGreen": colorSensorGreen,
+				"colorSensorBlue": colorSensorBlue
+			};
+
+			return config;
+		}
+		catch(error) {
+			return new Error("Error when getting environment sensors configurations: ", error);
+		}
 	}
 
 	/**
@@ -689,21 +728,25 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	temperatureIntervalSet(interval) {
-		// Preserve values for those settings that are not being changed 
-		return this._readData(this.environmentConfigCharacteristic)
-			.then(receivedData => {
-				let dataArray = new Uint8Array(12);
-				for (let i = 0; i < dataArray.length; i++) {
-					dataArray[i] = receivedData.getUint8(i);
-				}
-				dataArray[0] = interval & 0xFF;
-				dataArray[1] = (interval >> 8) & 0xFF;
-				return this._writeData(this.environmentConfigCharacteristic, dataArray);
-			})
-			.catch(error => {
-				return Promise.reject(new Error("Error when setting new temperature update interval: ", error));
-			});
+	async temperatureIntervalSet(interval) {
+		try {
+
+			// Preserve values for those settings that are not being changed 
+			const receivedData = await this._readData(this.environmentConfigCharacteristic);
+			let dataArray = new Uint8Array(12);
+
+			for (let i = 0; i < dataArray.length; i++) {
+				dataArray[i] = receivedData.getUint8(i);
+			}
+
+			dataArray[0] = interval & 0xFF;
+			dataArray[1] = (interval >> 8) & 0xFF;
+
+			return await this._writeData(this.environmentConfigCharacteristic, dataArray);
+		}
+		catch(error) {
+			return new Error("Error when setting new temperature update interval: ", error);
+		}
 	}
 
 	/**
@@ -713,21 +756,25 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	pressureIntervalSet(interval) {
-		// Preserve values for those settings that are not being changed 
-		return this._readData(this.environmentConfigCharacteristic)
-			.then(receivedData => {
-				let dataArray = new Uint8Array(12);
-				for (let i = 0; i < dataArray.length; i++) {
-					dataArray[i] = receivedData.getUint8(i);
-				}
-				dataArray[2] = interval & 0xFF;
-				dataArray[3] = (interval >> 8) & 0xFF;
-				return this._writeData(this.environmentConfigCharacteristic, dataArray);
-			})
-			.catch(error => {
-				return Promise.reject(new Error("Error when setting new pressure update interval: ", error));
-			});
+	async pressureIntervalSet(interval) {
+		try {
+			
+			// Preserve values for those settings that are not being changed 
+			const receivedData = await this._readData(this.environmentConfigCharacteristic);
+			let dataArray = new Uint8Array(12);
+
+			for (let i = 0; i < dataArray.length; i++) {
+				dataArray[i] = receivedData.getUint8(i);
+			}
+
+			dataArray[2] = interval & 0xFF;
+			dataArray[3] = (interval >> 8) & 0xFF;
+
+			return await this._writeData(this.environmentConfigCharacteristic, dataArray);
+		}
+		catch(error) {
+			return new Error("Error when setting new pressure update interval: ", error);
+		}
 	}
 
 	/**
@@ -737,21 +784,24 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	humidityIntervalSet(interval) {
-		// Preserve values for those settings that are not being changed 
-		return this._readData(this.environmentConfigCharacteristic)
-			.then(receivedData => {
-				let dataArray = new Uint8Array(12);
-				for (let i = 0; i < dataArray.length; i++) {
-					dataArray[i] = receivedData.getUint8(i);
-				}
-				dataArray[4] = interval & 0xFF;
-				dataArray[5] = (interval >> 8) & 0xFF;
-				return this._writeData(this.environmentConfigCharacteristic, dataArray);
-			})
-			.catch(error => {
-				return Promise.reject(new Error("Error when setting new humidity update interval: ", error));
-			});
+	async humidityIntervalSet(interval) {
+		try {
+			// Preserve values for those settings that are not being changed 
+			const receivedData = await this._readData(this.environmentConfigCharacteristic);
+			let dataArray = new Uint8Array(12);
+
+			for (let i = 0; i < dataArray.length; i++) {
+				dataArray[i] = receivedData.getUint8(i);
+			}
+
+			dataArray[4] = interval & 0xFF;
+			dataArray[5] = (interval >> 8) & 0xFF;
+
+			return await this._writeData(this.environmentConfigCharacteristic, dataArray);
+		}
+		catch(error) {
+			return new Error("Error when setting new humidity update interval: ", error);
+		}
 	}
 
 	/**
@@ -761,21 +811,25 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	colorIntervalSet(interval) {
-		// Preserve values for those settings that are not being changed 
-		return this._readData(this.environmentConfigCharacteristic)
-			.then(receivedData => {
-				let dataArray = new Uint8Array(12);
-				for (let i = 0; i < dataArray.length; i++) {
-					dataArray[i] = receivedData.getUint8(i);
-				}
-				dataArray[6] = interval & 0xFF;
-				dataArray[7] = (interval >> 8) & 0xFF;
-				return this._writeData(this.environmentConfigCharacteristic, dataArray);
-			})
-			.catch(error => {
-				return Promise.reject(new Error("Error when setting new color sensor update interval: ", error));
-			});
+	async colorIntervalSet(interval) {
+		try {
+
+			// Preserve values for those settings that are not being changed 
+			const receivedData = await this._readData(this.environmentConfigCharacteristic);
+			let dataArray = new Uint8Array(12);
+
+			for (let i = 0; i < dataArray.length; i++) {
+				dataArray[i] = receivedData.getUint8(i);
+			}
+
+			dataArray[6] = interval & 0xFF;
+			dataArray[7] = (interval >> 8) & 0xFF;
+
+			return await this._writeData(this.environmentConfigCharacteristic, dataArray);
+		}
+		catch(error) {
+			return new Error("Error when setting new color sensor update interval: ", error);
+		}
 	}
 
 	/**
@@ -785,20 +839,24 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	gasModeSet(mode) {
-		// Preserve values for those settings that are not being changed 
-		return this._readData(this.environmentConfigCharacteristic)
-			.then(receivedData => {
-				let dataArray = new Uint8Array(12);
-				for (let i = 0; i < dataArray.length; i++) {
-					dataArray[i] = receivedData.getUint8(i);
-				}
-				dataArray[8] = mode;
-				return this._writeData(this.environmentConfigCharacteristic, dataArray);
-			})
-			.catch(error => {
-				return Promise.reject(new Error("Error when setting new as mode: ", error));
-			});
+	async gasModeSet(mode) {
+		try {
+
+			// Preserve values for those settings that are not being changed 
+			const receivedData = await this._readData(this.environmentConfigCharacteristic);
+			let dataArray = new Uint8Array(12);
+			
+			for (let i = 0; i < dataArray.length; i++) {
+				dataArray[i] = receivedData.getUint8(i);
+			}
+
+			dataArray[8] = mode;
+
+			return await this._writeData(this.environmentConfigCharacteristic, dataArray);
+		}
+		catch(error) {
+			return new Error("Error when setting new as mode: ", error);
+		}
 	}
 
 	/**
@@ -810,22 +868,26 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	colorSensorSet(red, green, blue) {
-		// Preserve values for those settings that are not being changed 
-		return this._readData(this.environmentConfigCharacteristic)
-			.then(receivedData => {
-				let dataArray = new Uint8Array(12);
-				for (let i = 0; i < dataArray.length; i++) {
-					dataArray[i] = receivedData.getUint8(i);
-				}
-				dataArray[9] = red;
-				dataArray[10] = green;
-				dataArray[11] = blue;
-				return this._writeData(this.environmentConfigCharacteristic, dataArray);
-			})
-			.catch(error => {
-				return Promise.reject(new Error("Error when setting new color sensor parameters: ", error));
-			});
+	async colorSensorSet(red, green, blue) {
+		try {
+
+			// Preserve values for those settings that are not being changed 
+			const receivedData = await this._readData(this.environmentConfigCharacteristic);
+			let dataArray = new Uint8Array(12);
+
+			for (let i = 0; i < dataArray.length; i++) {
+				dataArray[i] = receivedData.getUint8(i);
+			}
+
+			dataArray[9] = red;
+			dataArray[10] = green;
+			dataArray[11] = blue;
+
+			return await this._writeData(this.environmentConfigCharacteristic, dataArray);
+		}
+		catch(error) {
+			return new Error("Error when setting new color sensor parameters: ", error);
+		}
 	}
 
 	/**
@@ -844,13 +906,15 @@ class Thingy {
 		else {
 			this.tempEventListeners[1].splice(this.tempEventListeners.indexOf(eventHandler), 1);
 		}
+
 		return this._notifyCharacteristic(this.temperatureCharacteristic, enable, this.tempEventListeners[0]);
 	}
+
 	temperatureNotifyHandler(event) {
-		let data = event.target.value;
-		let integer = data.getUint8(0);
-		let decimal = data.getUint8(1);
-		let temperature = integer + (decimal / 100);
+		const data = event.target.value;
+		const integer = data.getUint8(0);
+		const decimal = data.getUint8(1);
+		const temperature = integer + (decimal / 100);
 		this.tempEventListeners[1].forEach(eventHandler => {
 			eventHandler({
 				"value": temperature,
@@ -875,13 +939,15 @@ class Thingy {
 		else {
 			this.pressureEventListeners[1].splice(this.pressureEventListeners.indexOf(eventHandler), 1);
 		}
+
 		return this._notifyCharacteristic(this.pressureCharacteristic, enable, this.pressureEventListeners[0]);
 	}
+
 	pressureNotifyHandler(event) {
-		let data = event.target.value;
-		let integer = data.getUint32(0, true);
-		let decimal = data.getUint8(4);
-		let pressure = integer + (decimal / 100);
+		const data = event.target.value;
+		const integer = data.getUint32(0, true);
+		const decimal = data.getUint8(4);
+		const pressure = integer + (decimal / 100);
 		this.pressureEventListeners[1].forEach(eventHandler => {
 			eventHandler({
 				"value": pressure,
@@ -908,9 +974,10 @@ class Thingy {
 		}
 		return this._notifyCharacteristic(this.humidityCharacteristic, enable, this.humidityEventListeners[0]);
 	}
+
 	humidityNotifyHandler(event) {
-		let data = event.target.value;
-		let humidity = data.getUint8(0);
+		const data = event.target.value;
+		const humidity = data.getUint8(0);
 		this.humidityEventListeners[1].forEach(eventHandler => {
 			eventHandler({
 				"value": humidity,
@@ -935,12 +1002,14 @@ class Thingy {
 		else {
 			this.gasEventListeners[1].splice(this.gasEventListeners.indexOf(eventHandler), 1);
 		}
+
 		return this._notifyCharacteristic(this.gasCharacteristic, enable, this.gasEventListeners[0]);
 	}
 	gasNotifyHandler(event) {
-		let data = event.target.value;
-		let eco2 = data.getUint16(0, true);
-		let tvoc = data.getUint16(2, true);
+		const data = event.target.value;
+		const eco2 = data.getUint16(0, true);
+		const tvoc = data.getUint16(2, true);
+
 		this.gasEventListeners[1].forEach(eventHandler => {
 			eventHandler({
 				"eCO2": {
@@ -971,33 +1040,43 @@ class Thingy {
 		else {
 			this.colorEventListeners[1].splice(this.colorEventListeners.indexOf(eventHandler), 1);
 		}
+
 		return this._notifyCharacteristic(this.colorCharacteristic, enable, this.colorEventListeners[0]);
 	}
+
 	colorNotifyHandler(event) {
-		let data = event.target.value;
-		let r = data.getUint16(0, true);
-		let g = data.getUint16(2, true);
-		let b = data.getUint16(4, true);
-		let c = data.getUint16(6, true);
-		let rRatio = r / (r + g + b);
-		let gRatio = g / (r + g + b);
-		let bRatio = b / (r + g + b);
-		let clear_at_black = 300;
-		let clear_at_white = 400;
-		let clear_diff = clear_at_white - clear_at_black;
+		const data = event.target.value;
+		const r = data.getUint16(0, true);
+		const g = data.getUint16(2, true);
+		const b = data.getUint16(4, true);
+		const c = data.getUint16(6, true);
+		const rRatio = r / (r + g + b);
+		const gRatio = g / (r + g + b);
+		const bRatio = b / (r + g + b);
+		const clear_at_black = 300;
+		const clear_at_white = 400;
+		const clear_diff = clear_at_white - clear_at_black;
 		let clear_normalized = (c - clear_at_black) / clear_diff;
+
 		if (clear_normalized < 0) {
 			clear_normalized = 0;
 		}
+
 		let red = rRatio * 255.0 * 3 * clear_normalized;
+
 		if (red > 255)
 			red = 255;
+
 		let green = gRatio * 255.0 * 3 * clear_normalized;
+
 		if (green > 255)
 			green = 255;
+
 		let blue = bRatio * 255.0 * 3 * clear_normalized;
+
 		if (blue > 255)
 			blue = 255;
+
 		this.colorEventListeners[1].forEach(eventHandler => {
 			eventHandler({
 				"red": red.toFixed(0),
@@ -1015,45 +1094,47 @@ class Thingy {
      *  @return {Promise<Object>} Returns a LED status object. The content and structure depends on the current mode.
      *
      */
-	ledGetStatus() {
-		return this._readData(this.ledCharacteristic)
-			.then(data => {
-				let mode = data.getUint8(0);
-				let status;
-				switch (mode) {
-				case 0:
-					status = { LEDstatus: { mode: mode } };
-					break;
-				case 1:
-					status = {
-						"mode": mode,
-						"r": data.getUint8(1),
-						"g": data.getUint8(2),
-						"b": data.getUint8(3)
-					};
-					break;
-				case 2:
-					status = {
-						"mode": mode,
-						"color": data.getUint8(1),
-						"intensity": data.getUint8(2),
-						"delay": data.getUint16(3)
-					};
-					break;
-				case 3:
-					status = {
-						"mode": mode,
-						"color": data.getUint8(1),
-						"intensity": data.getUint8(2)
-					};
-					break;
-				}
-				return Promise.resolve(status);
-			})
-			.catch(error => {
-				return Promise.reject(new Error("Error when getting Thingy LED status: ", error));
-			});
+	async ledGetStatus() {
+		try {
+			const data = await this._readData(this.ledCharacteristic);
+			const mode = data.getUint8(0);
+			let status;
+
+			switch (mode) {
+			case 0:
+				status = { LEDstatus: { mode: mode } };
+				break;
+			case 1:
+				status = {
+					"mode": mode,
+					"r": data.getUint8(1),
+					"g": data.getUint8(2),
+					"b": data.getUint8(3)
+				};
+				break;
+			case 2:
+				status = {
+					"mode": mode,
+					"color": data.getUint8(1),
+					"intensity": data.getUint8(2),
+					"delay": data.getUint16(3)
+				};
+				break;
+			case 3:
+				status = {
+					"mode": mode,
+					"color": data.getUint8(1),
+					"intensity": data.getUint8(2)
+				};
+				break;
+			}
+			return status;
+		}
+		catch(error) {
+			return new Error("Error when getting Thingy LED status: ", error);
+		}
 	}
+
 	ledSet(dataArray) {
 		return this._writeData(this.ledCharacteristic, dataArray);
 	}
@@ -1114,9 +1195,10 @@ class Thingy {
 		}
 		return this._notifyCharacteristic(this.buttonCharacteristic, enable, this.buttonEventListeners[0]);
 	}
+
 	buttonNotifyHandler(event) {
-		let data = event.target.value;
-		let state = data.getUint8(0);
+		const data = event.target.value;
+		const state = data.getUint8(0);
 		this.buttonEventListeners[1].forEach(eventHandler => {
 			eventHandler(state);
 		});
@@ -1128,20 +1210,20 @@ class Thingy {
      *  @return {Promise<Object|Error>} Returns an external pin status object.
      *
      */
-	externalPinsGet() {
-		return this._readData(this.externalPinCharacteristic)
-			.then(data => {
-				let pinStatus = {
-					"pin1": data.getUint8(0),
-					"pin2": data.getUint8(1),
-					"pin3": data.getUint8(2),
-					"pin4": data.getUint8(3)
-				};
-				return Promise.resolve(pinStatus);
-			})
-			.catch(error => {
-				return Promise.reject(new Error("Error when reading from external pin characteristic: ", error));
-			});
+	async externalPinsGet() {
+		try {
+			const data = await this._readData(this.externalPinCharacteristic);
+			const pinStatus = {
+				"pin1": data.getUint8(0),
+				"pin2": data.getUint8(1),
+				"pin3": data.getUint8(2),
+				"pin4": data.getUint8(3)
+			};
+			return pinStatus;
+		}
+		catch(error) {
+			return new Error("Error when reading from external pin characteristic: ", error);
+		}
 	}
 
 	/**
@@ -1152,24 +1234,29 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	externalPinSet(pin, value) {
+	async externalPinSet(pin, value) {
 		if (pin < 1 || pin > 4)
 			return Promise.reject(new Error("Pin number must be 1, 2, 3 or 4"));
 		if (!(value == 0 || value == 255))
 			return Promise.reject(new Error("Pin status value must be 0 or 255"));
-		// Preserve values for those pins that are not being set 
-		return this._readData(this.externalPinCharacteristic)
-			.then(receivedData => {
-				let dataArray = new Uint8Array(4);
-				for (let i = 0; i < dataArray.length; i++) {
-					dataArray[i] = receivedData.getUint8(i);
-				}
-				dataArray[pin - 1] = value;
-				return this._writeData(this.externalPinCharacteristic, dataArray);
-			})
-			.catch(error => {
-				return Promise.reject(new Error("Error when setting external pins: ", error));
-			});
+
+		try {
+
+			// Preserve values for those pins that are not being set 
+			const receivedData = await this._readData(this.externalPinCharacteristic);
+			let dataArray = new Uint8Array(4);
+
+			for (let i = 0; i < dataArray.length; i++) {
+				dataArray[i] = receivedData.getUint8(i);
+			}
+
+			dataArray[pin - 1] = value;
+
+			return await this._writeData(this.externalPinCharacteristic, dataArray);
+		}
+		catch(error) {
+			return new Error("Error when setting external pins: ", error);
+		}
 	}
 
 	//  ******  //
@@ -1180,26 +1267,27 @@ class Thingy {
      *  @return {Promise<Object|Error>} Returns a motion configuration object when promise resolves, or an error if rejected.
      *
      */
-	motionConfigGet() {
-		return this._readData(this.tmsConfigCharacteristic)
-			.then(data => {
-				let stepCounterInterval = data.getUint16(0, true);
-				let tempCompInterval = data.getUint16(2, true);
-				let magnetCompInterval = data.getUint16(4, true);
-				let motionProcessingFrequency = data.getUint16(6, true);
-				let wakeOnMotion = data.getUint8(8, true);
-				let config = {
-					"stepCountInterval": stepCounterInterval,
-					"tempCompInterval": tempCompInterval,
-					"magnetCompInterval": magnetCompInterval,
-					"motionProcessingFrequency": motionProcessingFrequency,
-					"wakeOnMotion": wakeOnMotion
-				};
-				return Promise.resolve(config);
-			})
-			.catch(error => {
-				return Promise.reject(new Error("Error when getting Thingy motion module configuration: ", error));
-			});
+	async motionConfigGet() {
+		try {
+			const data = await this._readData(this.tmsConfigCharacteristic);
+			const stepCounterInterval = data.getUint16(0, true);
+			const tempCompInterval = data.getUint16(2, true);
+			const magnetCompInterval = data.getUint16(4, true);
+			const motionProcessingFrequency = data.getUint16(6, true);
+			const wakeOnMotion = data.getUint8(8, true);
+			const config = {
+				"stepCountInterval": stepCounterInterval,
+				"tempCompInterval": tempCompInterval,
+				"magnetCompInterval": magnetCompInterval,
+				"motionProcessingFrequency": motionProcessingFrequency,
+				"wakeOnMotion": wakeOnMotion
+			};
+
+			return config;
+		}
+		catch(error) {
+			return new Error("Error when getting Thingy motion module configuration: ", error);
+		}
 	}
 
 	/**
@@ -1209,21 +1297,25 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	stepCounterIntervalSet(interval) {
-		// Preserve values for those settings that are not being changed 
-		return this._readData(this.tmsConfigCharacteristic)
-			.then(receivedData => {
-				let dataArray = new Uint8Array(9);
-				for (let i = 0; i < dataArray.length; i++) {
-					dataArray[i] = receivedData.getUint8(i);
-				}
-				dataArray[0] = interval & 0xFF;
-				dataArray[1] = (interval >> 8) & 0xFF;
-				return this._writeData(this.tmsConfigCharacteristic, dataArray);
-			})
-			.catch(error => {
-				return Promise.reject(new Error("Error when setting new step count interval: ", error));
-			});
+	async stepCounterIntervalSet(interval) {
+		try {
+			
+			// Preserve values for those settings that are not being changed 
+			const receivedData = await this._readData(this.tmsConfigCharacteristic);
+			let dataArray = new Uint8Array(9);
+
+			for (let i = 0; i < dataArray.length; i++) {
+				dataArray[i] = receivedData.getUint8(i);
+			}
+
+			dataArray[0] = interval & 0xFF;
+			dataArray[1] = (interval >> 8) & 0xFF;
+
+			return await this._writeData(this.tmsConfigCharacteristic, dataArray);
+		}
+		catch(error) {
+			return new Error("Error when setting new step count interval: ", error);
+		}
 	}
 
 	/**
@@ -1233,21 +1325,25 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	temperatureCompIntervalSet(interval) {
-		// Preserve values for those settings that are not being changed 
-		return this._readData(this.tmsConfigCharacteristic)
-			.then(receivedData => {
-				let dataArray = new Uint8Array(9);
-				for (let i = 0; i < dataArray.length; i++) {
-					dataArray[i] = receivedData.getUint8(i);
-				}
-				dataArray[2] = interval & 0xFF;
-				dataArray[3] = (interval >> 8) & 0xFF;
-				return this._writeData(this.tmsConfigCharacteristic, dataArray);
-			})
-			.catch(error => {
-				return Promise.reject(new Error("Error when setting new temperature compensation interval: ", error));
-			});
+	async temperatureCompIntervalSet(interval) {
+		try {
+
+			// Preserve values for those settings that are not being changed 
+			const receivedData = await this._readData(this.tmsConfigCharacteristic);
+			let dataArray = new Uint8Array(9);
+
+			for (let i = 0; i < dataArray.length; i++) {
+				dataArray[i] = receivedData.getUint8(i);
+			}
+
+			dataArray[2] = interval & 0xFF;
+			dataArray[3] = (interval >> 8) & 0xFF;
+
+			return await this._writeData(this.tmsConfigCharacteristic, dataArray);
+		}
+		catch(error) {
+			return new Error("Error when setting new temperature compensation interval: ", error);
+		}
 	}
 
 	/**
@@ -1257,21 +1353,25 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	magnetCompIntervalSet(interval) {
-		// Preserve values for those settings that are not being changed 
-		return this._readData(this.tmsConfigCharacteristic)
-			.then(receivedData => {
-				let dataArray = new Uint8Array(9);
-				for (let i = 0; i < dataArray.length; i++) {
-					dataArray[i] = receivedData.getUint8(i);
-				}
-				dataArray[4] = interval & 0xFF;
-				dataArray[5] = (interval >> 8) & 0xFF;
-				return this._writeData(this.tmsConfigCharacteristic, dataArray);
-			})
-			.catch(error => {
-				return Promise.reject(new Error("Error when setting new magnetometer compensation interval: ", error));
-			});
+	async magnetCompIntervalSet(interval) {
+		try {
+
+			// Preserve values for those settings that are not being changed 
+			const receivedData = await this._readData(this.tmsConfigCharacteristic);
+			let dataArray = new Uint8Array(9);
+
+			for (let i = 0; i < dataArray.length; i++) {
+				dataArray[i] = receivedData.getUint8(i);
+			}
+
+			dataArray[4] = interval & 0xFF;
+			dataArray[5] = (interval >> 8) & 0xFF;
+
+			return await this._writeData(this.tmsConfigCharacteristic, dataArray);
+		}
+		catch(error) {
+			return new Error("Error when setting new magnetometer compensation interval: ", error);
+		}
 	}
 
 	/**
@@ -1281,21 +1381,25 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	motionProcessingFrequencySet(frequency) {
-		// Preserve values for those settings that are not being changed 
-		return this._readData(this.tmsConfigCharacteristic)
-			.then(receivedData => {
-				let dataArray = new Uint8Array(9);
-				for (let i = 0; i < dataArray.length; i++) {
-					dataArray[i] = receivedData.getUint8(i);
-				}
-				dataArray[6] = frequency & 0xFF;
-				dataArray[7] = (frequency >> 8) & 0xFF;
-				return this._writeData(this.tmsConfigCharacteristic, dataArray);
-			})
-			.catch(error => {
-				return Promise.reject(new Error("Error when setting new motion porcessing unit update frequency: ", error));
-			});
+	async motionProcessingFrequencySet(frequency) {
+		try {
+
+			// Preserve values for those settings that are not being changed 
+			const receivedData = await this._readData(this.tmsConfigCharacteristic);
+			let dataArray = new Uint8Array(9);
+
+			for (let i = 0; i < dataArray.length; i++) {
+				dataArray[i] = receivedData.getUint8(i);
+			}
+			
+			dataArray[6] = frequency & 0xFF;
+			dataArray[7] = (frequency >> 8) & 0xFF;
+
+			return await this._writeData(this.tmsConfigCharacteristic, dataArray);
+		}
+		catch(error) {
+			return new Error("Error when setting new motion porcessing unit update frequency: ", error);
+		}
 	}
 
 	/**
@@ -1305,20 +1409,24 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	wakeOnMotionSet(enable) {
-		// Preserve values for those settings that are not being changed 
-		return this._readData(this.tmsConfigCharacteristic)
-			.then(receivedData => {
-				let dataArray = new Uint8Array(9);
-				for (let i = 0; i < dataArray.length; i++) {
-					dataArray[i] = receivedData.getUint8(i);
-				}
-				dataArray[8] = enable ? 1 : 0;
-				return this._writeData(this.tmsConfigCharacteristic, dataArray);
-			})
-			.catch(error => {
-				return Promise.reject(new Error("Error when setting new magnetometer compensation interval: ", error));
-			});
+	async wakeOnMotionSet(enable) {
+		try {
+		
+			// Preserve values for those settings that are not being changed 
+			const receivedData = await this._readData(this.tmsConfigCharacteristic);
+			let dataArray = new Uint8Array(9);
+
+			for (let i = 0; i < dataArray.length; i++) {
+				dataArray[i] = receivedData.getUint8(i);
+			}
+
+			dataArray[8] = enable ? 1 : 0;
+
+			return await this._writeData(this.tmsConfigCharacteristic, dataArray);
+		}
+		catch(error) {
+			return new Error("Error when setting new magnetometer compensation interval: ", error);
+		}
 	}
 
 	/**
@@ -1337,12 +1445,14 @@ class Thingy {
 		else {
 			this.tapEventListeners[1].splice(this.tapEventListeners.indexOf(eventHandler), 1);
 		}
+
 		return this._notifyCharacteristic(this.tapCharacteristic, enable, this.tapEventListeners[0]);
 	}
+
 	tapNotifyHandler(event) {
-		let data = event.target.value;
-		let direction = data.getUint8(0);
-		let count = data.getUint8(1);
+		const data = event.target.value;
+		const direction = data.getUint8(0);
+		const count = data.getUint8(1);
 		this.tapEventListeners[1].forEach(eventHandler => {
 			eventHandler({
 				"direction": direction,
@@ -1367,11 +1477,13 @@ class Thingy {
 		else {
 			this.orientationEventListeners[1].splice(this.orientationEventListeners.indexOf(eventHandler), 1);
 		}
+
 		return this._notifyCharacteristic(this.orientationCharacteristic, enable, this.orientationEventListeners[0]);
 	}
+
 	orientationNotifyHandler(event) {
-		let data = event.target.value;
-		let orientation = data.getUint8(0);
+		const data = event.target.value;
+		const orientation = data.getUint8(0);
 		this.orientationEventListeners[1].forEach(eventHandler => {
 			eventHandler(orientation);
 		});
@@ -1393,22 +1505,27 @@ class Thingy {
 		else {
 			this.quaternionEventListeners[1].splice(this.quaternionEventListeners.indexOf(eventHandler), 1);
 		}
+
 		return this._notifyCharacteristic(this.quaternionCharacteristic, enable, this.quaternionEventListeners[0]);
 	}
+
 	quaternionNotifyHandler(event) {
-		let data = event.target.value;
+		const data = event.target.value;
+
 		// Divide by (1 << 30) according to sensor specification
 		let w = data.getInt32(0, true) / (1 << 30);
 		let x = data.getInt32(4, true) / (1 << 30);
 		let y = data.getInt32(8, true) / (1 << 30);
 		let z = data.getInt32(12, true) / (1 << 30);
-		let magnitude = Math.sqrt(Math.pow(w, 2) + Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
+		const magnitude = Math.sqrt(Math.pow(w, 2) + Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
+
 		if (magnitude != 0) {
 			w /= magnitude;
 			x /= magnitude;
 			y /= magnitude;
 			z /= magnitude;
 		}
+
 		this.quaternionEventListeners[1].forEach(eventHandler => {
 			eventHandler({
 				"w": w,
@@ -1435,12 +1552,14 @@ class Thingy {
 		else {
 			this.stepEventListeners[1].splice(this.stepEventListeners.indexOf(eventHandler), 1);
 		}
+
 		return this._notifyCharacteristic(this.stepCharacteristic, enable, this.stepEventListeners[0]);
 	}
+
 	stepNotifyHandler(event) {
-		let data = event.target.value;
-		let count = data.getUint32(0, true);
-		let time = data.getUint32(4, true);
+		const data = event.target.value;
+		const count = data.getUint32(0, true);
+		const time = data.getUint32(4, true);
 		this.stepEventListeners[1].forEach(eventHandler => {
 			eventHandler({
 				"count": count,
@@ -1468,22 +1587,28 @@ class Thingy {
 		else {
 			this.motionRawEventListeners[1].splice(this.motionRawEventListeners.indexOf(eventHandler), 1);
 		}
+
 		return this._notifyCharacteristic(this.motionRawCharacteristic, enable, this.motionRawEventListeners[0]);
 	}
+
 	motionRawNotifyHandler(event) {
-		let data = event.target.value;
+		const data = event.target.value;
+
 		// Divide by 2^6 = 64 to get accelerometer correct values
-		let accX = (data.getInt16(0, true) / 64);
-		let accY = (data.getInt16(2, true) / 64);
-		let accZ = (data.getInt16(4, true) / 64);
+		const accX = (data.getInt16(0, true) / 64);
+		const accY = (data.getInt16(2, true) / 64);
+		const accZ = (data.getInt16(4, true) / 64);
+
 		// Divide by 2^11 = 2048 to get correct gyroscope values
-		let gyroX = (data.getInt16(6, true) / 2048);
-		let gyroY = (data.getInt16(8, true) / 2048);
-		let gyroZ = (data.getInt16(10, true) / 2048);
+		const gyroX = (data.getInt16(6, true) / 2048);
+		const gyroY = (data.getInt16(8, true) / 2048);
+		const gyroZ = (data.getInt16(10, true) / 2048);
+
 		// Divide by 2^12 = 4096 to get correct compass values
-		let compassX = (data.getInt16(12, true) / 4096);
-		let compassY = (data.getInt16(14, true) / 4096);
-		let compassZ = (data.getInt16(16, true) / 4096);
+		const compassX = (data.getInt16(12, true) / 4096);
+		const compassY = (data.getInt16(14, true) / 4096);
+		const compassZ = (data.getInt16(16, true) / 4096);
+
 		this.motionRawEventListeners[1].forEach(eventHandler => {
 			eventHandler({
 				"accelerometer": {
@@ -1524,14 +1649,18 @@ class Thingy {
 		else {
 			this.eulerEventListeners[1].splice(this.eulerEventListeners.indexOf(eventHandler), 1);
 		}
+
 		return this._notifyCharacteristic(this.eulerCharacteristic, enable, this.eulerEventListeners[0]);
 	}
+
 	eulerNotifyHandler(event) {
-		let data = event.target.value;
+		const data = event.target.value;
+
 		// Divide by two bytes (1<<16 or 2^16 or 65536) to get correct value
-		let roll = data.getInt32(0, true) / 65536;
-		let pitch = data.getInt32(4, true) / 65536;
-		let yaw = data.getInt32(8, true) / 65536;
+		const roll = data.getInt32(0, true) / 65536;
+		const pitch = data.getInt32(4, true) / 65536;
+		const yaw = data.getInt32(8, true) / 65536;
+
 		this.eulerEventListeners[1].forEach(eventHandler => {
 			eventHandler({
 				"roll": roll,
@@ -1557,20 +1686,24 @@ class Thingy {
 		else {
 			this.rotationMatrixEventListeners[1].splice(this.rotationMatrixEventListeners.indexOf(eventHandler), 1);
 		}
+
 		return this._notifyCharacteristic(this.rotationMatrixCharacteristic, enable, this.rotationMatrixEventListeners[0]);
 	}
+
 	rotationMatrixNotifyHandler(event) {
-		let data = event.target.value;
+		const data = event.target.value;
+
 		// Divide by 2^2 = 4 to get correct values
-		let r1c1 = data.getInt16(0, true) / 4;
-		let r1c2 = data.getInt16(0, true) / 4;
-		let r1c3 = data.getInt16(0, true) / 4;
-		let r2c1 = data.getInt16(0, true) / 4;
-		let r2c2 = data.getInt16(0, true) / 4;
-		let r2c3 = data.getInt16(0, true) / 4;
-		let r3c1 = data.getInt16(0, true) / 4;
-		let r3c2 = data.getInt16(0, true) / 4;
-		let r3c3 = data.getInt16(0, true) / 4;
+		const r1c1 = data.getInt16(0, true) / 4;
+		const r1c2 = data.getInt16(0, true) / 4;
+		const r1c3 = data.getInt16(0, true) / 4;
+		const r2c1 = data.getInt16(0, true) / 4;
+		const r2c2 = data.getInt16(0, true) / 4;
+		const r2c3 = data.getInt16(0, true) / 4;
+		const r3c1 = data.getInt16(0, true) / 4;
+		const r3c2 = data.getInt16(0, true) / 4;
+		const r3c3 = data.getInt16(0, true) / 4;
+
 		this.rotationMatrixEventListeners[1].forEach(eventHandler => {
 			eventHandler({
 				"row1": [r1c1, r1c2, r1c3],
@@ -1596,12 +1729,16 @@ class Thingy {
 		else {
 			this.headingEventListeners[1].splice(this.headingEventListeners.indexOf(eventHandler), 1);
 		}
+
 		return this._notifyCharacteristic(this.headingCharacteristic, enable, this.headingEventListeners[0]);
 	}
+
 	headingNotifyHandler(event) {
-		let data = event.target.value;
+		const data = event.target.value;
 		// Divide by 2^16 = 65536 to get correct heading values
-		let heading = data.getInt32(0, true) / 65536;
+
+		const heading = data.getInt32(0, true) / 65536;
+
 		this.headingEventListeners[1].forEach(eventHandler => {
 			eventHandler({
 				"value": heading,
@@ -1626,13 +1763,16 @@ class Thingy {
 		else {
 			this.gravityVectorEventListeners[1].splice(this.gravityVectorEventListeners.indexOf(eventHandler), 1);
 		}
+
 		return this._notifyCharacteristic(this.gravityVectorCharacteristic, enable, this.gravityVectorEventListeners[0]);
 	}
+
 	gravityVectorNotifyHandler(event) {
-		let data = event.target.value;
-		let x = data.getFloat32(0, true);
-		let y = data.getFloat32(4, true);
-		let z = data.getFloat32(8, true);
+		const data = event.target.value;
+		const x = data.getFloat32(0, true);
+		const y = data.getFloat32(4, true);
+		const z = data.getFloat32(8, true);
+
 		this.gravityVectorEventListeners[1].forEach(eventHandler => {
 			eventHandler({
 				"x": x,
@@ -1656,18 +1796,19 @@ class Thingy {
      *  @return {Promise<number | Error>} Returns battery level in percentage when promise is resolved or an error if rejected.
      *
      */
-	batteryLevelGet() {
-		return this._readData(this.batteryCharacteristic)
-			.then(receivedData => {
-				let level = receivedData.getUint8(0);
-				return Promise.resolve({
-					"value": level,
-					"unit": "%"
-				});
-			})
-			.catch(error => {
-				return Promise.reject(error);
-			});
+	async batteryLevelGet() {
+		try {
+			const receivedData = await this._readData(this.batteryCharacteristic);
+			const level = receivedData.getUint8(0);
+
+			return {
+				"value": level,
+				"unit": "%"
+			};
+		}
+		catch(error) {
+			return error;
+		}
 	}
 	
 	/**
@@ -1686,11 +1827,14 @@ class Thingy {
 		else {
 			this.batteryLevelEventListeners[1].splice(this.batteryLevelEventListeners.indexOf(eventHandler), 1);
 		}
+
 		return this._notifyCharacteristic(this.batteryCharacteristic, enable, this.batteryLevelEventListeners[0]);
 	}
+	
 	batteryLevelNotifyHandler(event) {
-		let data = event.target.value;
-		let value = data.getUint8(0);
+		const data = event.target.value;
+		const value = data.getUint8(0);
+
 		this.batteryLevelEventListeners[1].forEach(eventHandler => {
 			eventHandler({
 				"value": value,
