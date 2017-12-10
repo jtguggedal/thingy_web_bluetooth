@@ -289,10 +289,10 @@ class Thingy {
      *
      */
 	get name() {
-		return this.nameGet();
+		return this._nameGet();
 	}
 
-	async nameGet() {
+	async _nameGet() {
 		try {
 			const data = await this._readData(this.nameCharacteristic);
 			const decoder = new TextDecoder("utf-8");
@@ -314,10 +314,10 @@ class Thingy {
      *
      */
 	set name(val) {
-		return this.nameSet(val);
+		return this._nameSet(val);
 	}
 
-	async nameSet(name) {
+	async _nameSet(name) {
 		const byteArray = new Uint8Array(name.length);
 		for (let i = 0, j = name.length; i < j; ++i) {
 			byteArray[i] = name.charCodeAt(i);
@@ -333,10 +333,10 @@ class Thingy {
      *
      */
 	get advParams() {
-		return this.advParamsGet();
+		return this._advParamsGet();
 	}
 
-	async advParamsGet() {
+	async _advParamsGet() {
 		try {
 			const receivedData = await this._readData(this.advParamsCharacteristic);
 
@@ -694,7 +694,7 @@ class Thingy {
      * 	@return {Promise<Error>} Returns a promise.
      *
      */
-	set cloutToken(token) {
+	set cloudToken(token) {
 		if (token.len > 250)
 			return Promise.reject(new Error("The cloud token can not exceed 250 characters."));
 
