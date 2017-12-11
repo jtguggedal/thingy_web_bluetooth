@@ -1,14 +1,14 @@
 
 class Thingy {
 	/** 
-	 *  Thingy:52 Web Bluetooth API. <br> 
-	 *  BLE service details {@link https://nordicsemiconductor.github.io/Nordic-Thingy52-FW/documentation/firmware_architecture.html#fw_arch_ble_services here}
-	 * 
-	 *  
-	 *  @constructor   
-	 *  @param {bool} [logEnabled = true] Enables logging of all BLE actions.
-	 * 
-	*/
+     *  Thingy:52 Web Bluetooth API. <br> 
+     *  BLE service details {@link https://nordicsemiconductor.github.io/Nordic-Thingy52-FW/documentation/firmware_architecture.html#fw_arch_ble_services here}
+     * 
+     *  
+     *  @constructor   
+     *  @param {bool} [logEnabled = true] Enables logging of all BLE actions.
+     * 
+    */
 	constructor(logEnabled = true) {
 		this.logEnabled = logEnabled;
 
@@ -95,8 +95,8 @@ class Thingy {
          *
          *  @param {Object} characteristic - Web Bluetooth characteristic object
          *  @return {Promise<Uint8Array|Error>} Returns Uint8Array when resolved or an error when rejected
-		 * 
-         *	@ignore
+         * 
+         *	@private
          */
 	async _readData(characteristic) {
 		if (!this.bleIsBusy) {
@@ -125,8 +125,8 @@ class Thingy {
          *  @param {Object} characteristic - Web Bluetooth characteristic object
          *  @param {Uint8Array} dataArray - Typed array of bytes to send
          *  @return {Promise}
-		 * 
-		 * 	@ignore
+         * 
+         * 	@private
          */
 	async _writeData(characteristic, dataArray) {
 		if (!this.bleIsBusy) {
@@ -168,7 +168,7 @@ class Thingy {
 			});
 			if (this.logEnabled)
 				console.log(`Found Thingy named "${this.device.name}", trying to connect`);
-			
+            
 			// Connect to GATT server
 			const server = await this.device.gatt.connect();
 			if (this.logEnabled)
@@ -363,7 +363,7 @@ class Thingy {
 	/**
      *  Sets the advertising parameters
      *
-	 * 	@param {object} params - Object with key/value pairs 'interval' and 'timeout': <code>{interval: someInterval, timeout: someTimeout}</code>.
+     * 	@param {object} params - Object with key/value pairs 'interval' and 'timeout': <code>{interval: someInterval, timeout: someTimeout}</code>.
      *  @param {number} params.interval - The advertising interval in milliseconds in the range of 20 ms to 5 000 ms.
      *  @param {number} params.timeout - The advertising timeout in seconds in the range 1 s to 180 s.
      *  @return {Promise<Error>} Returns a promise.
@@ -377,7 +377,7 @@ class Thingy {
 
 		if((typeof(params) != "object") || !params.hasOwnProperty("interval") || !params.hasOwnProperty("timeout"))
 			return Promise.reject(new Error("The argument has to be an object with key/value pairs \
-											'interval' and 'timeout': {interval: someInterval, timeout: someTimeout}"));
+                                            'interval' and 'timeout': {interval: someInterval, timeout: someTimeout}"));
 
 		// Interval is in units of 0.625 ms.
 		const interval = params.interval * 1.6;
@@ -408,7 +408,7 @@ class Thingy {
 	get connParams() {
 		return this._connParamsGet();
 	}
-	
+    
 	async _connParamsGet() {
 		try {
 			const receivedData = await this._readData(this.connParamsCharacteristic);
@@ -445,7 +445,7 @@ class Thingy {
 	/**
      *  Sets the connection interval
      *
-	 * 	@param {object} params - Connection interval object: <code>{minInterval: someValue, maxInterval: someValue}</code>
+     * 	@param {object} params - Connection interval object: <code>{minInterval: someValue, maxInterval: someValue}</code>
      *  @param {string} params.minInterval - The minimum connection interval in milliseconds. Must be >= 7.5 ms.
      *  @param {string} params.maxInterval - The maximum connection interval in milliseconds. Must be <= 4 000 ms.
      *  @return {Promise<Error>} Returns a promise.
@@ -493,7 +493,7 @@ class Thingy {
 			dataArray[3] = (maxInterval >> 8) & 0xFF;
 
 			return await this._writeData(this.connParamsCharacteristic, dataArray);
-			
+            
 		}
 		catch(error) {
 			return Promise.reject(new Error("Error when updating connection interval: ", error));
@@ -510,7 +510,7 @@ class Thingy {
 	set connectionSlaveLatency(slaveLatency) {
 		return this._connSlaveLatencySet(slaveLatency);
 	}
-	
+    
 	async _connSlaveLatencySet(slaveLatency) {
 
 		// Check parameters
@@ -573,8 +573,8 @@ class Thingy {
 
 			if (timeout * 4 < ((1 + slaveLatency) * maxConnInterval)) {
 				return Promise.reject(new Error("The supervision timeout in milliseconds must be greater than 	\
-												(1 + slaveLatency) * maxConnInterval * 2, 						\
-												where maxConnInterval is also given in milliseconds."));
+                                                (1 + slaveLatency) * maxConnInterval * 2, 						\
+                                                where maxConnInterval is also given in milliseconds."));
 			}
 
 			dataArray[6] = timeout & 0xFF;
@@ -625,7 +625,7 @@ class Thingy {
 	/**
      *  Sets the Eddystone URL
      *
-	 * 	@param {object} params - Eddystone Url object: <code>{prefix: value, url: value, postfix: value}</code>
+     * 	@param {object} params - Eddystone Url object: <code>{prefix: value, url: value, postfix: value}</code>
      * 	@param {number} params.prefix - Code for prefix, according to {@link https://github.com/google/eddystone/tree/master/eddystone-url#url-scheme-prefix specification}.
      *  @param {string} params.url - The URL.
      * 	@param {number} [params.postfix = null] - Optional code for postfix according to {@link https://github.com/google/eddystone/tree/master/eddystone-url#eddystone-url-http-url-encoding specification}.
@@ -728,7 +728,7 @@ class Thingy {
 	/**
      *  Sets the current Maximal Transmission Unit (MTU)
      *
-	 * 	@param {object} params - MTU settings object: {mtuSize: value, peripheralRequest: value}, where peripheralRequest is optional.
+     * 	@param {object} params - MTU settings object: {mtuSize: value, peripheralRequest: value}, where peripheralRequest is optional.
      *  @param {number} params.mtuSize - The desired MTU size.
      * 	@param {bool} [params.peripheralRequest = false] - Optional. Set to <code>true</code> if peripheral should send an MTU exchange request. Default is <code>false</code>;
      * 	@return {Promise<Error>} Returns a promise.
@@ -866,7 +866,7 @@ class Thingy {
 
 	async _pressureIntervalSet(interval) {
 		try {
-			
+            
 			// Preserve values for those settings that are not being changed 
 			const receivedData = await this._readData(this.environmentConfigCharacteristic);
 			const dataArray = new Uint8Array(12);
@@ -966,7 +966,7 @@ class Thingy {
 			// Preserve values for those settings that are not being changed 
 			const receivedData = await this._readData(this.environmentConfigCharacteristic);
 			const dataArray = new Uint8Array(12);
-			
+            
 			for (let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
 			}
@@ -1174,26 +1174,26 @@ class Thingy {
 		const rRatio = r / (r + g + b);
 		const gRatio = g / (r + g + b);
 		const bRatio = b / (r + g + b);
-		const clear_at_black = 300;
-		const clear_at_white = 400;
-		const clear_diff = clear_at_white - clear_at_black;
-		let clear_normalized = (c - clear_at_black) / clear_diff;
+		const clearAtBlack = 300;
+		const clearAtWhite = 400;
+		const clearDiff = clearAtWhite - clearAtBlack;
+		let clearNormalized = (c - clearAtBlack) / clearDiff;
 
-		if (clear_normalized < 0) {
-			clear_normalized = 0;
+		if (clearNormalized < 0) {
+			clearNormalized = 0;
 		}
 
-		let red = rRatio * 255.0 * 3 * clear_normalized;
+		let red = rRatio * 255.0 * 3 * clearNormalized;
 
 		if (red > 255)
 			red = 255;
 
-		let green = gRatio * 255.0 * 3 * clear_normalized;
+		let green = gRatio * 255.0 * 3 * clearNormalized;
 
 		if (green > 255)
 			green = 255;
 
-		let blue = bRatio * 255.0 * 3 * clear_normalized;
+		let blue = bRatio * 255.0 * 3 * clearNormalized;
 
 		if (blue > 255)
 			blue = 255;
@@ -1544,7 +1544,7 @@ class Thingy {
 			for (let i = 0; i < dataArray.length; i++) {
 				dataArray[i] = receivedData.getUint8(i);
 			}
-			
+            
 			dataArray[6] = frequency & 0xFF;
 			dataArray[7] = (frequency >> 8) & 0xFF;
 
@@ -1570,7 +1570,7 @@ class Thingy {
 		try {
 			if(enable < 0 || enable > 1) 
 				return Promise.reject(new Error("The argument must be 0 or 1."));
-		
+        
 			// Preserve values for those settings that are not being changed 
 			const receivedData = await this._readData(this.tmsConfigCharacteristic);
 			const dataArray = new Uint8Array(9);
@@ -1973,7 +1973,7 @@ class Thingy {
 			return error;
 		}
 	}
-	
+    
 	/**
      *  Enables battery level notifications.
      *
@@ -1993,7 +1993,7 @@ class Thingy {
 
 		return this._notifyCharacteristic(this.batteryCharacteristic, enable, this.batteryLevelEventListeners[0]);
 	}
-	
+    
 	batteryLevelNotifyHandler(event) {
 		const data = event.target.value;
 		const value = data.getUint8(0);
