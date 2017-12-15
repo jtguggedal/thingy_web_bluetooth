@@ -1286,39 +1286,76 @@ class Thingy {
 	/**
      *  Sets the LED in constant mode with the specified RGB color.
      *
-     *  @param red - The value for red color in an RGB color. Ranges from 0 to 255.
-     *  @param green - The value for green color in an RGB color. Ranges from 0 to 255.
-     *  @param blue - The value for blue color in an RGB color. Ranges from 0 to 255.
+		 * 	@param color - Color object with RGB values
+     *  @param color.red - The value for red color in an RGB color. Ranges from 0 to 255.
+     *  @param color.green - The value for green color in an RGB color. Ranges from 0 to 255.
+     *  @param color.blue - The value for blue color in an RGB color. Ranges from 0 to 255.
      *  @return {Promise<Error>} Returns a resolved promise or an error in a rejected promise.
      *
      */
-	ledConstant(red, green, blue) {
-		return this._ledSet(new Uint8Array([1, red, green, blue]));
+	ledConstant(color) {
+		if((color.red == undefined) || (color.green == undefined) || (color.blue == undefined)) {
+			return Promise.reject(new TypeError("The options object for must have the properties 'red', 'green' and 'blue'."));
+		}
+		if(	(color.red < 0) || (color.red > 255) ||
+				(color.green < 0) || (color.green > 255) ||
+				(color.blue < 0) || (color.blue > 255)) {
+			return Promise.reject(new RangeError("The RGB values must be in the range 0 - 255"));
+		}
+		return this._ledSet(new Uint8Array([1, color.red, color.green, color.blue]));
 	}
 
 	/**
-     *  Sets the LED in "breathe" mode where the LED pulses with the specified color, intensity and delay between pulses.
-     *
-     *  @param color - The color code. 1 = red, 2 = green, 3 = yellow, 4 = blue, 5 = purple, 6 = cyan, 7 = white.
-     *  @param intensity - Intensity of LED pulses. Range from 0 to 100 [%].
-     *  @param delay - Delay between pulses in milliseconds. Range from 50 ms to 10 000 ms.
+     *  Sets the LED in "breathe" mode where the LED continuously pulses with the specified color, intensity and delay between pulses.
+		 *	
+		 *	@param params - Options object for LED breathe mode
+     *  @param params.color - The color code. 1 = red, 2 = green, 3 = yellow, 4 = blue, 5 = purple, 6 = cyan, 7 = white.
+     *  @param params.intensity - Intensity of LED pulses. Range from 0 to 100 [%].
+     *  @param params.delay - Delay between pulses in milliseconds. Range from 50 ms to 10 000 ms.
      *  @return {Promise<Error>} Returns a resolved promise or an error in a rejected promise.
      *
      */
-	ledBreathe(color, intensity, delay) {
-		return this._ledSet(new Uint8Array([2, color, intensity, delay & 0xff, (delay >> 8) & 0xff]));
+	ledBreathe(params) {	
+		const colors = ["red", "green", "yellow", "blue", "purple", "cyan", "white"];
+		const colorCode = typeof(params.color) == "string" ? colors.indexOf(params.color) + 1 : params.color;
+
+		if((params.color == undefined) || (params.intensity == undefined) || (params.delay == undefined)) {
+			return Promise.reject(new TypeError("The options object for must have the properties 'color', 'intensity' and 'intensity'."));
+		}
+		if((colorCode < 1) || (colorCode > 7)) {
+			return Promise.reject(new RangeError("The color code must be in the range 1 - 7"));
+		}
+		if(params.intensity < 0 || (params.intensity > 100)) {
+			return Promise.reject(new RangeError("The intensity must be in the range 0 - 100%"));
+		}
+		if(params.delay < 50 || (params.delay > 10000)) {
+			return Promise.reject(new RangeError("The delay must be in the range 50 ms - 10 000 ms"));
+		}
+
+		return this._ledSet(new Uint8Array([2, colorCode, params.intensity, params.delay & 0xff, (params.delay >> 8) & 0xff]));
 	}
 
 	/**
-     *  Sets the LED in one-shot mode
+     *  Sets the LED in one-shot mode. One-shot mode will result in one single pulse of the LED.
      *
-     *  @param color - The color code. 1 = red, 2 = green, 3 = yellow, 4 = blue, 5 = purple, 6 = cyan, 7 = white.
-     *  @param intensity - Intensity of LED pulses. Range from 0 to 100 [%].
+		 * 	@param params - Option object for LED in one-shot mode
+     *  @param params.color - The color code. 1 = red, 2 = green, 3 = yellow, 4 = blue, 5 = purple, 6 = cyan, 7 = white.
+     *  @param params.intensity - Intensity of LED pulses. Range from 0 to 100 [%].
      *  @return {Promise<Error>} Returns a resolved promise or an error in a rejected promise.
      *
      */
-	ledOneShot(color, intensity) {
-		return this._ledSet(new Uint8Array([3, color, intensity]));
+	ledOneShot(params) {
+		if((params.color == undefined) || (params.intensity == undefined)) {
+			return Promise.reject(new TypeError("The options object for LED one-shot must have the properties 'color' and 'intensity."));
+		}
+		if(params.color < 1 || (params.color > 7)) {
+			return Promise.reject(new RangeError("The color code must be in the range 1 - 7"));
+		}
+		if(params.intensity < 1 || (params.intensity > 7)) {
+			return Promise.reject(new RangeError("The intensity must be in the range 0 - 100"));
+		}
+
+		return this._ledSet(new Uint8Array([3, params.color, params.intensity]));
 	}
 
 	/**
