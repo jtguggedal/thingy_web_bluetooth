@@ -1,4 +1,3 @@
-
 class Thingy {
 	/** 
      *  Thingy:52 Web Bluetooth API. <br> 
@@ -6,11 +5,12 @@ class Thingy {
      * 
      *  
      *  @constructor   
-     *  @param {bool} [logEnabled = true] Enables logging of all BLE actions.
+     *  @param {object} options - Options object for Thingy
+		 *  @param {bool} [options.logEnabled = true] Enables logging of all BLE actions.
      * 
     */
-	constructor(logEnabled = true) {
-		this.logEnabled = logEnabled;
+	constructor(options = {logEnabled: true}) {
+		this.logEnabled = options.logEnabled;
 
 		// TCS = Thingy Configuration Service
 		this.TCS_UUID = "ef680100-9b35-4933-9b10-52ffa9740042";
@@ -117,27 +117,27 @@ class Thingy {
 	}
 
 	/**
-         *  Method to write data to a Web Bluetooth characteristic.
-         *  Implements a simple solution to avoid starting new GATT requests while another is pending.
-         *  Any attempt to send data during another GATT operation will result in a rejected promise.
-         *  No retransmission is implemented at this level.
-         *
-         *  @param {Object} characteristic - Web Bluetooth characteristic object
-         *  @param {Uint8Array} dataArray - Typed array of bytes to send
-         *  @return {Promise}
-         * 
-         * 	@private
-         */
+	 *  Method to write data to a Web Bluetooth characteristic.
+	 *  Implements a simple solution to avoid starting new GATT requests while another is pending.
+	 *  Any attempt to send data during another GATT operation will result in a rejected promise.
+	 *  No retransmission is implemented at this level.
+	 *
+	 *  @param {Object} characteristic - Web Bluetooth characteristic object
+	 *  @param {Uint8Array} dataArray - Typed array of bytes to send
+	 *  @return {Promise}
+	 * 
+	 * 	@private
+	 */
 	async _writeData(characteristic, dataArray) {
 		if (!this.bleIsBusy) {
-			this.bleIsBusy = true;
 			try {
+				this.bleIsBusy = true;
 				await characteristic.writeValue(dataArray);
+				this.bleIsBusy = false;
 			}
 			catch(error) {
 				return error;
 			}
-			this.bleIsBusy = false;
 
 			return Promise.resolve();
 		}
@@ -157,8 +157,9 @@ class Thingy {
 		try {
 
 			// Scan for Thingys
-			if (this.logEnabled)
+			if (this.logEnabled) {
 				console.log(`Scanning for devices with service UUID equal to ${this.TCS_UUID}`);
+			}
 
 			this.device = await navigator.bluetooth.requestDevice({
 				filters: [{
@@ -166,19 +167,22 @@ class Thingy {
 				}],
 				optionalServices: this.serviceUUIDs
 			});
-			if (this.logEnabled)
+			if (this.logEnabled) {
 				console.log(`Found Thingy named "${this.device.name}", trying to connect`);
+			}
             
 			// Connect to GATT server
 			const server = await this.device.gatt.connect();
-			if (this.logEnabled)
+			if (this.logEnabled) {
 				console.log(`Connected to "${this.device.name}"`);
+			}
 
 			// Battery service
 			const batteryService = await server.getPrimaryService("battery_service");
 			this.batteryCharacteristic = await batteryService.getCharacteristic("battery_level");
-			if (this.logEnabled)
+			if (this.logEnabled) {
 				console.log("Discovered battery service and battery level characteristic");
+			}
 
 			// Thingy configuration service
 			this.configurationService = await server.getPrimaryService(this.TCS_UUID);
@@ -200,16 +204,18 @@ class Thingy {
 			this.humidityCharacteristic = await this.environmentService.getCharacteristic(this.TES_HUMIDITY_UUID);
 			this.pressureCharacteristic = await this.environmentService.getCharacteristic(this.TES_PRESSURE_UUID);
 			this.environmentConfigCharacteristic = await this.environmentService.getCharacteristic(this.TES_CONFIG_UUID);
-			if (this.logEnabled)
+			if (this.logEnabled) {
 				console.log("Discovered Thingy environment service and its characteristics");
+			}
 
 			// Thingy user interface service
 			this.userInterfaceService = await server.getPrimaryService(this.TUIS_UUID);
 			this.buttonCharacteristic = await this.userInterfaceService.getCharacteristic(this.TUIS_BTN_UUID);
 			this.ledCharacteristic = await this.userInterfaceService.getCharacteristic(this.TUIS_LED_UUID);
 			this.externalPinCharacteristic = await this.userInterfaceService.getCharacteristic(this.TUIS_PIN_UUID);
-			if (this.logEnabled)
+			if (this.logEnabled) {
 				console.log("Discovered Thingy user interface service and its characteristics");
+			}
 
 			// Thingy motion service
 			this.motionService = await server.getPrimaryService(this.TMS_UUID);
@@ -223,8 +229,9 @@ class Thingy {
 			this.rotationMatrixCharacteristic = await this.motionService.getCharacteristic(this.TMS_ROT_MATRIX_UUID);
 			this.stepCharacteristic = await this.motionService.getCharacteristic(this.TMS_STEP_UUID);
 			this.tapCharacteristic = await this.motionService.getCharacteristic(this.TMS_TAP_UUID);
-			if (this.logEnabled)
+			if (this.logEnabled) {
 				console.log("Discovered Thingy motion service and its characteristics");
+			}
 
 			// Thingy sound service
 			this.soundService = await server.getPrimaryService(this.TSS_UUID);
@@ -232,8 +239,9 @@ class Thingy {
 			this.micCharacteristic = await this.soundService.getCharacteristic(this.TSS_MIC_UUID);
 			this.speakerDataCharacteristic = await this.soundService.getCharacteristic(this.TSS_SPEAKER_DATA_UUID);
 			this.speakerStatusCharacteristic = await this.soundService.getCharacteristic(this.TSS_SPEAKER_STAT_UUID);
-			if (this.logEnabled)
+			if (this.logEnabled) {
 				console.log("Discovered Thingy sound service and its characteristics");
+			}
 		}
 		catch(error) {
 			return error;
@@ -289,21 +297,19 @@ class Thingy {
      *
      */
 	get name() {
-		return this._nameGet();
-	}
-
-	async _nameGet() {
-		try {
-			const data = await this._readData(this.nameCharacteristic);
-			const decoder = new TextDecoder("utf-8");
-			const name = decoder.decode(data);
-			if (this.logEnabled)
-				console.log("Received device name: " + name);
-			return name;
-		} 
-		catch(error) {
-			return error;
-		}
+		return ( async () => {
+			try {
+				const data = await this._readData(this.nameCharacteristic);
+				const decoder = new TextDecoder("utf-8");
+				const name = decoder.decode(data);
+				if (this.logEnabled)
+					console.log("Received device name: " + name);
+				return name;
+			} 
+			catch(error) {
+				return error;
+			}
+		})();
 	}
 
 	/**
@@ -313,18 +319,18 @@ class Thingy {
      *  @return {Promise<Error>} Returns a promise.
      *
      */
-	set name(val) {
-		return this._nameSet(val);
+	set name(name) {
+		return ( async (name) => {
+			if(name.length > 10) {
+				return Promise.reject(new Error("The name can't be more than 10 characters long."));
+			}
+			const byteArray = new Uint8Array(name.length);
+			for (let i = 0, j = name.length; i < j; ++i) {
+				byteArray[i] = name.charCodeAt(i);
+			}
+			return await this._writeData(this.nameCharacteristic, byteArray);
+		})(name);
 	}
-
-	async _nameSet(name) {
-		const byteArray = new Uint8Array(name.length);
-		for (let i = 0, j = name.length; i < j; ++i) {
-			byteArray[i] = name.charCodeAt(i);
-		}
-		return this._writeData(this.nameCharacteristic, byteArray);
-	}
-
 
 	/**
      *  Gets the current advertising parameters
@@ -333,31 +339,29 @@ class Thingy {
      *
      */
 	get advParams() {
-		return this._advParamsGet();
-	}
-
-	async _advParamsGet() {
-		try {
-			const receivedData = await this._readData(this.advParamsCharacteristic);
-
-			// Interval is given in units of 0.625 milliseconds
-			const interval = parseInt(receivedData.getUint16(0, true) * 0.625);
-			const timeout = receivedData.getUint8(2);
-			const params = {
-				"interval": {
-					"interval": interval,
-					"unit": "ms"
-				},
-				"timeout": {
-					"timeout": timeout,
-					"unit": "s"
-				}
-			};
-			return params;
-		}
-		catch(error) {
-			return error;
-		}
+		return ( async () => {
+			try {
+				const receivedData = await this._readData(this.advParamsCharacteristic);
+	
+				// Interval is given in units of 0.625 milliseconds
+				const interval = parseInt(receivedData.getUint16(0, true) * 0.625);
+				const timeout = receivedData.getUint8(2);
+				const params = {
+					interval: {
+						interval: interval,
+						unit: "ms"
+					},
+					timeout: {
+						timeout: timeout,
+						unit: "s"
+					}
+				};
+				return params;
+			}
+			catch(error) {
+				return error;
+			}
+		})();
 	}
 
 	/**
@@ -370,33 +374,32 @@ class Thingy {
      *
      */
 	set advParams(params) {
-		return this._advParamsSet(params);
-	}
-
-	_advParamsSet(params) {
-
-		if((typeof(params) != "object") || !params.hasOwnProperty("interval") || !params.hasOwnProperty("timeout"))
-			return Promise.reject(new Error("The argument has to be an object with key/value pairs \
-                                            'interval' and 'timeout': {interval: someInterval, timeout: someTimeout}"));
-
-		// Interval is in units of 0.625 ms.
-		const interval = params.interval * 1.6;
-		const timeout = params.timeout;
-
-		// Check parameters
-		if ((interval < 32) || (interval > 8000)) {
-			return Promise.reject(new Error("The advertising interval must be within the range of 20 ms to 5 000 ms"));
-		}
-		if ((timeout < 0) || (timeout > 180)) {
-			return Promise.reject(new Error("The advertising timeout must be within the range of 0 to 180 s"));
-		}
-
-		const dataArray = new Uint8Array(3);
-		dataArray[0] = interval & 0xFF;
-		dataArray[1] = (interval >> 8) & 0xFF;
-		dataArray[2] = timeout;
-
-		return this._writeData(this.advParamsCharacteristic, dataArray);
+		return ( async (params) => {
+			
+			if((typeof(params) != "object") || (params.interval == undefined) || (params.timeout == undefined)) {
+				return Promise.reject(new TypeError("The argument has to be an object with key/value pairs \
+																									'interval' and 'timeout': {interval: someInterval, timeout: someTimeout}"));
+			}
+			
+			// Interval is in units of 0.625 ms.
+			const interval = params.interval * 1.6;
+			const timeout = params.timeout;
+			
+			// Check parameters
+			if ((interval < 32) || (interval > 8000)) {
+				return Promise.reject(new RangeError("The advertising interval must be within the range of 20 ms to 5 000 ms"));
+			}
+			if ((timeout < 0) || (timeout > 180)) {
+				return Promise.reject(new RangeError("The advertising timeout must be within the range of 0 to 180 s"));
+			}
+			
+			const dataArray = new Uint8Array(3);
+			dataArray[0] = interval & 0xFF;
+			dataArray[1] = (interval >> 8) & 0xFF;
+			dataArray[2] = timeout;
+			
+			return await this._writeData(this.advParamsCharacteristic, dataArray);
+		})(params);
 	}
 
 	/**
@@ -406,40 +409,38 @@ class Thingy {
      *
      */
 	get connParams() {
-		return this._connParamsGet();
-	}
-    
-	async _connParamsGet() {
-		try {
-			const receivedData = await this._readData(this.connParamsCharacteristic);
-
-			// Connection intervals are given in units of 1.25 ms
-			const minConnInterval = receivedData.getUint16(0, true) * 1.25;
-			const maxConnInterval = receivedData.getUint16(2, true) * 1.25;
-			const slaveLatency = receivedData.getUint16(4, true);
-
-			// Supervision timeout is given i units of 10 ms
-			const supervisionTimeout = receivedData.getUint16(6, true) * 10;
-			const params = {
-				"connectionInterval": {
-					"min": minConnInterval,
-					"max": maxConnInterval,
-					"unit": "ms"
-				},
-				"slaveLatency": {
-					"value": slaveLatency,
-					"unit": "number of connection intervals"
-				},
-				"supervisionTimeout": {
-					"timeout": supervisionTimeout,
-					"unit": "ms"
-				}
-			};
-			return params;
-		}
-		catch(error) {
-			return error;
-		}
+		return ( async () => {
+			try {
+				const receivedData = await this._readData(this.connParamsCharacteristic);
+	
+				// Connection intervals are given in units of 1.25 ms
+				const minConnInterval = receivedData.getUint16(0, true) * 1.25;
+				const maxConnInterval = receivedData.getUint16(2, true) * 1.25;
+				const slaveLatency = receivedData.getUint16(4, true);
+	
+				// Supervision timeout is given i units of 10 ms
+				const supervisionTimeout = receivedData.getUint16(6, true) * 10;
+				const params = {
+					connectionInterval: {
+						min: minConnInterval,
+						max: maxConnInterval,
+						unit: "ms"
+					},
+					slaveLatency: {
+						value: slaveLatency,
+						unit: "number of connection intervals"
+					},
+					supervisionTimeout: {
+						timeout: supervisionTimeout,
+						unit: "ms"
+					}
+				};
+				return params;
+			}
+			catch(error) {
+				return error;
+			}
+		})();
 	}
 
 	/**
@@ -452,52 +453,51 @@ class Thingy {
      *
      */
 	set connectionInterval(params) {
-		return this._connIntervalSet();
-	}
-
-	async _connIntervalSet(params) {
-
-		if((typeof(params) != "object") || !params.hasOwnProperty("minInterval") || !params.hasOwnProperty("maxInterval"))
-			return Promise.reject(new Error("The argument has to be an object: {minInterval: value, maxInterval: value}"));
-
-		let minInterval = params.minInterval;
-		let maxInterval = params.maxInterval;
-
-		if(minInterval == null || maxInterval == null)
-			return Promise.reject(new Error("Both minimum and maximum acceptable interval must be passed as arguments"));
-
-
-		// Check parameters
-		if ((minInterval < 7.5) || (minInterval > maxInterval)) {
-			return Promise.reject(new Error("The minimum connection interval must be greater than 7.5 ms and <= maximum interval"));
-		}
-		if ((maxInterval > 4000) || (maxInterval < minInterval)) {
-			return Promise.reject(new Error("The minimum connection interval must be less than 4 000 ms and >= minimum interval"));
-		}
-
-		try {
-
-			// Interval is in units of 1.25 ms.
-			minInterval = parseInt(minInterval * 0.8);
-			maxInterval = parseInt(maxInterval * 0.8);
-			const receivedData = await this._readData(this.connParamsCharacteristic);
-			const dataArray = new Uint8Array(8);
-
-			for (let i = 0; i < dataArray.length; i++) {
-				dataArray[i] = receivedData.getUint8(i);
+		return ( async (params) => {
+			
+			if((typeof(params) != "object") || (params.minInterval == undefined)|| (params.maxInterval == undefined)) {
+				return Promise.reject(new TypeError("The argument has to be an object: {minInterval: value, maxInterval: value}"));
 			}
+			
+			let minInterval = params.minInterval;
+			let maxInterval = params.maxInterval;
+			
+			if(minInterval == null || maxInterval == null)
+				return Promise.reject(new TypeError("Both minimum and maximum acceptable interval must be passed as arguments"));
+			
+			
+			// Check parameters
+			if ((minInterval < 7.5) || (minInterval > maxInterval)) {
+				return Promise.reject(new RangeError("The minimum connection interval must be greater than 7.5 ms and <= maximum interval"));
+			}
+			if ((maxInterval > 4000) || (maxInterval < minInterval)) {
+				return Promise.reject(new RangeError("The minimum connection interval must be less than 4 000 ms and >= minimum interval"));
+			}
+			
+			try {
+				const receivedData = await this._readData(this.connParamsCharacteristic);
+				const dataArray = new Uint8Array(8);
 
-			dataArray[0] = minInterval & 0xFF;
-			dataArray[1] = (minInterval >> 8) & 0xFF;
-			dataArray[2] = maxInterval & 0xFF;
-			dataArray[3] = (maxInterval >> 8) & 0xFF;
-
-			return await this._writeData(this.connParamsCharacteristic, dataArray);
-            
-		}
-		catch(error) {
-			return Promise.reject(new Error("Error when updating connection interval: ", error));
-		}
+				// Interval is in units of 1.25 ms.
+				minInterval = parseInt(minInterval * 0.8);
+				maxInterval = parseInt(maxInterval * 0.8);
+			
+				for (let i = 0; i < dataArray.length; i++) {
+					dataArray[i] = receivedData.getUint8(i);
+				}
+			
+				dataArray[0] = minInterval & 0xFF;
+				dataArray[1] = (minInterval >> 8) & 0xFF;
+				dataArray[2] = maxInterval & 0xFF;
+				dataArray[3] = (maxInterval >> 8) & 0xFF;
+			
+				return await this._writeData(this.connParamsCharacteristic, dataArray);
+									
+			}
+			catch(error) {
+				return Promise.reject(new Error("Error when updating connection interval: ", error));
+			}
+		})(params);
 	}
 
 	/**
@@ -508,34 +508,32 @@ class Thingy {
      *
      */
 	set connectionSlaveLatency(slaveLatency) {
-		return this._connSlaveLatencySet(slaveLatency);
-	}
-    
-	async _connSlaveLatencySet(slaveLatency) {
-
-		// Check parameters
-		if ((slaveLatency < 0) || (slaveLatency > 499)) {
-			return Promise.reject(new Error("The slave latency must be in the range from 0 to 499 connection intervals."));
-		}
-
-		try {
-			const receivedData = await this._readData(this.connParamsCharacteristic);
-			const dataArray = new Uint8Array(8);
-
-			for (let i = 0; i < dataArray.length; i++) {
-				dataArray[i] = receivedData.getUint8(i);
+		return ( async (slaveLatency) => {
+			
+			// Check parameters
+			if ((slaveLatency < 0) || (slaveLatency > 499)) {
+				return Promise.reject(new RangeError("The slave latency must be in the range from 0 to 499 connection intervals."));
 			}
-
-			dataArray[4] = slaveLatency & 0xFF;
-			dataArray[5] = (slaveLatency >> 8) & 0xFF;
-
-			return await this._writeData(this.connParamsCharacteristic, dataArray);
-		}
-		catch(error) {
-			return new Error("Error when updating slave latency: ", error);
-		}
+			
+			try {
+				const receivedData = await this._readData(this.connParamsCharacteristic);
+				const dataArray = new Uint8Array(8);
+			
+				for (let i = 0; i < dataArray.length; i++) {
+					dataArray[i] = receivedData.getUint8(i);
+				}
+			
+				dataArray[4] = slaveLatency & 0xFF;
+				dataArray[5] = (slaveLatency >> 8) & 0xFF;
+			
+				return await this._writeData(this.connParamsCharacteristic, dataArray);
+			}
+			catch(error) {
+				return new Error("Error when updating slave latency: ", error);
+			}
+		})(slaveLatency);
 	}
-
+  
 	/**
      *  Sets the connection supervision timeout
      * 	<b>Note:</b> According to the Bluetooth Low Energy specification, the supervision timeout in milliseconds must be greater
@@ -546,46 +544,44 @@ class Thingy {
      *
      */
 	set connectionTimeout(timeout) {
-		return this._connTimeoutSet(timeout);
+		return ( async (timeout) => {
+			
+			// Check parameters
+			if ((timeout < 100) || (timeout > 32000)) {
+				return Promise.reject(new RangeError("The supervision timeout must be in the range from 100 ms to 32 000 ms."));
+			}
+			
+			try {
+			
+				// The supervision timeout has to be set in units of 10 ms
+				timeout = parseInt(timeout / 10);
+				const receivedData = await this._readData(this.connParamsCharacteristic);
+				const dataArray = new Uint8Array(8);
+			
+				for (let i = 0; i < dataArray.length; i++) {
+					dataArray[i] = receivedData.getUint8(i);
+				}
+			
+				// Check that the timeout obeys  conn_sup_timeout * 4 > (1 + slave_latency) * max_conn_interval 
+				const maxConnInterval = receivedData.getUint16(2, true);
+				const slaveLatency = receivedData.getUint16(4, true);
+			
+				if (timeout * 4 < ((1 + slaveLatency) * maxConnInterval)) {
+					return Promise.reject(new Error("The supervision timeout in milliseconds must be greater than 	\
+																											(1 + slaveLatency) * maxConnInterval * 2, 						\
+																											where maxConnInterval is also given in milliseconds."));
+				}
+			
+				dataArray[6] = timeout & 0xFF;
+				dataArray[7] = (timeout >> 8) & 0xFF;
+			
+				return await this._writeData(this.connParamsCharacteristic, dataArray);
+			}
+			catch(error) {
+				return new Error("Error when updating the supervision timeout: ", error);
+			}
+		})(timeout);
 	}	
-
-	async _connTimeoutSet(timeout) {
-
-		// Check parameters
-		if ((timeout < 100) || (timeout > 32000)) {
-			return Promise.reject(new Error("The supervision timeout must be in the range from 100 ms to 32 000 ms."));
-		}
-
-		try {
-
-			// The supervision timeout has to be set in units of 10 ms
-			timeout = parseInt(timeout / 10);
-			const receivedData = await this._readData(this.connParamsCharacteristic);
-			const dataArray = new Uint8Array(8);
-
-			for (let i = 0; i < dataArray.length; i++) {
-				dataArray[i] = receivedData.getUint8(i);
-			}
-
-			// Check that the timeout obeys  conn_sup_timeout * 4 > (1 + slave_latency) * max_conn_interval 
-			const maxConnInterval = receivedData.getUint16(2, true);
-			const slaveLatency = receivedData.getUint16(4, true);
-
-			if (timeout * 4 < ((1 + slaveLatency) * maxConnInterval)) {
-				return Promise.reject(new Error("The supervision timeout in milliseconds must be greater than 	\
-                                                (1 + slaveLatency) * maxConnInterval * 2, 						\
-                                                where maxConnInterval is also given in milliseconds."));
-			}
-
-			dataArray[6] = timeout & 0xFF;
-			dataArray[7] = (timeout >> 8) & 0xFF;
-
-			return await this._writeData(this.connParamsCharacteristic, dataArray);
-		}
-		catch(error) {
-			return new Error("Error when updating the supervision timeout: ", error);
-		}
-	}
 
 	/**
      *  Gets the configured Eddystone URL
@@ -594,32 +590,30 @@ class Thingy {
      *
      */
 	get eddystoneUrl() {
-		return this._eddystoneUrlGet();
-	}
-
-	async _eddystoneUrlGet() {
-		try {
-			const receivedData = await this._readData(this.eddystoneCharacteristic);
-
-			// According to Eddystone URL encoding specification, certain elements can be expanded: https://github.com/google/eddystone/tree/master/eddystone-url
-			const prefixArray = ["http://www.", "https://www.", "http://", "https://"];
-			const expansionCodes = [".com/", ".org/", ".edu/", ".net/", ".info/",
-				".biz/", ".gov/", ".com", ".org", ".edu", ".net",
-				".info", ".biz", ".gov"];
-			const prefix = prefixArray[receivedData.getUint8(0)];
-			const decoder = new TextDecoder("utf-8");
-			let url = decoder.decode(receivedData);
-			const lastElement = receivedData.getUint8(url.length - 1);
-			url = prefix + url.slice(1);
-
-			if (lastElement <= 0x0d)
-				url = url.slice(0, -1) + expansionCodes[lastElement];
-
-			return url;
-		}
-		catch(error) {
-			return error;
-		}
+		return ( async () => {
+			try {
+				const receivedData = await this._readData(this.eddystoneCharacteristic);
+	
+				// According to Eddystone URL encoding specification, certain elements can be expanded: https://github.com/google/eddystone/tree/master/eddystone-url
+				const prefixArray = ["http://www.", "https://www.", "http://", "https://"];
+				const expansionCodes = [".com/", ".org/", ".edu/", ".net/", ".info/",
+					".biz/", ".gov/", ".com", ".org", ".edu", ".net",
+					".info", ".biz", ".gov"];
+				const prefix = prefixArray[receivedData.getUint8(0)];
+				const decoder = new TextDecoder("utf-8");
+				let url = decoder.decode(receivedData);
+				const lastElement = receivedData.getUint8(url.length - 1);
+				url = prefix + url.slice(1);
+	
+				if (lastElement <= 0x0d)
+					url = url.slice(0, -1) + expansionCodes[lastElement];
+	
+				return url;
+			}
+			catch(error) {
+				return error;
+			}
+		})();
 	}
 
 	/**
@@ -634,21 +628,23 @@ class Thingy {
      */
 	set eddystoneUrl(params) {
 
-		if((typeof(params) != "object") || !params.hasOwnProperty("prefix") || !params.hasOwnProperty("url"))
-			return Promise.reject(new Error("The argument has to be an object: {prefix: value, url: value, postfix: value}, where postfix is optional."));
+		if((typeof(params) != "object") || (params.prefix == undefined) || (params.url == undefined)) {
+			return Promise.reject(new TypeError("The argument has to be an object: {prefix: value, url: value, postfix: value}, where postfix is optional."));
+		}
 
 		const prefix = params.prefix;
 		const url = params.url;
 		const postfix = params.postfix || null;
 
-		if(prefix < 0 || prefix > 3)
-			return Promise.reject(new Error("The prefix must have a value between 0 - 3."));
-
-		if(url.length < 1 || url.length > 17)
-			return Promise.reject(new Error("The URL must be 1 - 17 characters."));
-
-		if(postfix < 0 || postfix > 13)
-			return Promise.reject(new Error("The postfix must have a value between 0 - 13."));
+		if(prefix < 0 || prefix > 3) {
+			return Promise.reject(new RangeError("The prefix must have a value between 0 - 3."));
+		}
+		if(url.length < 1 || url.length > 17) {
+			return Promise.reject(new RangeError("The URL must be 1 - 17 characters."));
+		}
+		if(postfix < 0 || postfix > 13) {
+			return Promise.reject(new RangeError("The postfix must have a value between 0 - 13."));
+		}
 
 		const len = (postfix == null) ? url.length + 1 : url.length + 2;
 		const byteArray = new Uint8Array(len);
@@ -671,20 +667,18 @@ class Thingy {
      *
      */
 	get cloudToken() {
-		return this._cloudTokenGet();
-	}
-
-	async _cloudTokenGet() {
-		try {
-			const receivedData = await this._readData(this.cloudTokenCharacteristic);
-			const decoder = new TextDecoder("utf-8");
-			const token = decoder.decode(receivedData);
-
-			return token;
-		}
-		catch(error) {
-			return error;
-		}
+		return ( async () => {
+			try {
+				const receivedData = await this._readData(this.cloudTokenCharacteristic);
+				const decoder = new TextDecoder("utf-8");
+				const token = decoder.decode(receivedData);
+	
+				return token;
+			}
+			catch(error) {
+				return error;
+			}
+		})();
 	}
 
 	/**
@@ -695,8 +689,9 @@ class Thingy {
      *
      */
 	set cloudToken(token) {
-		if (token.len > 250)
+		if (token.len > 250) {
 			return Promise.reject(new Error("The cloud token can not exceed 250 characters."));
+		}
 
 		const encoder = new TextEncoder("utf-8").encode(token);
 
@@ -710,19 +705,17 @@ class Thingy {
      *
      */
 	get mtu() {
-		return this._mtuGet();
-	}
-
-	async mtuGet() {
-		try {
-			const receivedData = await this._readData(this.mtuRequestCharacteristic);
-			const mtu = receivedData.getUint16(1, true);
-
-			return mtu;
-		}
-		catch(error) {
-			return error;
-		}
+		return ( async () => {
+			try {
+				const receivedData = await this._readData(this.mtuRequestCharacteristic);
+				const mtu = receivedData.getUint16(1, true);
+	
+				return mtu;
+			}
+			catch(error) {
+				return error;
+			}
+		})();
 	}
 
 	/**
@@ -735,14 +728,16 @@ class Thingy {
      *
      */
 	set mtu(params) {
-		if((params != "object") || !params.hasOwnProperty("mtuSize"))
-			return Promise.reject(new Error("The argument has to be an object"));
+		if((params != "object") || (params.mtuSize == undefined)) {
+			return Promise.reject(new TypeError("The argument has to be an object"));
+		}
 
 		const mtuSize = params.mtuSize;
 		const peripheralRequest = params.peripheralRequest || false;
 
-		if(mtuSize < 23 || mtuSize > 276)
+		if(mtuSize < 23 || mtuSize > 276) {
 			return Promise.reject(new Error("MTU size must be in range 23 - 276 bytes"));
+		}
 
 		const dataArray = new Uint8Array(3);
 		dataArray[0] = peripheralRequest ? 1 : 0;
@@ -759,22 +754,20 @@ class Thingy {
      *
      */
 	get firmwareVersion() {
-		return this._firmwareVersionGet();
-	}
-
-	async _firmwareVersionGet() {
-		try {
-			const receivedData = await this._readData(this.firmwareVersionCharacteristic);
-			const major = receivedData.getUint8(0);
-			const minor = receivedData.getUint8(1);
-			const patch = receivedData.getUint8(2);
-			const version = `v${major}.${minor}.${patch}`;
-
-			return version;
-		}
-		catch(error) {
-			return error;
-		}
+		return ( async () => {
+			try {
+				const receivedData = await this._readData(this.firmwareVersionCharacteristic);
+				const major = receivedData.getUint8(0);
+				const minor = receivedData.getUint8(1);
+				const patch = receivedData.getUint8(2);
+				const version = `v${major}.${minor}.${patch}`;
+	
+				return version;
+			}
+			catch(error) {
+				return error;
+			}
+		})();
 	}
 
 	//  ******  //
@@ -789,195 +782,206 @@ class Thingy {
      *
      */
 	get environmentConfig() {
-		return this._environmentConfigGet();
-	}
-
-	async _environmentConfigGet() {
-		try {
-			const data = await this._readData(this.environmentConfigCharacteristic);
-			const tempInterval = data.getUint16(0, true);
-			const pressureInterval = data.getUint16(2, true);
-			const humidityInterval = data.getUint16(4, true);
-			const colorInterval = data.getUint16(6, true);
-			const gasMode = data.getUint8(8);
-			const colorSensorRed = data.getUint8(9);
-			const colorSensorGreen = data.getUint8(10);
-			const colorSensorBlue = data.getUint8(11);
-			const config = {
-				"tempInterval": tempInterval,
-				"pressureInterval": pressureInterval,
-				"humidityInterval": humidityInterval,
-				"colorInterval": colorInterval,
-				"gasMode": gasMode,
-				"colorSensorRed": colorSensorRed,
-				"colorSensorGreen": colorSensorGreen,
-				"colorSensorBlue": colorSensorBlue
-			};
-
-			return config;
-		}
-		catch(error) {
-			return new Error("Error when getting environment sensors configurations: ", error);
-		}
+		return ( async () => {
+			try {
+				const data = await this._readData(this.environmentConfigCharacteristic);
+				const tempInterval = data.getUint16(0, true);
+				const pressureInterval = data.getUint16(2, true);
+				const humidityInterval = data.getUint16(4, true);
+				const colorInterval = data.getUint16(6, true);
+				const gasMode = data.getUint8(8);
+				const colorSensorRed = data.getUint8(9);
+				const colorSensorGreen = data.getUint8(10);
+				const colorSensorBlue = data.getUint8(11);
+				const config = {
+					tempInterval: tempInterval,
+					pressureInterval: pressureInterval,
+					humidityInterval: humidityInterval, 
+					colorInterval: colorInterval,
+					gasMode: gasMode,
+					colorSensorRed: colorSensorRed,
+					colorSensorGreen: colorSensorGreen,
+					colorSensorBlue: colorSensorBlue
+				};
+	
+				return config;
+			}
+			catch(error) {
+				return new Error("Error when getting environment sensors configurations: ", error);
+			}
+		})();
 	}
 
 	/**
      *  Sets the temperature measurement update interval.
      *
-     *  @param {Number} interval - Step counter interval in milliseconds. Must be in the range 100 ms to 60 000 ms.
+     *  @param {Number} interval - Temperature sensor update interval in milliseconds. Must be in the range 100 ms to 60 000 ms.
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
 	set temperatureInterval(interval) {
-		return this._temperatureIntervalSet();
-	} 
-
-	async _temperatureIntervalSet(interval) {
-		try {
-
-			// Preserve values for those settings that are not being changed 
-			const receivedData = await this._readData(this.environmentConfigCharacteristic);
-			const dataArray = new Uint8Array(12);
-
-			for (let i = 0; i < dataArray.length; i++) {
-				dataArray[i] = receivedData.getUint8(i);
+		return ( async (interval) => {
+			try {
+				if((interval < 50) || (interval > 60000)) {
+					return Promise.reject(new RangeError("The temperature sensor update interval must be in the range 100 ms - 60 000 ms"));
+				}
+	
+				// Preserve values for those settings that are not being changed 
+				const receivedData = await this._readData(this.environmentConfigCharacteristic);
+				const dataArray = new Uint8Array(12);
+	
+				for (let i = 0; i < dataArray.length; i++) {
+					dataArray[i] = receivedData.getUint8(i);
+				}
+	
+				dataArray[0] = interval & 0xFF;
+				dataArray[1] = (interval >> 8) & 0xFF;
+	
+				return await this._writeData(this.environmentConfigCharacteristic, dataArray);
 			}
-
-			dataArray[0] = interval & 0xFF;
-			dataArray[1] = (interval >> 8) & 0xFF;
-
-			return await this._writeData(this.environmentConfigCharacteristic, dataArray);
-		}
-		catch(error) {
-			return new Error("Error when setting new temperature update interval: ", error);
-		}
-	}
+			catch(error) {
+				return new Error("Error when setting new temperature update interval: ", error);
+			}
+		})(interval);
+	} 
 
 	/**
      *  Sets the pressure measurement update interval.
      *
-     *  @param {Number} interval - Step counter interval in milliseconds. Must be in the range 50 ms to 60 000 ms.
+     *  @param {Number} interval - The pressure sensor update interval in milliseconds. Must be in the range 50 ms to 60 000 ms.
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
 	set pressureInterval(interval) {
-		return this._pressureIntervalSet(interval);
-	}
-
-	async _pressureIntervalSet(interval) {
-		try {
-            
-			// Preserve values for those settings that are not being changed 
-			const receivedData = await this._readData(this.environmentConfigCharacteristic);
-			const dataArray = new Uint8Array(12);
-
-			for (let i = 0; i < dataArray.length; i++) {
-				dataArray[i] = receivedData.getUint8(i);
+		return ( async (interval) => {
+			try {
+				if((interval < 50) || (interval > 60000)) {
+					return Promise.reject(new RangeError("The pressure sensor update interval must be in the range 100 ms - 60 000 ms"));
+				}
+							
+				// Preserve values for those settings that are not being changed 
+				const receivedData = await this._readData(this.environmentConfigCharacteristic);
+				const dataArray = new Uint8Array(12);
+	
+				for (let i = 0; i < dataArray.length; i++) {
+					dataArray[i] = receivedData.getUint8(i);
+				}
+	
+				dataArray[2] = interval & 0xFF;
+				dataArray[3] = (interval >> 8) & 0xFF;
+	
+				return await this._writeData(this.environmentConfigCharacteristic, dataArray);
 			}
-
-			dataArray[2] = interval & 0xFF;
-			dataArray[3] = (interval >> 8) & 0xFF;
-
-			return await this._writeData(this.environmentConfigCharacteristic, dataArray);
-		}
-		catch(error) {
-			return new Error("Error when setting new pressure update interval: ", error);
-		}
+			catch(error) {
+				return new Error("Error when setting new pressure update interval: ", error);
+			}
+		})(interval);
 	}
 
 	/**
      *  Sets the humidity measurement update interval.
      *
-     *  @param {Number} interval - Step counter interval in milliseconds. Must be in the range 100 ms to 60 000 ms.
+     *  @param {Number} interval - Humidity sensor interval in milliseconds. Must be in the range 100 ms to 60 000 ms.
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
 	set humidityInterval(interval) {
-		return this._humidityIntervalSet(interval);
-	}
-
-	async _humidityIntervalSet(interval) {
-		try {
-
-			// Preserve values for those settings that are not being changed 
-			const receivedData = await this._readData(this.environmentConfigCharacteristic);
-			const dataArray = new Uint8Array(12);
-
-			for (let i = 0; i < dataArray.length; i++) {
-				dataArray[i] = receivedData.getUint8(i);
+		return ( async (interval) => {
+			try {
+				if((interval < 100) || (interval > 60000)) {
+					return Promise.reject(new RangeError("The humidity sensor sampling interval must be in the range 100 ms - 60 000 ms"));
+				}
+	
+				// Preserve values for those settings that are not being changed 
+				const receivedData = await this._readData(this.environmentConfigCharacteristic);
+				const dataArray = new Uint8Array(12);
+	
+				for (let i = 0; i < dataArray.length; i++) {
+					dataArray[i] = receivedData.getUint8(i);
+				}
+	
+				dataArray[4] = interval & 0xFF;
+				dataArray[5] = (interval >> 8) & 0xFF;
+	
+				return await this._writeData(this.environmentConfigCharacteristic, dataArray);
 			}
-
-			dataArray[4] = interval & 0xFF;
-			dataArray[5] = (interval >> 8) & 0xFF;
-
-			return await this._writeData(this.environmentConfigCharacteristic, dataArray);
-		}
-		catch(error) {
-			return new Error("Error when setting new humidity update interval: ", error);
-		}
+			catch(error) {
+				return new Error("Error when setting new humidity update interval: ", error);
+			}
+		})(interval);
 	}
 
 	/**
      *  Sets the color sensor update interval.
      *
-     *  @param {Number} interval - Step counter interval in milliseconds. Must be in the range 200 ms to 60 000 ms.
+     *  @param {Number} interval - Color sensor sampling interval in milliseconds. Must be in the range 200 ms to 60 000 ms.
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
 	set colorInterval(interval) {
-		return this._colorIntervalSet(interval);
-	}
-
-	async _colorIntervalSet(interval) {
-		try {
-
-			// Preserve values for those settings that are not being changed 
-			const receivedData = await this._readData(this.environmentConfigCharacteristic);
-			const dataArray = new Uint8Array(12);
-
-			for (let i = 0; i < dataArray.length; i++) {
-				dataArray[i] = receivedData.getUint8(i);
+		return ( async (interval) => {
+			try {
+				if((interval < 200) || (interval > 60000)) {
+					return Promise.reject(new RangeError("The color sensor sampling interval must be in the range 200 ms - 60 000 ms"));
+				}
+	
+				// Preserve values for those settings that are not being changed 
+				const receivedData = await this._readData(this.environmentConfigCharacteristic);
+				const dataArray = new Uint8Array(12);
+	
+				for (let i = 0; i < dataArray.length; i++) {
+					dataArray[i] = receivedData.getUint8(i);
+				}
+	
+				dataArray[6] = interval & 0xFF;
+				dataArray[7] = (interval >> 8) & 0xFF;
+	
+				return await this._writeData(this.environmentConfigCharacteristic, dataArray);
 			}
-
-			dataArray[6] = interval & 0xFF;
-			dataArray[7] = (interval >> 8) & 0xFF;
-
-			return await this._writeData(this.environmentConfigCharacteristic, dataArray);
-		}
-		catch(error) {
-			return new Error("Error when setting new color sensor update interval: ", error);
-		}
+			catch(error) {
+				return new Error("Error when setting new color sensor update interval: ", error);
+			}
+		})(interval);
 	}
 
 	/**
-     *  Sets the gas mode.
+     *  Sets the gas sensor sampling interval.
      *
-     *  @param {Number} mode - 1 = 1 s update interval, 2 = 10 s update interval, 3 = 60 s update interval.
+     *  @param {Number} interval - The gas sensor update interval in seconds. Allowed values are 1, 10, and 60 seconds.
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-	set gasMode(mode) {
-		return this._gasModeSet(mode);
-	}
+	set gasInterval(interval) {
+		return ( async (interval) => {
+			try {
+				let mode;
+				
+				if(interval == 1) {
+					mode = 1;
+				} else if(interval == 10) {
+					mode = 2;
+				} else if(interval == 60) {
+					mode = 3;
+				} else {
+					return Promise.reject(new RangeError("The gas sensor interval has to be 1, 10 or 60 seconds."));
+				}
+	
+				// Preserve values for those settings that are not being changed 
+				const receivedData = await this._readData(this.environmentConfigCharacteristic);
+				const dataArray = new Uint8Array(12);
+							
+				for (let i = 0; i < dataArray.length; i++) {
+					dataArray[i] = receivedData.getUint8(i);
+				}
 
-	async _gasModeSet(mode) {
-		try {
-
-			// Preserve values for those settings that are not being changed 
-			const receivedData = await this._readData(this.environmentConfigCharacteristic);
-			const dataArray = new Uint8Array(12);
-            
-			for (let i = 0; i < dataArray.length; i++) {
-				dataArray[i] = receivedData.getUint8(i);
+				dataArray[8] = mode;
+	
+				return await this._writeData(this.environmentConfigCharacteristic, dataArray);
 			}
-
-			dataArray[8] = mode;
-
-			return await this._writeData(this.environmentConfigCharacteristic, dataArray);
-		}
-		catch(error) {
-			return new Error("Error when setting new as mode: ", error);
-		}
+			catch(error) {
+				return new Error("Error when setting new gas sensor interval: ", error);
+			}
+		})(interval);
 	}
 
 	/**
@@ -1021,7 +1025,7 @@ class Thingy {
      */
 	temperatureEnable(eventHandler, enable) {
 		if (enable) {
-			this.tempEventListeners[0] = this.temperatureNotifyHandler.bind(this);
+			this.tempEventListeners[0] = this._temperatureNotifyHandler.bind(this);
 			this.tempEventListeners[1].push(eventHandler);
 		}
 		else {
@@ -1031,15 +1035,15 @@ class Thingy {
 		return this._notifyCharacteristic(this.temperatureCharacteristic, enable, this.tempEventListeners[0]);
 	}
 
-	temperatureNotifyHandler(event) {
+	_temperatureNotifyHandler(event) {
 		const data = event.target.value;
 		const integer = data.getUint8(0);
 		const decimal = data.getUint8(1);
 		const temperature = integer + (decimal / 100);
 		this.tempEventListeners[1].forEach(eventHandler => {
 			eventHandler({
-				"value": temperature,
-				"unit": "Celsius"
+				value: temperature,
+				unit: "Celsius"
 			});
 		});
 	}
@@ -1054,7 +1058,7 @@ class Thingy {
      */
 	pressureEnable(eventHandler, enable) {
 		if (enable) {
-			this.pressureEventListeners[0] = this.pressureNotifyHandler.bind(this);
+			this.pressureEventListeners[0] = this._pressureNotifyHandler.bind(this);
 			this.pressureEventListeners[1].push(eventHandler);
 		}
 		else {
@@ -1064,15 +1068,15 @@ class Thingy {
 		return this._notifyCharacteristic(this.pressureCharacteristic, enable, this.pressureEventListeners[0]);
 	}
 
-	pressureNotifyHandler(event) {
+	_pressureNotifyHandler(event) {
 		const data = event.target.value;
 		const integer = data.getUint32(0, true);
 		const decimal = data.getUint8(4);
 		const pressure = integer + (decimal / 100);
 		this.pressureEventListeners[1].forEach(eventHandler => {
 			eventHandler({
-				"value": pressure,
-				"unit": "hPa"
+				value: pressure,
+				unit: "hPa"
 			});
 		});
 	}
@@ -1087,7 +1091,7 @@ class Thingy {
      */
 	humidityEnable(eventHandler, enable) {
 		if (enable) {
-			this.humidityEventListeners[0] = this.humidityNotifyHandler.bind(this);
+			this.humidityEventListeners[0] = this._humidityNotifyHandler.bind(this);
 			this.humidityEventListeners[1].push(eventHandler);
 		}
 		else {
@@ -1096,13 +1100,13 @@ class Thingy {
 		return this._notifyCharacteristic(this.humidityCharacteristic, enable, this.humidityEventListeners[0]);
 	}
 
-	humidityNotifyHandler(event) {
+	_humidityNotifyHandler(event) {
 		const data = event.target.value;
 		const humidity = data.getUint8(0);
 		this.humidityEventListeners[1].forEach(eventHandler => {
 			eventHandler({
-				"value": humidity,
-				"unit": "%"
+				value: humidity,
+				unit: "%"
 			});
 		});
 	}
@@ -1117,7 +1121,7 @@ class Thingy {
      */
 	gasEnable(eventHandler, enable) {
 		if (enable) {
-			this.gasEventListeners[0] = this.gasNotifyHandler.bind(this);
+			this.gasEventListeners[0] = this._gasNotifyHandler.bind(this);
 			this.gasEventListeners[1].push(eventHandler);
 		}
 		else {
@@ -1126,20 +1130,20 @@ class Thingy {
 
 		return this._notifyCharacteristic(this.gasCharacteristic, enable, this.gasEventListeners[0]);
 	}
-	gasNotifyHandler(event) {
+	_gasNotifyHandler(event) {
 		const data = event.target.value;
 		const eco2 = data.getUint16(0, true);
 		const tvoc = data.getUint16(2, true);
 
 		this.gasEventListeners[1].forEach(eventHandler => {
 			eventHandler({
-				"eCO2": {
-					"value": eco2,
-					"unit": "ppm"
+				eCO2: {
+					value: eco2,
+					unit: "ppm"
 				},
-				"TVOC": {
-					"value": tvoc,
-					"unit": "ppb"
+				TVOC: {
+					value: tvoc,
+					unit: "ppb"
 				}
 			});
 		});
@@ -1155,7 +1159,7 @@ class Thingy {
      */
 	colorEnable(eventHandler, enable) {
 		if (enable) {
-			this.colorEventListeners[0] = this.colorNotifyHandler.bind(this);
+			this.colorEventListeners[0] = this._colorNotifyHandler.bind(this);
 			this.colorEventListeners[1].push(eventHandler);
 		}
 		else {
@@ -1165,7 +1169,7 @@ class Thingy {
 		return this._notifyCharacteristic(this.colorCharacteristic, enable, this.colorEventListeners[0]);
 	}
 
-	colorNotifyHandler(event) {
+	_colorNotifyHandler(event) {
 		const data = event.target.value;
 		const r = data.getUint16(0, true);
 		const g = data.getUint16(2, true);
@@ -1200,9 +1204,9 @@ class Thingy {
 
 		this.colorEventListeners[1].forEach(eventHandler => {
 			eventHandler({
-				"red": red.toFixed(0),
-				"green": green.toFixed(0),
-				"blue": blue.toFixed(0)
+				red: red.toFixed(0),
+				green: green.toFixed(0),
+				blue: blue.toFixed(0)
 			});
 		});
 	}
@@ -1216,48 +1220,46 @@ class Thingy {
      *
      */
 	get ledStatus() {
-		return this._ledStatusGet();
-	}
-
-	async _ledStatusGet() {
-		try {
-			const data = await this._readData(this.ledCharacteristic);
-			const mode = data.getUint8(0);
-			let status;
-
-			switch (mode) {
-			case 0:
-				status = { LEDstatus: { mode: mode } };
-				break;
-			case 1:
-				status = {
-					"mode": mode,
-					"r": data.getUint8(1),
-					"g": data.getUint8(2),
-					"b": data.getUint8(3)
-				};
-				break;
-			case 2:
-				status = {
-					"mode": mode,
-					"color": data.getUint8(1),
-					"intensity": data.getUint8(2),
-					"delay": data.getUint16(3)
-				};
-				break;
-			case 3:
-				status = {
-					"mode": mode,
-					"color": data.getUint8(1),
-					"intensity": data.getUint8(2)
-				};
-				break;
+		return ( async () => {
+			try {
+				const data = await this._readData(this.ledCharacteristic);
+				const mode = data.getUint8(0);
+				let status;
+	
+				switch (mode) {
+				case 0:
+					status = { LEDstatus: { mode: mode } };
+					break;
+				case 1:
+					status = {
+						mode: mode,
+						r: data.getUint8(1),
+						g: data.getUint8(2),
+						b: data.getUint8(3)
+					};
+					break;
+				case 2:
+					status = {
+						mode: mode,
+						color: data.getUint8(1),
+						intensity: data.getUint8(2),
+						delay: data.getUint16(3)
+					};
+					break;
+				case 3:
+					status = {
+						mode: mode,
+						color: data.getUint8(1),
+						intensity: data.getUint8(2)
+					};
+					break;
+				}
+				return status;
 			}
-			return status;
-		}
-		catch(error) {
-			return new Error("Error when getting Thingy LED status: ", error);
-		}
+			catch(error) {
+				return new Error("Error when getting Thingy LED status: ", error);
+			}
+		})();
 	}
 
 	_ledSet(dataArray) {
@@ -1312,7 +1314,7 @@ class Thingy {
      */
 	buttonEnable(eventHandler, enable) {
 		if (enable) {
-			this.buttonEventListeners[0] = this.buttonNotifyHandler.bind(this);
+			this.buttonEventListeners[0] = this._buttonNotifyHandler.bind(this);
 			this.buttonEventListeners[1].push(eventHandler);
 		}
 		else {
@@ -1321,7 +1323,7 @@ class Thingy {
 		return this._notifyCharacteristic(this.buttonCharacteristic, enable, this.buttonEventListeners[0]);
 	}
 
-	buttonNotifyHandler(event) {
+	_buttonNotifyHandler(event) {
 		const data = event.target.value;
 		const state = data.getUint8(0);
 		this.buttonEventListeners[1].forEach(eventHandler => {
@@ -1339,10 +1341,10 @@ class Thingy {
 		try {
 			const data = await this._readData(this.externalPinCharacteristic);
 			const pinStatus = {
-				"pin1": data.getUint8(0),
-				"pin2": data.getUint8(1),
-				"pin3": data.getUint8(2),
-				"pin4": data.getUint8(3)
+				pin1: data.getUint8(0),
+				pin2: data.getUint8(1),
+				pin3: data.getUint8(2),
+				pin4: data.getUint8(3)
 			};
 			return pinStatus;
 		}
@@ -1360,10 +1362,12 @@ class Thingy {
      *
      */
 	async externalPinControl(pin, value) {
-		if (pin < 1 || pin > 4)
+		if (pin < 1 || pin > 4){
 			return Promise.reject(new Error("Pin number must be 1 - 4"));
-		if (!(value == 0 || value == 255))
+		}
+		if (!(value == 0 || value == 255)) {
 			return Promise.reject(new Error("Pin status value must be 0 or 255"));
+		}
 
 		try {
 
@@ -1393,31 +1397,31 @@ class Thingy {
      *
      */
 	get motionConfig() {
-		return this._motionConfigGet();
+		return ( async () => {
+			try {
+				const data = await this._readData(this.tmsConfigCharacteristic);
+				const stepCounterInterval = data.getUint16(0, true);
+				const tempCompInterval = data.getUint16(2, true);
+				const magnetCompInterval = data.getUint16(4, true);
+				const motionProcessingFrequency = data.getUint16(6, true);
+				const wakeOnMotion = data.getUint8(8, true);
+				const config = {
+					stepCountInterval: stepCounterInterval,
+					tempCompInterval: tempCompInterval,
+					magnetCompInterval: magnetCompInterval,
+					motionProcessingFrequency: motionProcessingFrequency,
+					wakeOnMotion: wakeOnMotion
+				};
+	
+				return config;
+			}
+			catch(error) {
+				return new Error("Error when getting Thingy motion module configuration: ", error);
+			}
+		})();
 	}
 
-	async _motionConfigGet() {
-		try {
-			const data = await this._readData(this.tmsConfigCharacteristic);
-			const stepCounterInterval = data.getUint16(0, true);
-			const tempCompInterval = data.getUint16(2, true);
-			const magnetCompInterval = data.getUint16(4, true);
-			const motionProcessingFrequency = data.getUint16(6, true);
-			const wakeOnMotion = data.getUint8(8, true);
-			const config = {
-				"stepCountInterval": stepCounterInterval,
-				"tempCompInterval": tempCompInterval,
-				"magnetCompInterval": magnetCompInterval,
-				"motionProcessingFrequency": motionProcessingFrequency,
-				"wakeOnMotion": wakeOnMotion
-			};
 
-			return config;
-		}
-		catch(error) {
-			return new Error("Error when getting Thingy motion module configuration: ", error);
-		}
-	}
 
 	/**
      *  Sets the step counter interval.
@@ -1427,30 +1431,29 @@ class Thingy {
      *
      */
 	set stepCounterInterval(interval) {
-		return this._stepCounterIntervalSet(interval);
-	}
-
-	async _stepCounterIntervalSet(interval) {
-		try {
-			if(interval < 100 || interval > 5000) 
-				return Promise.reject(new Error("The interval has to be in the range 100 - 5000 ms."));
-
-			// Preserve values for those settings that are not being changed 
-			const receivedData = await this._readData(this.tmsConfigCharacteristic);
-			const dataArray = new Uint8Array(9);
-
-			for (let i = 0; i < dataArray.length; i++) {
-				dataArray[i] = receivedData.getUint8(i);
+		return ( async (interval) => {
+			try {
+				if(interval < 100 || interval > 5000) {
+					return Promise.reject(new Error("The interval has to be in the range 100 - 5000 ms."));
+				}
+	
+				// Preserve values for those settings that are not being changed 
+				const receivedData = await this._readData(this.tmsConfigCharacteristic);
+				const dataArray = new Uint8Array(9);
+	
+				for (let i = 0; i < dataArray.length; i++) {
+					dataArray[i] = receivedData.getUint8(i);
+				}
+	
+				dataArray[0] = interval & 0xFF;
+				dataArray[1] = (interval >> 8) & 0xFF;
+	
+				return await this._writeData(this.tmsConfigCharacteristic, dataArray);
 			}
-
-			dataArray[0] = interval & 0xFF;
-			dataArray[1] = (interval >> 8) & 0xFF;
-
-			return await this._writeData(this.tmsConfigCharacteristic, dataArray);
-		}
-		catch(error) {
-			return new Error("Error when setting new step count interval: ", error);
-		}
+			catch(error) {
+				return new Error("Error when setting new step count interval: ", error);
+			}
+		})(interval);
 	}
 
 	/**
@@ -1461,30 +1464,29 @@ class Thingy {
      *
      */
 	set temperatureCompInterval(interval) {
-		return this._temperatureCompIntervalSet(interval);
-	}
-
-	async _temperatureCompIntervalSet(interval) {
-		try {
-			if(interval < 100 || interval > 5000) 
-				return Promise.reject(new Error("The interval has to be in the range 100 - 5000 ms."));
-
-			// Preserve values for those settings that are not being changed 
-			const receivedData = await this._readData(this.tmsConfigCharacteristic);
-			const dataArray = new Uint8Array(9);
-
-			for (let i = 0; i < dataArray.length; i++) {
-				dataArray[i] = receivedData.getUint8(i);
+		return ( async (interval) => {
+			try {
+				if(interval < 100 || interval > 5000) {
+					return Promise.reject(new Error("The interval has to be in the range 100 - 5000 ms."));
+				}
+	
+				// Preserve values for those settings that are not being changed 
+				const receivedData = await this._readData(this.tmsConfigCharacteristic);
+				const dataArray = new Uint8Array(9);
+	
+				for (let i = 0; i < dataArray.length; i++) {
+					dataArray[i] = receivedData.getUint8(i);
+				}
+	
+				dataArray[2] = interval & 0xFF;
+				dataArray[3] = (interval >> 8) & 0xFF;
+	
+				return await this._writeData(this.tmsConfigCharacteristic, dataArray);
 			}
-
-			dataArray[2] = interval & 0xFF;
-			dataArray[3] = (interval >> 8) & 0xFF;
-
-			return await this._writeData(this.tmsConfigCharacteristic, dataArray);
-		}
-		catch(error) {
-			return new Error("Error when setting new temperature compensation interval: ", error);
-		}
+			catch(error) {
+				return new Error("Error when setting new temperature compensation interval: ", error);
+			}
+		})(interval);
 	}
 
 	/**
@@ -1495,30 +1497,29 @@ class Thingy {
      *
      */
 	set magnetCompInterval(interval) {
-		return this._magnetCompIntervalSet(interval);
-	}
-
-	async _magnetCompIntervalSet(interval) {
-		try {
-			if(interval < 100 || interval > 1000) 
-				return Promise.reject(new Error("The interval has to be in the range 100 - 1000 ms."));
-
-			// Preserve values for those settings that are not being changed 
-			const receivedData = await this._readData(this.tmsConfigCharacteristic);
-			const dataArray = new Uint8Array(9);
-
-			for (let i = 0; i < dataArray.length; i++) {
-				dataArray[i] = receivedData.getUint8(i);
+		return ( async (interval) => {
+			try {
+				if(interval < 100 || interval > 1000) {
+					return Promise.reject(new Error("The interval has to be in the range 100 - 1000 ms."));
+				}
+	
+				// Preserve values for those settings that are not being changed 
+				const receivedData = await this._readData(this.tmsConfigCharacteristic);
+				const dataArray = new Uint8Array(9);
+	
+				for (let i = 0; i < dataArray.length; i++) {
+					dataArray[i] = receivedData.getUint8(i);
+				}
+	
+				dataArray[4] = interval & 0xFF;
+				dataArray[5] = (interval >> 8) & 0xFF;
+	
+				return await this._writeData(this.tmsConfigCharacteristic, dataArray);
 			}
-
-			dataArray[4] = interval & 0xFF;
-			dataArray[5] = (interval >> 8) & 0xFF;
-
-			return await this._writeData(this.tmsConfigCharacteristic, dataArray);
-		}
-		catch(error) {
-			return new Error("Error when setting new magnetometer compensation interval: ", error);
-		}
+			catch(error) {
+				return new Error("Error when setting new magnetometer compensation interval: ", error);
+			}
+		})(interval);
 	}
 
 	/**
@@ -1529,30 +1530,29 @@ class Thingy {
      *
      */
 	set motionProcessFrequency(frequency) {
-		return this._motionProcessFrequencySet(frequency);
-	}
-
-	async _motionProcessFrequencySet(frequency) {
-		try {
-			if(frequency < 100 || frequency > 200) 
-				return Promise.reject(new Error("The interval has to be in the range 5 - 200 Hz."));
-
-			// Preserve values for those settings that are not being changed 
-			const receivedData = await this._readData(this.tmsConfigCharacteristic);
-			const dataArray = new Uint8Array(9);
-
-			for (let i = 0; i < dataArray.length; i++) {
-				dataArray[i] = receivedData.getUint8(i);
+		return ( async (frequency) => {
+			try {
+				if(frequency < 100 || frequency > 200) {
+					return Promise.reject(new Error("The interval has to be in the range 5 - 200 Hz."));
+				}
+	
+				// Preserve values for those settings that are not being changed 
+				const receivedData = await this._readData(this.tmsConfigCharacteristic);
+				const dataArray = new Uint8Array(9);
+	
+				for (let i = 0; i < dataArray.length; i++) {
+					dataArray[i] = receivedData.getUint8(i);
+				}
+							
+				dataArray[6] = frequency & 0xFF;
+				dataArray[7] = (frequency >> 8) & 0xFF;
+	
+				return await this._writeData(this.tmsConfigCharacteristic, dataArray);
 			}
-            
-			dataArray[6] = frequency & 0xFF;
-			dataArray[7] = (frequency >> 8) & 0xFF;
-
-			return await this._writeData(this.tmsConfigCharacteristic, dataArray);
-		}
-		catch(error) {
-			return new Error("Error when setting new motion porcessing unit update frequency: ", error);
-		}
+			catch(error) {
+				return new Error("Error when setting new motion porcessing unit update frequency: ", error);
+			}
+		})(frequency);
 	}
 
 	/**
@@ -1563,29 +1563,28 @@ class Thingy {
      *
      */
 	set wakeOnMotion(enable) {
-		return this._wakeOnMotionSet(enable);
-	}
-
-	async _wakeOnMotionSet(enable) {
-		try {
-			if(enable < 0 || enable > 1) 
-				return Promise.reject(new Error("The argument must be 0 or 1."));
-        
-			// Preserve values for those settings that are not being changed 
-			const receivedData = await this._readData(this.tmsConfigCharacteristic);
-			const dataArray = new Uint8Array(9);
-
-			for (let i = 0; i < dataArray.length; i++) {
-				dataArray[i] = receivedData.getUint8(i);
+		return (async (enable) => {
+			try {
+				if(typeof(enable) !== "boolean")  {
+					return Promise.reject(new Error("The argument must be true or false."));
+				}
+					
+				// Preserve values for those settings that are not being changed 
+				const receivedData = await this._readData(this.tmsConfigCharacteristic);
+				const dataArray = new Uint8Array(9);
+	
+				for (let i = 0; i < dataArray.length; i++) {
+					dataArray[i] = receivedData.getUint8(i);
+				}
+	
+				dataArray[8] = enable ? 1 : 0;
+	
+				return await this._writeData(this.tmsConfigCharacteristic, dataArray);
 			}
-
-			dataArray[8] = enable ? 1 : 0;
-
-			return await this._writeData(this.tmsConfigCharacteristic, dataArray);
-		}
-		catch(error) {
-			return new Error("Error when setting new magnetometer compensation interval: ", error);
-		}
+			catch(error) {
+				return new Error("Error when setting new magnetometer compensation interval: ", error);
+			}
+		})(enable);
 	}
 
 	/**
@@ -1598,7 +1597,7 @@ class Thingy {
      */
 	tapEnable(eventHandler, enable) {
 		if (enable) {
-			this.tapEventListeners[0] = this.tapNotifyHandler.bind(this);
+			this.tapEventListeners[0] = this._tapNotifyHandler.bind(this);
 			this.tapEventListeners[1].push(eventHandler);
 		}
 		else {
@@ -1608,14 +1607,14 @@ class Thingy {
 		return this._notifyCharacteristic(this.tapCharacteristic, enable, this.tapEventListeners[0]);
 	}
 
-	tapNotifyHandler(event) {
+	_tapNotifyHandler(event) {
 		const data = event.target.value;
 		const direction = data.getUint8(0);
 		const count = data.getUint8(1);
 		this.tapEventListeners[1].forEach(eventHandler => {
 			eventHandler({
-				"direction": direction,
-				"count": count
+				direction: direction,
+				count: count
 			});
 		});
 	}
@@ -1630,7 +1629,7 @@ class Thingy {
      */
 	orientationEnable(eventHandler, enable) {
 		if (enable) {
-			this.orientationEventListeners[0] = this.orientationNotifyHandler.bind(this);
+			this.orientationEventListeners[0] = this._orientationNotifyHandler.bind(this);
 			this.orientationEventListeners[1].push(eventHandler);
 		}
 		else {
@@ -1640,7 +1639,7 @@ class Thingy {
 		return this._notifyCharacteristic(this.orientationCharacteristic, enable, this.orientationEventListeners[0]);
 	}
 
-	orientationNotifyHandler(event) {
+	_orientationNotifyHandler(event) {
 		const data = event.target.value;
 		const orientation = data.getUint8(0);
 		this.orientationEventListeners[1].forEach(eventHandler => {
@@ -1658,7 +1657,7 @@ class Thingy {
      */
 	quaternionEnable(eventHandler, enable) {
 		if (enable) {
-			this.quaternionEventListeners[0] = this.quaternionNotifyHandler.bind(this);
+			this.quaternionEventListeners[0] = this._quaternionNotifyHandler.bind(this);
 			this.quaternionEventListeners[1].push(eventHandler);
 		}
 		else {
@@ -1668,7 +1667,7 @@ class Thingy {
 		return this._notifyCharacteristic(this.quaternionCharacteristic, enable, this.quaternionEventListeners[0]);
 	}
 
-	quaternionNotifyHandler(event) {
+	_quaternionNotifyHandler(event) {
 		const data = event.target.value;
 
 		// Divide by (1 << 30) according to sensor specification
@@ -1687,10 +1686,10 @@ class Thingy {
 
 		this.quaternionEventListeners[1].forEach(eventHandler => {
 			eventHandler({
-				"w": w,
-				"x": x,
-				"y": y,
-				"z": z
+				w: w,
+				x: x,
+				y: y,
+				z: z
 			});
 		});
 	}
@@ -1705,7 +1704,7 @@ class Thingy {
      */
 	stepEnable(eventHandler, enable) {
 		if (enable) {
-			this.stepEventListeners[0] = this.stepNotifyHandler.bind(this);
+			this.stepEventListeners[0] = this._stepNotifyHandler.bind(this);
 			this.stepEventListeners[1].push(eventHandler);
 		}
 		else {
@@ -1715,16 +1714,16 @@ class Thingy {
 		return this._notifyCharacteristic(this.stepCharacteristic, enable, this.stepEventListeners[0]);
 	}
 
-	stepNotifyHandler(event) {
+	_stepNotifyHandler(event) {
 		const data = event.target.value;
 		const count = data.getUint32(0, true);
 		const time = data.getUint32(4, true);
 		this.stepEventListeners[1].forEach(eventHandler => {
 			eventHandler({
-				"count": count,
-				"time": {
-					"value": time,
-					"unit": "ms"
+				count: count,
+				time: {
+					value: time,
+					unit: "ms"
 				}
 			});
 		});
@@ -1740,7 +1739,7 @@ class Thingy {
      */
 	motionRawEnable(eventHandler, enable) {
 		if (enable) {
-			this.motionRawEventListeners[0] = this.motionRawNotifyHandler.bind(this);
+			this.motionRawEventListeners[0] = this._motionRawNotifyHandler.bind(this);
 			this.motionRawEventListeners[1].push(eventHandler);
 		}
 		else {
@@ -1750,7 +1749,7 @@ class Thingy {
 		return this._notifyCharacteristic(this.motionRawCharacteristic, enable, this.motionRawEventListeners[0]);
 	}
 
-	motionRawNotifyHandler(event) {
+	_motionRawNotifyHandler(event) {
 		const data = event.target.value;
 
 		// Divide by 2^6 = 64 to get accelerometer correct values
@@ -1770,23 +1769,23 @@ class Thingy {
 
 		this.motionRawEventListeners[1].forEach(eventHandler => {
 			eventHandler({
-				"accelerometer": {
-					"x": accX,
-					"y": accY,
-					"z": accZ,
-					"unit": "G"
+				accelerometer: {
+					x: accX,
+					y: accY,
+					z: accZ,
+					unit: "G"
 				},
-				"gyroscope": {
-					"x": gyroX,
-					"y": gyroY,
-					"z": gyroZ,
-					"unit": "deg/s"
+				gyroscope: {
+					x: gyroX,
+					y: gyroY,
+					z: gyroZ,
+					unit: "deg/s"
 				},
-				"compass": {
-					"x": compassX,
-					"y": compassY,
-					"z": compassZ,
-					"unit": "microTesla"
+				compass: {
+					x: compassX,
+					y: compassY,
+					z: compassZ,
+					unit: "microTesla"
 				}
 			});
 		});
@@ -1802,7 +1801,7 @@ class Thingy {
      */
 	eulerEnable(eventHandler, enable) {
 		if (enable) {
-			this.eulerEventListeners[0] = this.eulerNotifyHandler.bind(this);
+			this.eulerEventListeners[0] = this._eulerNotifyHandler.bind(this);
 			this.eulerEventListeners[1].push(eventHandler);
 		}
 		else {
@@ -1812,7 +1811,7 @@ class Thingy {
 		return this._notifyCharacteristic(this.eulerCharacteristic, enable, this.eulerEventListeners[0]);
 	}
 
-	eulerNotifyHandler(event) {
+	_eulerNotifyHandler(event) {
 		const data = event.target.value;
 
 		// Divide by two bytes (1<<16 or 2^16 or 65536) to get correct value
@@ -1822,9 +1821,9 @@ class Thingy {
 
 		this.eulerEventListeners[1].forEach(eventHandler => {
 			eventHandler({
-				"roll": roll,
-				"pitch": pitch,
-				"yaw": yaw
+				roll: roll,
+				pitch: pitch,
+				yaw: yaw
 			});
 		});
 	}
@@ -1839,7 +1838,7 @@ class Thingy {
      */
 	rotationMatrixEnable(eventHandler, enable) {
 		if (enable) {
-			this.rotationMatrixEventListeners[0] = this.rotationMatrixNotifyHandler.bind(this);
+			this.rotationMatrixEventListeners[0] = this._rotationMatrixNotifyHandler.bind(this);
 			this.rotationMatrixEventListeners[1].push(eventHandler);
 		}
 		else {
@@ -1849,7 +1848,7 @@ class Thingy {
 		return this._notifyCharacteristic(this.rotationMatrixCharacteristic, enable, this.rotationMatrixEventListeners[0]);
 	}
 
-	rotationMatrixNotifyHandler(event) {
+	_rotationMatrixNotifyHandler(event) {
 		const data = event.target.value;
 
 		// Divide by 2^2 = 4 to get correct values
@@ -1865,9 +1864,9 @@ class Thingy {
 
 		this.rotationMatrixEventListeners[1].forEach(eventHandler => {
 			eventHandler({
-				"row1": [r1c1, r1c2, r1c3],
-				"row2": [r2c1, r2c2, r2c3],
-				"row3": [r3c1, r3c2, r3c3]
+				row1: [r1c1, r1c2, r1c3],
+				row2: [r2c1, r2c2, r2c3],
+				row3: [r3c1, r3c2, r3c3]
 			});
 		});
 	}
@@ -1882,7 +1881,7 @@ class Thingy {
      */
 	headingEnable(eventHandler, enable) {
 		if (enable) {
-			this.headingEventListeners[0] = this.headingNotifyHandler.bind(this);
+			this.headingEventListeners[0] = this._headingNotifyHandler.bind(this);
 			this.headingEventListeners[1].push(eventHandler);
 		}
 		else {
@@ -1892,16 +1891,16 @@ class Thingy {
 		return this._notifyCharacteristic(this.headingCharacteristic, enable, this.headingEventListeners[0]);
 	}
 
-	headingNotifyHandler(event) {
+	_headingNotifyHandler(event) {
 		const data = event.target.value;
-		// Divide by 2^16 = 65536 to get correct heading values
 
+		// Divide by 2^16 = 65536 to get correct heading values
 		const heading = data.getInt32(0, true) / 65536;
 
 		this.headingEventListeners[1].forEach(eventHandler => {
 			eventHandler({
-				"value": heading,
-				"unit": "degrees"
+				value: heading,
+				unit: "degrees"
 			});
 		});
 	}
@@ -1916,7 +1915,7 @@ class Thingy {
      */
 	gravityVectorEnable(eventHandler, enable) {
 		if (enable) {
-			this.gravityVectorEventListeners[0] = this.gravityVectorNotifyHandler.bind(this);
+			this.gravityVectorEventListeners[0] = this._gravityVectorNotifyHandler.bind(this);
 			this.gravityVectorEventListeners[1].push(eventHandler);
 		}
 		else {
@@ -1926,7 +1925,7 @@ class Thingy {
 		return this._notifyCharacteristic(this.gravityVectorCharacteristic, enable, this.gravityVectorEventListeners[0]);
 	}
 
-	gravityVectorNotifyHandler(event) {
+	_gravityVectorNotifyHandler(event) {
 		const data = event.target.value;
 		const x = data.getFloat32(0, true);
 		const y = data.getFloat32(4, true);
@@ -1934,9 +1933,9 @@ class Thingy {
 
 		this.gravityVectorEventListeners[1].forEach(eventHandler => {
 			eventHandler({
-				"x": x,
-				"y": y,
-				"z": z
+				x: x,
+				y: y,
+				z: z
 			});
 		});
 	}
@@ -1956,23 +1955,23 @@ class Thingy {
      *
      */
 	get batteryLevel() {
-		return this._batteryLevelGet();
+		return ( async () => {
+			try {
+				const receivedData = await this._readData(this.batteryCharacteristic);
+				const level = receivedData.getUint8(0);
+	
+				return {
+					value: level,
+					unit: "%"
+				};
+			}
+			catch(error) {
+				return error;
+			}
+		})();
 	}
 
-	async _batteryLevelGet() {
-		try {
-			const receivedData = await this._readData(this.batteryCharacteristic);
-			const level = receivedData.getUint8(0);
 
-			return {
-				"value": level,
-				"unit": "%"
-			};
-		}
-		catch(error) {
-			return error;
-		}
-	}
     
 	/**
      *  Enables battery level notifications.
@@ -1984,7 +1983,7 @@ class Thingy {
      */
 	batteryLevelEnable(eventHandler, enable) {
 		if (enable) {
-			this.batteryLevelEventListeners[0] = this.batteryLevelNotifyHandler.bind(this);
+			this.batteryLevelEventListeners[0] = this._batteryLevelNotifyHandler.bind(this);
 			this.batteryLevelEventListeners[1].push(eventHandler);
 		}
 		else {
@@ -1994,14 +1993,14 @@ class Thingy {
 		return this._notifyCharacteristic(this.batteryCharacteristic, enable, this.batteryLevelEventListeners[0]);
 	}
     
-	batteryLevelNotifyHandler(event) {
+	_batteryLevelNotifyHandler(event) {
 		const data = event.target.value;
 		const value = data.getUint8(0);
 
 		this.batteryLevelEventListeners[1].forEach(eventHandler => {
 			eventHandler({
-				"value": value,
-				"unit": "%"
+				value: value,
+				unit: "%"
 			});
 		});
 	}

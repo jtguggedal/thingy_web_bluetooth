@@ -29,6 +29,7 @@
             "destructuring": "any",
             "ignoreReadBeforeAssign": false
         }],
+        "quote-props": ["error", "as-needed"],
 
         "no-console": 0
     }
