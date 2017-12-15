@@ -320,16 +320,14 @@ class Thingy {
      *
      */
 	set name(name) {
-		return ( async (name) => {
-			if(name.length > 10) {
-				return Promise.reject(new Error("The name can't be more than 10 characters long."));
-			}
-			const byteArray = new Uint8Array(name.length);
-			for (let i = 0, j = name.length; i < j; ++i) {
-				byteArray[i] = name.charCodeAt(i);
-			}
-			return await this._writeData(this.nameCharacteristic, byteArray);
-		})(name);
+		if(name.length > 10) {
+			return Promise.reject(new Error("The name can't be more than 10 characters long."));
+		}
+		const byteArray = new Uint8Array(name.length);
+		for (let i = 0, j = name.length; i < j; ++i) {
+			byteArray[i] = name.charCodeAt(i);
+		}
+		return this._writeData(this.nameCharacteristic, byteArray);
 	}
 
 	/**
@@ -602,13 +600,15 @@ class Thingy {
 				const prefix = prefixArray[receivedData.getUint8(0)];
 				const decoder = new TextDecoder("utf-8");
 				let url = decoder.decode(receivedData);
-				const lastElement = receivedData.getUint8(url.length - 1);
 				url = prefix + url.slice(1);
 	
-				if (lastElement <= 0x0d)
-					url = url.slice(0, -1) + expansionCodes[lastElement];
+				expansionCodes.forEach( (element, i) => {
+					if(url.indexOf(String.fromCharCode(i)) != -1) {
+						url = url.replace(String.fromCharCode(i), expansionCodes[i]);
+					}
+				});
 	
-				return url;
+				return new URL(url);
 			}
 			catch(error) {
 				return error;
@@ -618,46 +618,63 @@ class Thingy {
 
 	/**
      *  Sets the Eddystone URL
+		 *  It's recommeended to use URL shortener to stay within the limit of 14 characters long URL
+		 *  URL scheme prefix such as "https://" and "https://www." do not count towards that limit,
+		 *  neither does expansion codes such as ".com/" and ".org".
+		 *  Full details in the Eddystone URL specification: https://github.com/google/eddystone/tree/master/eddystone-url
      *
-     * 	@param {object} params - Eddystone Url object: <code>{prefix: value, url: value, postfix: value}</code>
-     * 	@param {number} params.prefix - Code for prefix, according to {@link https://github.com/google/eddystone/tree/master/eddystone-url#url-scheme-prefix specification}.
-     *  @param {string} params.url - The URL.
-     * 	@param {number} [params.postfix = null] - Optional code for postfix according to {@link https://github.com/google/eddystone/tree/master/eddystone-url#eddystone-url-http-url-encoding specification}.
-     *  @return {Promise<Error>} Returns a promise.
-     *
+     * 	@param {string} url - The URL that should be broadcasted. 
+		 *  @return {Promise<Error>} Returns a promise.
      */
-	set eddystoneUrl(params) {
+	set eddystoneUrl(url) {
+		try {
 
-		if((typeof(params) != "object") || (params.prefix == undefined) || (params.url == undefined)) {
-			return Promise.reject(new TypeError("The argument has to be an object: {prefix: value, url: value, postfix: value}, where postfix is optional."));
+			// Uses URL API to check for valid URL
+			url = new URL(url);
+
+			// Eddystone URL specification defines codes for URL scheme prefixes and expansion codes in the URL.
+			// The array index corresponds to the defined code in the specification.
+			// Details here: https://github.com/google/eddystone/tree/master/eddystone-url
+			const prefixArray = ["http://www.", "https://www.", "http://", "https://"];
+			const expansionCodes = [".com/", ".org/", ".edu/", ".net/", ".info/",
+				".biz/", ".gov/", ".com", ".org", ".edu", ".net",
+				".info", ".biz", ".gov"];
+			let prefixCode = null;
+			let expansionCode = null;
+			let eddystoneUrl = url.href;
+			let len = eddystoneUrl.length;
+
+			prefixArray.forEach( (element, i) => {
+				if((url.href.indexOf(element) != -1) && (prefixCode == null)) {
+					prefixCode = String.fromCharCode(i);
+					eddystoneUrl = eddystoneUrl.replace(element, prefixCode);
+					len -= element.length;
+				}
+			});
+
+			expansionCodes.forEach( (element, i) => {
+				if((url.href.indexOf(element) != -1) && (expansionCode == null)) {
+					expansionCode = String.fromCharCode(i);
+					eddystoneUrl = eddystoneUrl.replace(element, expansionCode);
+					len -= element.length;
+				}
+			});
+
+			if(len < 1 || len > 14) {
+				return Promise.reject(new TypeError("The URL can't be longer than 14 characters, excluding URL scheme such as \"https://\" and \".com/\"."));
+			}
+			
+			const byteArray = new Uint8Array(eddystoneUrl.length);
+
+			for (let i = 0; i < eddystoneUrl.length; i++) {
+				byteArray[i] = eddystoneUrl.charCodeAt(i);
+			}
+
+			return this._writeData(this.eddystoneCharacteristic, byteArray);
 		}
-
-		const prefix = params.prefix;
-		const url = params.url;
-		const postfix = params.postfix || null;
-
-		if(prefix < 0 || prefix > 3) {
-			return Promise.reject(new RangeError("The prefix must have a value between 0 - 3."));
+		catch(error) {
+			return Promise.reject(error);
 		}
-		if(url.length < 1 || url.length > 17) {
-			return Promise.reject(new RangeError("The URL must be 1 - 17 characters."));
-		}
-		if(postfix < 0 || postfix > 13) {
-			return Promise.reject(new RangeError("The postfix must have a value between 0 - 13."));
-		}
-
-		const len = (postfix == null) ? url.length + 1 : url.length + 2;
-		const byteArray = new Uint8Array(len);
-		byteArray[0] = prefix;
-
-		for (let i = 1; i <= url.length; i++) {
-			byteArray[i] = url.charCodeAt(i - 1);
-		}
-
-		if (postfix != null)
-			byteArray[len - 1] = postfix;
-
-		return this._writeData(this.eddystoneCharacteristic, byteArray);
 	}
 
 	/**
@@ -1420,9 +1437,7 @@ class Thingy {
 			}
 		})();
 	}
-
-
-
+	
 	/**
      *  Sets the step counter interval.
      *
