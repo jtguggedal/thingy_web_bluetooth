@@ -8,6 +8,7 @@
  *  @param {bool} [logEnabled = true] Enables logging of all BLE actions.
  * 
 */
+
 function Thingy(logEnabled = true) {
 	this.logEnabled = logEnabled;
 
@@ -87,6 +88,8 @@ function Thingy(logEnabled = true) {
 	this.gravityVectorEventListeners    = [null, []];
 	this.speakerStatusEventListeners    = [null, []];
 	this.micMatrixEventListeners        = [null, []];
+	this.microphoneEventListeners		= [null, []];
+
 
 
 	/**
@@ -347,7 +350,18 @@ Thingy.prototype.connect = function() {
 								}),
 							service.getCharacteristic(this.TSS_MIC_UUID)
 								.then( characteristic => { 
-									this.micCharacteristic = characteristic; 
+									this.microphoneCharacteristic = characteristic;
+
+									// Tables of constants needed for when we decode the adpcm-encoded audio from the Thingy
+									this.MICROPHONE_INDEX_TABLE = [-1, -1, -1, -1, 2, 4, 6, 8, -1, -1, -1, -1, 2, 4, 6, 8,];
+									this.MICROPHONE_STEP_SIZE_TABLE = [
+										7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31, 34, 37, 41, 45, 50, 55, 60, 66, 73, 80, 88, 97, 107, 118, 130, 143, 157, 173, 190, 209,
+								        230, 253, 279, 307, 337, 371, 408, 449, 494, 544, 598, 658, 724, 796, 876, 963, 1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066, 2272, 2499, 2749, 3024, 3327, 3660, 4026, 4428, 4871, 5358,
+								        5894, 6484, 7132, 7845, 8630, 9493, 10442, 11487, 12635, 13899, 15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767
+								    ];
+
+								    // Get endianness of system (ArrayBuffer used for decoding microphone audio utilizes underlying system's endianness)
+									(new Uint8Array(new Uint32Array([0x12345678]).buffer)[0] === 0x12) ? this.endianness = 'BE' : this.endianness = 'LE';
 								}),
 							service.getCharacteristic(this.TSS_SPEAKER_DATA_UUID)
 								.then( characteristic => { 
@@ -1868,15 +1882,146 @@ Thingy.prototype.gravityVectorNotifyHandler = function(event) {
 	});
 };
 
-
 //  ******  //
 
+Thingy.prototype.microphoneEnable = function(eventHandler, enable) {
+	if(enable) {
+		this.microphoneEventListeners[0] = this.microphoneNotifyHandler.bind(this);
+		this.microphoneEventListeners[1].push(consoleIt); // skal være eventHandler
 
+		// lager en ny audio context, skal bare ha én av denne
+		let AudioContext = window.AudioContext || window.webkitAudioContext;
+		this.audioCtx = new AudioContext();
+	} else {
+		this.microphoneEventListeners[1].splice(this.microphoneEventListeners.indexOf(eventHandler), 1);
+	}
+	return this.notifyCharacteristic(this.microphoneCharacteristic, enable, this.microphoneEventListeners[0]);
+};
+
+Thingy.prototype.microphoneNotifyHandler = function(event) {
+	console.log(event);
+	let audioPacket = event.target.value.buffer;
+	let adpcm = {
+        header : new DataView(audioPacket.slice(0, 3)),
+        data   : new DataView(audioPacket.slice(3))
+    };
+	let decodedAudio = this.decodeAudio(adpcm);
+
+    this.playDecodedAudio(decodedAudio);
+
+
+	/*this.microphoneEventListeners[1].forEach( eventHandler => {
+		eventHandler(decodedAudio);
+	});*/
+};
 
 /*  Sound service  */
 
+Thingy.prototype.decodeAudio = function(adpcm) {
+    // Allocate output buffer
+	let audioBufferDataLength = adpcm.data.byteLength;
+	let audioBuffer = new ArrayBuffer(audioBufferDataLength*4);
+	let pcm = new DataView(audioBuffer);
 
-//  ******  //
+    // The first 2 bytes of ADPCM frame are the predicted value
+    let valuePredicted = adpcm.data.getInt16(0, false);
+
+
+	// The 3rd byte is the index value
+	let index = adpcm.header.getInt8(2);
+
+	if (index < 0)
+		index = 0;
+	if (index > 88)
+		index = 88;
+
+	let diff; /* Current change to valuePredicted */
+	let bufferStep = false;
+	let inputBuffer = 0;
+	let delta = 0;
+	let sign = 0;
+	let step = this.MICROPHONE_STEP_SIZE_TABLE[index];
+
+	for (let _in = 0, _out = 0; _in < audioBufferDataLength; _out += 2) {
+		/* Step 1 - get the delta value */
+		if (bufferStep) {
+			delta = inputBuffer & 0x0F;
+            _in++;
+		}
+        else {
+			inputBuffer = adpcm.data.getInt8(_in);
+			delta = (inputBuffer >> 4) & 0x0F;
+		}
+		bufferStep = !bufferStep;
+
+		/* Step 2 - Find new index value (for later) */
+		index += this.MICROPHONE_INDEX_TABLE[delta];
+		if (index < 0) {
+            index = 0;
+        }
+		if (index > 88) {
+            index = 88;
+        }
+
+		/* Step 3 - Separate sign and magnitude */
+		sign = delta & 8;
+		delta = delta & 7;
+
+		/* Step 4 - Compute difference and new predicted value */
+		diff = (step >> 3);
+		if ((delta & 4) > 0)
+			diff += step;
+		if ((delta & 2) > 0)
+			diff += step >> 1;
+		if ((delta & 1) > 0)
+			diff += step >> 2;
+
+		if (sign > 0)
+			valuePredicted -= diff;
+		else
+			valuePredicted += diff;
+
+		/* Step 5 - clamp output value */
+		if (valuePredicted > 32767)
+			valuePredicted = 32767;
+		else if (valuePredicted < -32768)
+			valuePredicted = -32768;
+
+		/* Step 6 - Update step value */
+		step = this.MICROPHONE_STEP_SIZE_TABLE[index];
+		/* Step 7 - Output value */
+		pcm.setInt16(_out, valuePredicted, true);
+	}
+
+	return pcm;
+}
+
+Thingy.prototype.playDecodedAudio = function(audio) {
+
+	let channels = 1;
+	let frameCount = audio.byteLength/2;
+	let sampleRate = 16000;
+
+
+	let myArrayBuffer = this.audioCtx.createBuffer(channels, frameCount, sampleRate);
+   	let nowBuffering = myArrayBuffer.getChannelData(0);
+
+   	// 80% sikker på at det er denne delen som skaper problemer
+   	for (let i = 0; i < frameCount-2; i++) {
+   		let word = audio.getFloat32(2*i, false) + audio.getFloat32(2*i+1, false);
+
+   		nowBuffering[i] = word/65536;
+
+	}
+
+  	let source = this.audioCtx.createBufferSource();
+  	source.buffer = myArrayBuffer;
+  	source.connect(this.audioCtx.destination);
+  	source.start();
+
+}
+
+
 
 
 
@@ -1932,7 +2077,13 @@ Thingy.prototype.batteryLevelNotifyHandler = function(event) {
 	});
 };
 
+Thingy.prototype.logCharacteristicValue = function(ch) {
+	console.log(ch["value"]);
+}
+
 //  ******  //
 
 
-
+function consoleIt(it) {
+	console.log(it);
+}
