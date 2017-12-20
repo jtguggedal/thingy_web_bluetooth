@@ -193,8 +193,9 @@ class Thingy {
       this.eddystoneCharacteristic = await this.configurationService.getCharacteristic(this.TCS_EDDYSTONE_UUID);
       this.firmwareVersionCharacteristic = await this.configurationService.getCharacteristic(this.TCS_FW_VER_UUID);
       this.mtuRequestCharacteristic = await this.configurationService.getCharacteristic(this.TCS_MTU_REQUEST_UUID);
-      if (this.logEnabled)
+      if (this.logEnabled) {
         console.log("Discovered Thingy configuration service and its characteristics");
+      }
 
       // Thingy environment service
       this.environmentService = await server.getPrimaryService(this.TES_UUID); 
@@ -268,8 +269,9 @@ class Thingy {
     if (enable) {
       try {
         await characteristic.startNotifications();
-        if (this.logEnabled)
+        if (this.logEnabled) {
           console.log("Notifications enabled for " + characteristic.uuid);
+        }
         characteristic.addEventListener("characteristicvaluechanged", notifyHandler);
       }
       catch (error) {
@@ -279,8 +281,9 @@ class Thingy {
     else {
       try {
         await characteristic.stopNotifications();
-        if (this.logEnabled)
+        if (this.logEnabled) {
           console.log("Notifications disabled for ", characteristic.uuid);
+        }
         characteristic.removeEventListener("characteristicvaluechanged", notifyHandler);
       }
       catch (error) {
@@ -302,8 +305,9 @@ class Thingy {
         const data = await this._readData(this.nameCharacteristic);
         const decoder = new TextDecoder("utf-8");
         const name = decoder.decode(data);
-        if (this.logEnabled)
+        if (this.logEnabled) {
           console.log("Received device name: " + name);
+        }
         return name;
       } 
       catch (error) {
@@ -342,7 +346,8 @@ class Thingy {
         const receivedData = await this._readData(this.advParamsCharacteristic);
 	
         // Interval is given in units of 0.625 milliseconds
-        const interval = parseInt(receivedData.getUint16(0, true) * 0.625);
+        const littleEndian = true;
+        const interval = parseInt(receivedData.getUint16(0, littleEndian) * 0.625);
         const timeout = receivedData.getUint8(2);
         const params = {
           interval: {
@@ -412,12 +417,13 @@ class Thingy {
         const receivedData = await this._readData(this.connParamsCharacteristic);
 	
         // Connection intervals are given in units of 1.25 ms
-        const minConnInterval = receivedData.getUint16(0, true) * 1.25;
-        const maxConnInterval = receivedData.getUint16(2, true) * 1.25;
-        const slaveLatency = receivedData.getUint16(4, true);
+        const littleEndian = true;
+        const minConnInterval = receivedData.getUint16(0, littleEndian) * 1.25;
+        const maxConnInterval = receivedData.getUint16(2, littleEndian) * 1.25;
+        const slaveLatency = receivedData.getUint16(4, littleEndian);
 	
         // Supervision timeout is given i units of 10 ms
-        const supervisionTimeout = receivedData.getUint16(6, true) * 10;
+        const supervisionTimeout = receivedData.getUint16(6, littleEndian) * 10;
         const params = {
           connectionInterval: {
             min: minConnInterval,
@@ -460,8 +466,9 @@ class Thingy {
       let minInterval = params.minInterval;
       let maxInterval = params.maxInterval;
 			
-      if (minInterval == null || maxInterval == null)
+      if (minInterval == null || maxInterval == null) {
         return Promise.reject(new TypeError("Both minimum and maximum acceptable interval must be passed as arguments"));
+      }
 			
 			
       // Check parameters
@@ -561,8 +568,9 @@ class Thingy {
         }
 			
         // Check that the timeout obeys  conn_sup_timeout * 4 > (1 + slave_latency) * max_conn_interval 
-        const maxConnInterval = receivedData.getUint16(2, true);
-        const slaveLatency = receivedData.getUint16(4, true);
+        const littleEndian = true;
+        const maxConnInterval = receivedData.getUint16(2, littleEndian);
+        const slaveLatency = receivedData.getUint16(4, littleEndian);
 			
         if (timeout * 4 < ((1 + slaveLatency) * maxConnInterval)) {
           return Promise.reject(new Error("The supervision timeout in milliseconds must be greater than 	\
@@ -725,7 +733,8 @@ class Thingy {
     return ( async () => {
       try {
         const receivedData = await this._readData(this.mtuRequestCharacteristic);
-        const mtu = receivedData.getUint16(1, true);
+        const littleEndian = true;
+        const mtu = receivedData.getUint16(1, littleEndian);
 	
         return mtu;
       }
@@ -802,10 +811,11 @@ class Thingy {
     return ( async () => {
       try {
         const data = await this._readData(this.environmentConfigCharacteristic);
-        const tempInterval = data.getUint16(0, true);
-        const pressureInterval = data.getUint16(2, true);
-        const humidityInterval = data.getUint16(4, true);
-        const colorInterval = data.getUint16(6, true);
+        const littleEndian = true;
+        const tempInterval = data.getUint16(0, littleEndian);
+        const pressureInterval = data.getUint16(2, littleEndian);
+        const humidityInterval = data.getUint16(4, littleEndian);
+        const colorInterval = data.getUint16(6, littleEndian);
         const gasMode = data.getUint8(8);
         const colorSensorRed = data.getUint8(9);
         const colorSensorGreen = data.getUint8(10);
@@ -1087,7 +1097,8 @@ class Thingy {
 
   _pressureNotifyHandler(event) {
     const data = event.target.value;
-    const integer = data.getUint32(0, true);
+    const littleEndian = true;
+    const integer = data.getUint32(0, littleEndian);
     const decimal = data.getUint8(4);
     const pressure = integer + (decimal / 100);
     this.pressureEventListeners[1].forEach(eventHandler => {
@@ -1149,8 +1160,9 @@ class Thingy {
   }
   _gasNotifyHandler(event) {
     const data = event.target.value;
-    const eco2 = data.getUint16(0, true);
-    const tvoc = data.getUint16(2, true);
+    const littleEndian = true;
+    const eco2 = data.getUint16(0, littleEndian);
+    const tvoc = data.getUint16(2, littleEndian);
 
     this.gasEventListeners[1].forEach(eventHandler => {
       eventHandler({
@@ -1188,10 +1200,11 @@ class Thingy {
 
   _colorNotifyHandler(event) {
     const data = event.target.value;
-    const r = data.getUint16(0, true);
-    const g = data.getUint16(2, true);
-    const b = data.getUint16(4, true);
-    const c = data.getUint16(6, true);
+    const littleEndian = true;
+    const r = data.getUint16(0, littleEndian);
+    const g = data.getUint16(2, littleEndian);
+    const b = data.getUint16(4, littleEndian);
+    const c = data.getUint16(6, littleEndian);
     const rRatio = r / (r + g + b);
     const gRatio = g / (r + g + b);
     const bRatio = b / (r + g + b);
@@ -1206,18 +1219,19 @@ class Thingy {
 
     let red = rRatio * 255.0 * 3 * clearNormalized;
 
-    if (red > 255)
+    if (red > 255) {
       red = 255;
-
+    }
     let green = gRatio * 255.0 * 3 * clearNormalized;
 
-    if (green > 255)
+    if (green > 255) {
       green = 255;
-
+    }
     let blue = bRatio * 255.0 * 3 * clearNormalized;
 
-    if (blue > 255)
+    if (blue > 255) {
       blue = 255;
+    }
 
     this.colorEventListeners[1].forEach(eventHandler => {
       eventHandler({
@@ -1242,6 +1256,7 @@ class Thingy {
       try {
         const data = await this._readData(this.ledCharacteristic);
         const mode = data.getUint8(0);
+        const littleEndian = true;
         let status;
 	
         switch (mode) {
@@ -1261,7 +1276,7 @@ class Thingy {
             mode: mode,
             color: data.getUint8(1),
             intensity: data.getUint8(2),
-            delay: data.getUint16(3)
+            delay: data.getUint16(3, littleEndian)
           };
           break;
         case 3:
@@ -1455,11 +1470,12 @@ class Thingy {
     return ( async () => {
       try {
         const data = await this._readData(this.tmsConfigCharacteristic);
-        const stepCounterInterval = data.getUint16(0, true);
-        const tempCompInterval = data.getUint16(2, true);
-        const magnetCompInterval = data.getUint16(4, true);
-        const motionProcessingFrequency = data.getUint16(6, true);
-        const wakeOnMotion = data.getUint8(8, true);
+        const littleEndian = true;
+        const stepCounterInterval = data.getUint16(0, littleEndian);
+        const tempCompInterval = data.getUint16(2, littleEndian);
+        const magnetCompInterval = data.getUint16(4, littleEndian);
+        const motionProcessingFrequency = data.getUint16(6, littleEndian);
+        const wakeOnMotion = data.getUint8(8);
         const config = {
           stepCountInterval: stepCounterInterval,
           tempCompInterval: tempCompInterval,
@@ -1769,8 +1785,9 @@ class Thingy {
 
   _stepNotifyHandler(event) {
     const data = event.target.value;
-    const count = data.getUint32(0, true);
-    const time = data.getUint32(4, true);
+    const littleEndian = true;
+    const count = data.getUint32(0, littleEndian);
+    const time = data.getUint32(4, littleEndian);
     this.stepEventListeners[1].forEach(eventHandler => {
       eventHandler({
         count: count,
