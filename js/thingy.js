@@ -379,7 +379,7 @@ class Thingy {
   set advParams(params) {
     return ( async (params) => {
 			
-      if ((typeof(params) != "object") || (params.interval == undefined) || (params.timeout == undefined)) {
+      if ((typeof(params) !== "object") || (params.interval === undefined) || (params.timeout === undefined)) {
         return Promise.reject(new TypeError("The argument has to be an object with key/value pairs \
 																									'interval' and 'timeout': {interval: someInterval, timeout: someTimeout}"));
       }
@@ -459,14 +459,14 @@ class Thingy {
   set connectionInterval(params) {
     return ( async (params) => {
 			
-      if ((typeof(params) != "object") || (params.minInterval == undefined)|| (params.maxInterval == undefined)) {
+      if ((typeof(params) !== "object") || (params.minInterval === undefined)|| (params.maxInterval === undefined)) {
         return Promise.reject(new TypeError("The argument has to be an object: {minInterval: value, maxInterval: value}"));
       }
 			
       let minInterval = params.minInterval;
       let maxInterval = params.maxInterval;
 			
-      if (minInterval == null || maxInterval == null) {
+      if (minInterval === null || maxInterval === null) {
         return Promise.reject(new TypeError("Both minimum and maximum acceptable interval must be passed as arguments"));
       }
 			
@@ -611,7 +611,7 @@ class Thingy {
         url = prefix + url.slice(1);
 	
         expansionCodes.forEach( (element, i) => {
-          if (url.indexOf(String.fromCharCode(i)) != -1) {
+          if (url.indexOf(String.fromCharCode(i)) !== -1) {
             url = url.replace(String.fromCharCode(i), expansionCodes[i]);
           }
         });
@@ -653,7 +653,7 @@ class Thingy {
       let len = eddystoneUrl.length;
 
       prefixArray.forEach( (element, i) => {
-        if ((url.href.indexOf(element) != -1) && (prefixCode == null)) {
+        if ((url.href.indexOf(element) !== -1) && (prefixCode === null)) {
           prefixCode = String.fromCharCode(i);
           eddystoneUrl = eddystoneUrl.replace(element, prefixCode);
           len -= element.length;
@@ -661,7 +661,7 @@ class Thingy {
       });
 
       expansionCodes.forEach( (element, i) => {
-        if ((url.href.indexOf(element) != -1) && (expansionCode == null)) {
+        if ((url.href.indexOf(element) !== -1) && (expansionCode === null)) {
           expansionCode = String.fromCharCode(i);
           eddystoneUrl = eddystoneUrl.replace(element, expansionCode);
           len -= element.length;
@@ -754,7 +754,7 @@ class Thingy {
      *
      */
   set mtu(params) {
-    if ((params != "object") || (params.mtuSize == undefined)) {
+    if ((params !== "object") || (params.mtuSize === undefined)) {
       return Promise.reject(new TypeError("The argument has to be an object"));
     }
 
@@ -983,11 +983,11 @@ class Thingy {
       try {
         let mode;
 				
-        if (interval == 1) {
+        if (interval === 1) {
           mode = 1;
-        } else if (interval == 10) {
+        } else if (interval === 10) {
           mode = 2;
-        } else if (interval == 60) {
+        } else if (interval === 60) {
           mode = 3;
         } else {
           return Promise.reject(new RangeError("The gas sensor interval has to be 1, 10 or 60 seconds."));
@@ -1310,7 +1310,7 @@ class Thingy {
      *
      */
   ledConstant(color) {
-    if ((color.red == undefined) || (color.green == undefined) || (color.blue == undefined)) {
+    if ((color.red === undefined) || (color.green === undefined) || (color.blue === undefined)) {
       return Promise.reject(new TypeError("The options object for must have the properties 'red', 'green' and 'blue'."));
     }
     if (	(color.red < 0) || (color.red > 255) ||
@@ -1333,9 +1333,9 @@ class Thingy {
      */
   ledBreathe(params) {	
     const colors = ["red", "green", "yellow", "blue", "purple", "cyan", "white"];
-    const colorCode = typeof(params.color) == "string" ? colors.indexOf(params.color) + 1 : params.color;
+    const colorCode = typeof(params.color) === "string" ? colors.indexOf(params.color) + 1 : params.color;
 
-    if ((params.color == undefined) || (params.intensity == undefined) || (params.delay == undefined)) {
+    if ((params.color === undefined) || (params.intensity === undefined) || (params.delay === undefined)) {
       return Promise.reject(new TypeError("The options object for must have the properties 'color', 'intensity' and 'intensity'."));
     }
     if ((colorCode < 1) || (colorCode > 7)) {
@@ -1361,7 +1361,7 @@ class Thingy {
      *
      */
   ledOneShot(params) {
-    if ((params.color == undefined) || (params.intensity == undefined)) {
+    if ((params.color === undefined) || (params.intensity === undefined)) {
       return Promise.reject(new TypeError("The options object for LED one-shot must have the properties 'color' and 'intensity."));
     }
     if (params.color < 1 || (params.color > 7)) {
@@ -1435,7 +1435,7 @@ class Thingy {
     if (pin < 1 || pin > 4){
       return Promise.reject(new Error("Pin number must be 1 - 4"));
     }
-    if (!(value == 0 || value == 255)) {
+    if (!(value === 0 || value === 255)) {
       return Promise.reject(new Error("Pin status value must be 0 or 255"));
     }
 
@@ -1746,7 +1746,7 @@ class Thingy {
     let z = data.getInt32(12, true) / (1 << 30);
     const magnitude = Math.sqrt(Math.pow(w, 2) + Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
 
-    if (magnitude != 0) {
+    if (magnitude !== 0) {
       w /= magnitude;
       x /= magnitude;
       y /= magnitude;
