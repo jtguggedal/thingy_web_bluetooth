@@ -1,12 +1,13 @@
-class Thingy {
+// @ts-check
+export class Thingy {
   /** 
      *  Thingy:52 Web Bluetooth API. <br> 
      *  BLE service details {@link https://nordicsemiconductor.github.io/Nordic-Thingy52-FW/documentation/firmware_architecture.html#fw_arch_ble_services here}
      * 
      *  
      *  @constructor   
-     *  @param {object} options - Options object for Thingy
-		 *  @param {bool} [options.logEnabled = false] Enables logging of all BLE actions.
+     *  @param {Object} options - Options object for Thingy
+		 *  @param {Boolean} [options.logEnabled = false] Enables logging of all BLE actions.
      * 
     */
   constructor(options = {logEnabled: false}) {
@@ -138,7 +139,6 @@ class Thingy {
       catch (error) {
         return error;
       }
-
       return Promise.resolve();
     }
     else {
@@ -324,14 +324,16 @@ class Thingy {
      *
      */
   set name(name) {
-    if (name.length > 10) {
-      return Promise.reject(new Error("The name can't be more than 10 characters long."));
-    }
-    const byteArray = new Uint8Array(name.length);
-    for (let i = 0, j = name.length; i < j; ++i) {
-      byteArray[i] = name.charCodeAt(i);
-    }
-    return this._writeData(this.nameCharacteristic, byteArray);
+    return ( async (name) => {
+      if (name.length > 10) {
+        return Promise.reject(new TypeError("The name can't be more than 10 characters long."));
+      }
+      const byteArray = new Uint8Array(name.length);
+      for (let i = 0; i < name.length; i += 1) {
+        byteArray[i] = name.charCodeAt(i);
+      }
+      return await this._writeData(this.nameCharacteristic, byteArray);
+    })(name);
   }
 
   /**
@@ -544,7 +546,7 @@ class Thingy {
      * 	<b>Note:</b> According to the Bluetooth Low Energy specification, the supervision timeout in milliseconds must be greater
      *  than (1 + slaveLatency) * maxConnInterval * 2, where maxConnInterval is also given in milliseconds.
      *
-     *  @param {string} timeout - The desired connection supervision timeout in milliseconds and in the rango of 100 ms to 32 000 ms.
+     *  @param {number} timeout - The desired connection supervision timeout in milliseconds and in the range of 100 ms to 32 000 ms.
      *  @return {Promise<Error>} Returns a promise.
      *
      */
