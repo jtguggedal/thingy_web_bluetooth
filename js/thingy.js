@@ -1,4 +1,5 @@
-// @ts-check
+// @ts-check 
+
 export class Thingy {
   /** 
      *  Thingy:52 Web Bluetooth API. <br> 
@@ -6,8 +7,8 @@ export class Thingy {
      * 
      *  
      *  @constructor   
-     *  @param {Object} options - Options object for Thingy
-		 *  @param {Boolean} [options.logEnabled = false] Enables logging of all BLE actions.
+     *  @param {Object} [options = {logEnabled: false}] - Options object for Thingy
+		 *  @param {boolean} options.logEnabled - Enables logging of all BLE actions.
      * 
     */
   constructor(options = {logEnabled: false}) {
@@ -95,7 +96,7 @@ export class Thingy {
      *  Any attempt to read while another GATT operation is in progress, will result in a rejected promise.
      *
      *  @param {Object} characteristic - Web Bluetooth characteristic object
-     *  @return {Promise<Uint8Array|Error>} Returns Uint8Array when resolved or an error when rejected
+     *  @return {Promise<DataView|Error>} Returns Uint8Array when resolved or an error when rejected
      * 
      *	@private
     */
@@ -299,21 +300,19 @@ export class Thingy {
      *  @return {Promise<string|Error>} Returns a string with the name when resolved or a promise with error on rejection.
      *
      */
-  get name() {
-    return ( async () => {
-      try {
-        const data = await this._readData(this.nameCharacteristic);
-        const decoder = new TextDecoder("utf-8");
-        const name = decoder.decode(data);
-        if (this.logEnabled) {
-          console.log("Received device name: " + name);
-        }
-        return name;
-      } 
-      catch (error) {
-        return error;
+  async getName() {
+    try {
+      const data = await this._readData(this.nameCharacteristic);
+      const decoder = new TextDecoder("utf-8");
+      const name = decoder.decode(data);
+      if (this.logEnabled) {
+        console.log("Received device name: " + name);
       }
-    })();
+      return name;
+    } 
+    catch (error) {
+      return error;
+    }
   }
 
   /**
@@ -323,17 +322,15 @@ export class Thingy {
      *  @return {Promise<Error>} Returns a promise.
      *
      */
-  set name(name) {
-    return ( async (name) => {
-      if (name.length > 10) {
-        return Promise.reject(new TypeError("The name can't be more than 10 characters long."));
-      }
-      const byteArray = new Uint8Array(name.length);
-      for (let i = 0; i < name.length; i += 1) {
-        byteArray[i] = name.charCodeAt(i);
-      }
-      return await this._writeData(this.nameCharacteristic, byteArray);
-    })(name);
+  async setName(name) {
+    if (name.length > 10) {
+      return Promise.reject(new TypeError("The name can't be more than 10 characters long."));
+    }
+    const byteArray = new Uint8Array(name.length);
+    for (let i = 0; i < name.length; i += 1) {
+      byteArray[i] = name.charCodeAt(i);
+    }
+    return await this._writeData(this.nameCharacteristic, byteArray);
   }
 
   /**
@@ -342,69 +339,64 @@ export class Thingy {
      *  @return {Promise<Object|Error>} Returns an object with the advertising parameters when resolved or a promise with error on rejection.
      *
      */
-  get advParams() {
-    return ( async () => {
-      try {
-        const receivedData = await this._readData(this.advParamsCharacteristic);
+  async getAdvParams() {
+    try {
+      const receivedData = await this._readData(this.advParamsCharacteristic);
 	
-        // Interval is given in units of 0.625 milliseconds
-        const littleEndian = true;
-        const interval = parseInt(receivedData.getUint16(0, littleEndian) * 0.625);
-        const timeout = receivedData.getUint8(2);
-        const params = {
-          interval: {
-            interval: interval,
-            unit: "ms"
-          },
-          timeout: {
-            timeout: timeout,
-            unit: "s"
-          }
-        };
-        return params;
-      }
-      catch (error) {
-        return error;
-      }
-    })();
+      // Interval is given in units of 0.625 milliseconds
+      const littleEndian = true;
+      const interval = (receivedData.getUint16(0, littleEndian) * 0.625).toFixed(0);
+      const timeout = receivedData.getUint8(2);
+      const params = {
+        interval: {
+          interval: interval,
+          unit: "ms"
+        },
+        timeout: {
+          timeout: timeout,
+          unit: "s"
+        }
+      };
+      return params;
+    }
+    catch (error) {
+      return error;
+    }
   }
 
   /**
      *  Sets the advertising parameters
      *
-     * 	@param {object} params - Object with key/value pairs 'interval' and 'timeout': <code>{interval: someInterval, timeout: someTimeout}</code>.
+     * 	@param {Object} params - Object with key/value pairs 'interval' and 'timeout': <code>{interval: someInterval, timeout: someTimeout}</code>.
      *  @param {number} params.interval - The advertising interval in milliseconds in the range of 20 ms to 5 000 ms.
      *  @param {number} params.timeout - The advertising timeout in seconds in the range 1 s to 180 s.
      *  @return {Promise<Error>} Returns a promise.
      *
      */
-  set advParams(params) {
-    return ( async (params) => {
-			
-      if ((typeof(params) !== "object") || (params.interval === undefined) || (params.timeout === undefined)) {
-        return Promise.reject(new TypeError("The argument has to be an object with key/value pairs \
+  async setAdvParams(params) {			
+    if ((typeof(params) !== "object") || (params.interval === undefined) || (params.timeout === undefined)) {
+      return new Promise.reject(new TypeError("The argument has to be an object with key/value pairs \
 																									'interval' and 'timeout': {interval: someInterval, timeout: someTimeout}"));
-      }
+    }
 			
-      // Interval is in units of 0.625 ms.
-      const interval = params.interval * 1.6;
-      const timeout = params.timeout;
+    // Interval is in units of 0.625 ms.
+    const interval = params.interval * 1.6;
+    const timeout = params.timeout;
 			
-      // Check parameters
-      if ((interval < 32) || (interval > 8000)) {
-        return Promise.reject(new RangeError("The advertising interval must be within the range of 20 ms to 5 000 ms"));
-      }
-      if ((timeout < 0) || (timeout > 180)) {
-        return Promise.reject(new RangeError("The advertising timeout must be within the range of 0 to 180 s"));
-      }
+    // Check parameters
+    if ((interval < 32) || (interval > 8000)) {
+      return new Promise.reject(new RangeError("The advertising interval must be within the range of 20 ms to 5 000 ms"));
+    }
+    if ((timeout < 0) || (timeout > 180)) {
+      return Promise.reject(new RangeError("The advertising timeout must be within the range of 0 to 180 s"));
+    }
 			
-      const dataArray = new Uint8Array(3);
-      dataArray[0] = interval & 0xFF;
-      dataArray[1] = (interval >> 8) & 0xFF;
-      dataArray[2] = timeout;
+    const dataArray = new Uint8Array(3);
+    dataArray[0] = interval & 0xFF;
+    dataArray[1] = (interval >> 8) & 0xFF;
+    dataArray[2] = timeout;
 			
-      return await this._writeData(this.advParamsCharacteristic, dataArray);
-    })(params);
+    return await this._writeData(this.advParamsCharacteristic, dataArray);
   }
 
   /**
@@ -413,40 +405,38 @@ export class Thingy {
      *  @return {Promise<Object|Error>} Returns an object with the connection parameters when resolved or a promise with error on rejection.
      *
      */
-  get connParams() {
-    return ( async () => {
-      try {
-        const receivedData = await this._readData(this.connParamsCharacteristic);
+  async getConnParams() {
+    try {
+      const receivedData = await this._readData(this.connParamsCharacteristic);
 	
-        // Connection intervals are given in units of 1.25 ms
-        const littleEndian = true;
-        const minConnInterval = receivedData.getUint16(0, littleEndian) * 1.25;
-        const maxConnInterval = receivedData.getUint16(2, littleEndian) * 1.25;
-        const slaveLatency = receivedData.getUint16(4, littleEndian);
+      // Connection intervals are given in units of 1.25 ms
+      const littleEndian = true;
+      const minConnInterval = receivedData.getUint16(0, littleEndian) * 1.25;
+      const maxConnInterval = receivedData.getUint16(2, littleEndian) * 1.25;
+      const slaveLatency = receivedData.getUint16(4, littleEndian);
 	
-        // Supervision timeout is given i units of 10 ms
-        const supervisionTimeout = receivedData.getUint16(6, littleEndian) * 10;
-        const params = {
-          connectionInterval: {
-            min: minConnInterval,
-            max: maxConnInterval,
-            unit: "ms"
-          },
-          slaveLatency: {
-            value: slaveLatency,
-            unit: "number of connection intervals"
-          },
-          supervisionTimeout: {
-            timeout: supervisionTimeout,
-            unit: "ms"
-          }
-        };
-        return params;
-      }
-      catch (error) {
-        return error;
-      }
-    })();
+      // Supervision timeout is given i units of 10 ms
+      const supervisionTimeout = receivedData.getUint16(6, littleEndian) * 10;
+      const params = {
+        connectionInterval: {
+          min: minConnInterval,
+          max: maxConnInterval,
+          unit: "ms"
+        },
+        slaveLatency: {
+          value: slaveLatency,
+          unit: "number of connection intervals"
+        },
+        supervisionTimeout: {
+          timeout: supervisionTimeout,
+          unit: "ms"
+        }
+      };
+      return params;
+    }
+    catch (error) {
+      return error;
+    }
   }
 
   /**
@@ -458,53 +448,50 @@ export class Thingy {
      *  @return {Promise<Error>} Returns a promise.
      *
      */
-  set connectionInterval(params) {
-    return ( async (params) => {
+  async setConnInterval(params) {			
+    if ((typeof(params) !== "object") || (params.minInterval === undefined)|| (params.maxInterval === undefined)) {
+      return Promise.reject(new TypeError("The argument has to be an object: {minInterval: value, maxInterval: value}"));
+    }
 			
-      if ((typeof(params) !== "object") || (params.minInterval === undefined)|| (params.maxInterval === undefined)) {
-        return Promise.reject(new TypeError("The argument has to be an object: {minInterval: value, maxInterval: value}"));
-      }
+    let minInterval = params.minInterval;
+    let maxInterval = params.maxInterval;
 			
-      let minInterval = params.minInterval;
-      let maxInterval = params.maxInterval;
-			
-      if (minInterval === null || maxInterval === null) {
-        return Promise.reject(new TypeError("Both minimum and maximum acceptable interval must be passed as arguments"));
-      }
+    if (minInterval === null || maxInterval === null) {
+      return Promise.reject(new TypeError("Both minimum and maximum acceptable interval must be passed as arguments"));
+    }
 			
 			
-      // Check parameters
-      if ((minInterval < 7.5) || (minInterval > maxInterval)) {
-        return Promise.reject(new RangeError("The minimum connection interval must be greater than 7.5 ms and <= maximum interval"));
-      }
-      if ((maxInterval > 4000) || (maxInterval < minInterval)) {
-        return Promise.reject(new RangeError("The minimum connection interval must be less than 4 000 ms and >= minimum interval"));
-      }
+    // Check parameters
+    if ((minInterval < 7.5) || (minInterval > maxInterval)) {
+      return Promise.reject(new RangeError("The minimum connection interval must be greater than 7.5 ms and <= maximum interval"));
+    }
+    if ((maxInterval > 4000) || (maxInterval < minInterval)) {
+      return Promise.reject(new RangeError("The minimum connection interval must be less than 4 000 ms and >= minimum interval"));
+    }
 			
-      try {
-        const receivedData = await this._readData(this.connParamsCharacteristic);
-        const dataArray = new Uint8Array(8);
+    try {
+      const receivedData = await this._readData(this.connParamsCharacteristic);
+      const dataArray = new Uint8Array(8);
 
-        // Interval is in units of 1.25 ms.
-        minInterval = parseInt(minInterval * 0.8);
-        maxInterval = parseInt(maxInterval * 0.8);
+      // Interval is in units of 1.25 ms.
+      minInterval = parseInt(minInterval * 0.8);
+      maxInterval = parseInt(maxInterval * 0.8);
 			
-        for (let i = 0; i < dataArray.length; i++) {
-          dataArray[i] = receivedData.getUint8(i);
-        }
+      for (let i = 0; i < dataArray.length; i++) {
+        dataArray[i] = receivedData.getUint8(i);
+      }
 			
-        dataArray[0] = minInterval & 0xFF;
-        dataArray[1] = (minInterval >> 8) & 0xFF;
-        dataArray[2] = maxInterval & 0xFF;
-        dataArray[3] = (maxInterval >> 8) & 0xFF;
+      dataArray[0] = minInterval & 0xFF;
+      dataArray[1] = (minInterval >> 8) & 0xFF;
+      dataArray[2] = maxInterval & 0xFF;
+      dataArray[3] = (maxInterval >> 8) & 0xFF;
 			
-        return await this._writeData(this.connParamsCharacteristic, dataArray);
+      return await this._writeData(this.connParamsCharacteristic, dataArray);
 									
-      }
-      catch (error) {
-        return Promise.reject(new Error("Error when updating connection interval: ", error));
-      }
-    })(params);
+    }
+    catch (error) {
+      return Promise.reject(new Error("Error when updating connection interval: ", error));
+    }
   }
 
   /**
@@ -514,31 +501,29 @@ export class Thingy {
      *  @return {Promise<Object|Error>} Returns a promise.
      *
      */
-  set connectionSlaveLatency(slaveLatency) {
-    return ( async (slaveLatency) => {
+  async setConnSlaveLatency(slaveLatency) {
 			
-      // Check parameters
-      if ((slaveLatency < 0) || (slaveLatency > 499)) {
-        return Promise.reject(new RangeError("The slave latency must be in the range from 0 to 499 connection intervals."));
+    // Check parameters
+    if ((slaveLatency < 0) || (slaveLatency > 499)) {
+      return Promise.reject(new RangeError("The slave latency must be in the range from 0 to 499 connection intervals."));
+    }
+			
+    try {
+      const receivedData = await this._readData(this.connParamsCharacteristic);
+      const dataArray = new Uint8Array(8);
+			
+      for (let i = 0; i < dataArray.length; i++) {
+        dataArray[i] = receivedData.getUint8(i);
       }
 			
-      try {
-        const receivedData = await this._readData(this.connParamsCharacteristic);
-        const dataArray = new Uint8Array(8);
+      dataArray[4] = slaveLatency & 0xFF;
+      dataArray[5] = (slaveLatency >> 8) & 0xFF;
 			
-        for (let i = 0; i < dataArray.length; i++) {
-          dataArray[i] = receivedData.getUint8(i);
-        }
-			
-        dataArray[4] = slaveLatency & 0xFF;
-        dataArray[5] = (slaveLatency >> 8) & 0xFF;
-			
-        return await this._writeData(this.connParamsCharacteristic, dataArray);
-      }
-      catch (error) {
-        return new Error("Error when updating slave latency: ", error);
-      }
-    })(slaveLatency);
+      return await this._writeData(this.connParamsCharacteristic, dataArray);
+    }
+    catch (error) {
+      return new Error("Error when updating slave latency: ", error);
+    }
   }
   
   /**
@@ -550,45 +535,43 @@ export class Thingy {
      *  @return {Promise<Error>} Returns a promise.
      *
      */
-  set connectionTimeout(timeout) {
-    return ( async (timeout) => {
+  async setConnTimeout(timeout) {
 			
-      // Check parameters
-      if ((timeout < 100) || (timeout > 32000)) {
-        return Promise.reject(new RangeError("The supervision timeout must be in the range from 100 ms to 32 000 ms."));
+    // Check parameters
+    if ((timeout < 100) || (timeout > 32000)) {
+      return Promise.reject(new RangeError("The supervision timeout must be in the range from 100 ms to 32 000 ms."));
+    }
+			
+    try {
+			
+      // The supervision timeout has to be set in units of 10 ms
+      timeout = parseInt(timeout / 10);
+      const receivedData = await this._readData(this.connParamsCharacteristic);
+      const dataArray = new Uint8Array(8);
+			
+      for (let i = 0; i < dataArray.length; i++) {
+        dataArray[i] = receivedData.getUint8(i);
       }
 			
-      try {
+      // Check that the timeout obeys  conn_sup_timeout * 4 > (1 + slave_latency) * max_conn_interval 
+      const littleEndian = true;
+      const maxConnInterval = receivedData.getUint16(2, littleEndian);
+      const slaveLatency = receivedData.getUint16(4, littleEndian);
 			
-        // The supervision timeout has to be set in units of 10 ms
-        timeout = parseInt(timeout / 10);
-        const receivedData = await this._readData(this.connParamsCharacteristic);
-        const dataArray = new Uint8Array(8);
-			
-        for (let i = 0; i < dataArray.length; i++) {
-          dataArray[i] = receivedData.getUint8(i);
-        }
-			
-        // Check that the timeout obeys  conn_sup_timeout * 4 > (1 + slave_latency) * max_conn_interval 
-        const littleEndian = true;
-        const maxConnInterval = receivedData.getUint16(2, littleEndian);
-        const slaveLatency = receivedData.getUint16(4, littleEndian);
-			
-        if (timeout * 4 < ((1 + slaveLatency) * maxConnInterval)) {
-          return Promise.reject(new Error("The supervision timeout in milliseconds must be greater than 	\
+      if (timeout * 4 < ((1 + slaveLatency) * maxConnInterval)) {
+        return Promise.reject(new Error("The supervision timeout in milliseconds must be greater than 	\
 																											(1 + slaveLatency) * maxConnInterval * 2, 						\
 																											where maxConnInterval is also given in milliseconds."));
-        }
-			
-        dataArray[6] = timeout & 0xFF;
-        dataArray[7] = (timeout >> 8) & 0xFF;
-			
-        return await this._writeData(this.connParamsCharacteristic, dataArray);
       }
-      catch (error) {
-        return new Error("Error when updating the supervision timeout: ", error);
-      }
-    })(timeout);
+			
+      dataArray[6] = timeout & 0xFF;
+      dataArray[7] = (timeout >> 8) & 0xFF;
+			
+      return await this._writeData(this.connParamsCharacteristic, dataArray);
+    }
+    catch (error) {
+      return new Error("Error when updating the supervision timeout: ", error);
+    }
   }	
 
   /**
@@ -597,33 +580,31 @@ export class Thingy {
      *  @return {Promise<string|Error>} Returns a string with the URL when resolved or a promise with error on rejection.
      *
      */
-  get eddystoneUrl() {
-    return ( async () => {
-      try {
-        const receivedData = await this._readData(this.eddystoneCharacteristic);
+  async getEddystoneUrl() {
+    try {
+      const receivedData = await this._readData(this.eddystoneCharacteristic);
 	
-        // According to Eddystone URL encoding specification, certain elements can be expanded: https://github.com/google/eddystone/tree/master/eddystone-url
-        const prefixArray = ["http://www.", "https://www.", "http://", "https://"];
-        const expansionCodes = [".com/", ".org/", ".edu/", ".net/", ".info/",
-          ".biz/", ".gov/", ".com", ".org", ".edu", ".net",
-          ".info", ".biz", ".gov"];
-        const prefix = prefixArray[receivedData.getUint8(0)];
-        const decoder = new TextDecoder("utf-8");
-        let url = decoder.decode(receivedData);
-        url = prefix + url.slice(1);
+      // According to Eddystone URL encoding specification, certain elements can be expanded: https://github.com/google/eddystone/tree/master/eddystone-url
+      const prefixArray = ["http://www.", "https://www.", "http://", "https://"];
+      const expansionCodes = [".com/", ".org/", ".edu/", ".net/", ".info/",
+        ".biz/", ".gov/", ".com", ".org", ".edu", ".net",
+        ".info", ".biz", ".gov"];
+      const prefix = prefixArray[receivedData.getUint8(0)];
+      const decoder = new TextDecoder("utf-8");
+      let url = decoder.decode(receivedData);
+      url = prefix + url.slice(1);
 	
-        expansionCodes.forEach( (element, i) => {
-          if (url.indexOf(String.fromCharCode(i)) !== -1) {
-            url = url.replace(String.fromCharCode(i), expansionCodes[i]);
-          }
-        });
+      expansionCodes.forEach( (element, i) => {
+        if (url.indexOf(String.fromCharCode(i)) !== -1) {
+          url = url.replace(String.fromCharCode(i), expansionCodes[i]);
+        }
+      });
 	
-        return new URL(url);
-      }
-      catch (error) {
-        return error;
-      }
-    })();
+      return new URL(url);
+    }
+    catch (error) {
+      return error;
+    }
   }
 
   /**
@@ -636,7 +617,7 @@ export class Thingy {
      * 	@param {string} url - The URL that should be broadcasted. 
 		 *  @return {Promise<Error>} Returns a promise.
      */
-  set eddystoneUrl(url) {
+  async setEddystoneUrl(url) {
     try {
 
       // Uses URL API to check for valid URL
@@ -693,19 +674,17 @@ export class Thingy {
      *  @return {Promise<string|Error>} Returns a string with the cloud token when resolved or a promise with error on rejection.
      *
      */
-  get cloudToken() {
-    return ( async () => {
-      try {
-        const receivedData = await this._readData(this.cloudTokenCharacteristic);
-        const decoder = new TextDecoder("utf-8");
-        const token = decoder.decode(receivedData);
+  async getCloudToken() {
+    try {
+      const receivedData = await this._readData(this.cloudTokenCharacteristic);
+      const decoder = new TextDecoder("utf-8");
+      const token = decoder.decode(receivedData);
 	
-        return token;
-      }
-      catch (error) {
-        return error;
-      }
-    })();
+      return token;
+    }
+    catch (error) {
+      return error;
+    }
   }
 
   /**
@@ -715,7 +694,7 @@ export class Thingy {
      * 	@return {Promise<Error>} Returns a promise.
      *
      */
-  set cloudToken(token) {
+  async setCloudToken(token) {
     if (token.len > 250) {
       return Promise.reject(new Error("The cloud token can not exceed 250 characters."));
     }
@@ -731,19 +710,17 @@ export class Thingy {
      *  @return {Promise<number|Error>} Returns the MTU when resolved or a promise with error on rejection.
      *
      */
-  get mtu() {
-    return ( async () => {
-      try {
-        const receivedData = await this._readData(this.mtuRequestCharacteristic);
-        const littleEndian = true;
-        const mtu = receivedData.getUint16(1, littleEndian);
+  async getMtu() {
+    try {
+      const receivedData = await this._readData(this.mtuRequestCharacteristic);
+      const littleEndian = true;
+      const mtu = receivedData.getUint16(1, littleEndian);
 	
-        return mtu;
-      }
-      catch (error) {
-        return error;
-      }
-    })();
+      return mtu;
+    }
+    catch (error) {
+      return error;
+    }
   }
 
   /**
@@ -755,7 +732,7 @@ export class Thingy {
      * 	@return {Promise<Error>} Returns a promise.
      *
      */
-  set mtu(params) {
+  async setMtu(params) {
     if ((params !== "object") || (params.mtuSize === undefined)) {
       return Promise.reject(new TypeError("The argument has to be an object"));
     }
@@ -781,21 +758,19 @@ export class Thingy {
      *  @return {Promise<string|Error>} Returns a string with the firmware version or a promise with error on rejection.
      *
      */
-  get firmwareVersion() {
-    return ( async () => {
-      try {
-        const receivedData = await this._readData(this.firmwareVersionCharacteristic);
-        const major = receivedData.getUint8(0);
-        const minor = receivedData.getUint8(1);
-        const patch = receivedData.getUint8(2);
-        const version = `v${major}.${minor}.${patch}`;
+  async getFirmwareVersion() {
+    try {
+      const receivedData = await this._readData(this.firmwareVersionCharacteristic);
+      const major = receivedData.getUint8(0);
+      const minor = receivedData.getUint8(1);
+      const patch = receivedData.getUint8(2);
+      const version = `v${major}.${minor}.${patch}`;
 	
-        return version;
-      }
-      catch (error) {
-        return error;
-      }
-    })();
+      return version;
+    }
+    catch (error) {
+      return error;
+    }
   }
 
   //  ******  //
@@ -809,36 +784,34 @@ export class Thingy {
      *  @return {Promise<Object|Error>} Returns an environment configuration object when promise resolves, or an error if rejected.
      *
      */
-  get environmentConfig() {
-    return ( async () => {
-      try {
-        const data = await this._readData(this.environmentConfigCharacteristic);
-        const littleEndian = true;
-        const tempInterval = data.getUint16(0, littleEndian);
-        const pressureInterval = data.getUint16(2, littleEndian);
-        const humidityInterval = data.getUint16(4, littleEndian);
-        const colorInterval = data.getUint16(6, littleEndian);
-        const gasMode = data.getUint8(8);
-        const colorSensorRed = data.getUint8(9);
-        const colorSensorGreen = data.getUint8(10);
-        const colorSensorBlue = data.getUint8(11);
-        const config = {
-          tempInterval: tempInterval,
-          pressureInterval: pressureInterval,
-          humidityInterval: humidityInterval, 
-          colorInterval: colorInterval,
-          gasMode: gasMode,
-          colorSensorRed: colorSensorRed,
-          colorSensorGreen: colorSensorGreen,
-          colorSensorBlue: colorSensorBlue
-        };
+  async getEnvironmentConfig() {
+    try {
+      const data = await this._readData(this.environmentConfigCharacteristic);
+      const littleEndian = true;
+      const tempInterval = data.getUint16(0, littleEndian);
+      const pressureInterval = data.getUint16(2, littleEndian);
+      const humidityInterval = data.getUint16(4, littleEndian);
+      const colorInterval = data.getUint16(6, littleEndian);
+      const gasMode = data.getUint8(8);
+      const colorSensorRed = data.getUint8(9);
+      const colorSensorGreen = data.getUint8(10);
+      const colorSensorBlue = data.getUint8(11);
+      const config = {
+        tempInterval: tempInterval,
+        pressureInterval: pressureInterval,
+        humidityInterval: humidityInterval, 
+        colorInterval: colorInterval,
+        gasMode: gasMode,
+        colorSensorRed: colorSensorRed,
+        colorSensorGreen: colorSensorGreen,
+        colorSensorBlue: colorSensorBlue
+      };
 	
-        return config;
-      }
-      catch (error) {
-        return new Error("Error when getting environment sensors configurations: ", error);
-      }
-    })();
+      return config;
+    }
+    catch (error) {
+      return new Error("Error when getting environment sensors configurations: ", error);
+    }
   }
 
   /**
@@ -848,30 +821,28 @@ export class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-  set temperatureInterval(interval) {
-    return ( async (interval) => {
-      try {
-        if ((interval < 50) || (interval > 60000)) {
-          return Promise.reject(new RangeError("The temperature sensor update interval must be in the range 100 ms - 60 000 ms"));
-        }
-	
-        // Preserve values for those settings that are not being changed 
-        const receivedData = await this._readData(this.environmentConfigCharacteristic);
-        const dataArray = new Uint8Array(12);
-	
-        for (let i = 0; i < dataArray.length; i++) {
-          dataArray[i] = receivedData.getUint8(i);
-        }
-	
-        dataArray[0] = interval & 0xFF;
-        dataArray[1] = (interval >> 8) & 0xFF;
-	
-        return await this._writeData(this.environmentConfigCharacteristic, dataArray);
+  async setTemperatureInterval(interval) {
+    try {
+      if ((interval < 50) || (interval > 60000)) {
+        return Promise.reject(new RangeError("The temperature sensor update interval must be in the range 100 ms - 60 000 ms"));
       }
-      catch (error) {
-        return new Error("Error when setting new temperature update interval: ", error);
+	
+      // Preserve values for those settings that are not being changed 
+      const receivedData = await this._readData(this.environmentConfigCharacteristic);
+      const dataArray = new Uint8Array(12);
+	
+      for (let i = 0; i < dataArray.length; i++) {
+        dataArray[i] = receivedData.getUint8(i);
       }
-    })(interval);
+	
+      dataArray[0] = interval & 0xFF;
+      dataArray[1] = (interval >> 8) & 0xFF;
+	
+      return await this._writeData(this.environmentConfigCharacteristic, dataArray);
+    }
+    catch (error) {
+      return new Error("Error when setting new temperature update interval: ", error);
+    }
   } 
 
   /**
@@ -881,30 +852,28 @@ export class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-  set pressureInterval(interval) {
-    return ( async (interval) => {
-      try {
-        if ((interval < 50) || (interval > 60000)) {
-          return Promise.reject(new RangeError("The pressure sensor update interval must be in the range 100 ms - 60 000 ms"));
-        }
+  async setPressureInterval(interval) {
+    try {
+      if ((interval < 50) || (interval > 60000)) {
+        return Promise.reject(new RangeError("The pressure sensor update interval must be in the range 100 ms - 60 000 ms"));
+      }
 							
-        // Preserve values for those settings that are not being changed 
-        const receivedData = await this._readData(this.environmentConfigCharacteristic);
-        const dataArray = new Uint8Array(12);
+      // Preserve values for those settings that are not being changed 
+      const receivedData = await this._readData(this.environmentConfigCharacteristic);
+      const dataArray = new Uint8Array(12);
 	
-        for (let i = 0; i < dataArray.length; i++) {
-          dataArray[i] = receivedData.getUint8(i);
-        }
-	
-        dataArray[2] = interval & 0xFF;
-        dataArray[3] = (interval >> 8) & 0xFF;
-	
-        return await this._writeData(this.environmentConfigCharacteristic, dataArray);
+      for (let i = 0; i < dataArray.length; i++) {
+        dataArray[i] = receivedData.getUint8(i);
       }
-      catch (error) {
-        return new Error("Error when setting new pressure update interval: ", error);
-      }
-    })(interval);
+	
+      dataArray[2] = interval & 0xFF;
+      dataArray[3] = (interval >> 8) & 0xFF;
+	
+      return await this._writeData(this.environmentConfigCharacteristic, dataArray);
+    }
+    catch (error) {
+      return new Error("Error when setting new pressure update interval: ", error);
+    }
   }
 
   /**
@@ -914,30 +883,28 @@ export class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-  set humidityInterval(interval) {
-    return ( async (interval) => {
-      try {
-        if ((interval < 100) || (interval > 60000)) {
-          return Promise.reject(new RangeError("The humidity sensor sampling interval must be in the range 100 ms - 60 000 ms"));
-        }
-	
-        // Preserve values for those settings that are not being changed 
-        const receivedData = await this._readData(this.environmentConfigCharacteristic);
-        const dataArray = new Uint8Array(12);
-	
-        for (let i = 0; i < dataArray.length; i++) {
-          dataArray[i] = receivedData.getUint8(i);
-        }
-	
-        dataArray[4] = interval & 0xFF;
-        dataArray[5] = (interval >> 8) & 0xFF;
-	
-        return await this._writeData(this.environmentConfigCharacteristic, dataArray);
+  async setHumidityInterval(interval) {
+    try {
+      if ((interval < 100) || (interval > 60000)) {
+        return Promise.reject(new RangeError("The humidity sensor sampling interval must be in the range 100 ms - 60 000 ms"));
       }
-      catch (error) {
-        return new Error("Error when setting new humidity update interval: ", error);
+	
+      // Preserve values for those settings that are not being changed 
+      const receivedData = await this._readData(this.environmentConfigCharacteristic);
+      const dataArray = new Uint8Array(12);
+	
+      for (let i = 0; i < dataArray.length; i++) {
+        dataArray[i] = receivedData.getUint8(i);
       }
-    })(interval);
+	
+      dataArray[4] = interval & 0xFF;
+      dataArray[5] = (interval >> 8) & 0xFF;
+	
+      return await this._writeData(this.environmentConfigCharacteristic, dataArray);
+    }
+    catch (error) {
+      return new Error("Error when setting new humidity update interval: ", error);
+    }
   }
 
   /**
@@ -947,30 +914,28 @@ export class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-  set colorInterval(interval) {
-    return ( async (interval) => {
-      try {
-        if ((interval < 200) || (interval > 60000)) {
-          return Promise.reject(new RangeError("The color sensor sampling interval must be in the range 200 ms - 60 000 ms"));
-        }
-	
-        // Preserve values for those settings that are not being changed 
-        const receivedData = await this._readData(this.environmentConfigCharacteristic);
-        const dataArray = new Uint8Array(12);
-	
-        for (let i = 0; i < dataArray.length; i++) {
-          dataArray[i] = receivedData.getUint8(i);
-        }
-	
-        dataArray[6] = interval & 0xFF;
-        dataArray[7] = (interval >> 8) & 0xFF;
-	
-        return await this._writeData(this.environmentConfigCharacteristic, dataArray);
+  async setColorInterval(interval) {
+    try {
+      if ((interval < 200) || (interval > 60000)) {
+        return Promise.reject(new RangeError("The color sensor sampling interval must be in the range 200 ms - 60 000 ms"));
       }
-      catch (error) {
-        return new Error("Error when setting new color sensor update interval: ", error);
+	
+      // Preserve values for those settings that are not being changed 
+      const receivedData = await this._readData(this.environmentConfigCharacteristic);
+      const dataArray = new Uint8Array(12);
+	
+      for (let i = 0; i < dataArray.length; i++) {
+        dataArray[i] = receivedData.getUint8(i);
       }
-    })(interval);
+	
+      dataArray[6] = interval & 0xFF;
+      dataArray[7] = (interval >> 8) & 0xFF;
+	
+      return await this._writeData(this.environmentConfigCharacteristic, dataArray);
+    }
+    catch (error) {
+      return new Error("Error when setting new color sensor update interval: ", error);
+    }
   }
 
   /**
@@ -980,37 +945,35 @@ export class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-  set gasInterval(interval) {
-    return ( async (interval) => {
-      try {
-        let mode;
+  async setGasInterval(interval) {
+    try {
+      let mode;
 				
-        if (interval === 1) {
-          mode = 1;
-        } else if (interval === 10) {
-          mode = 2;
-        } else if (interval === 60) {
-          mode = 3;
-        } else {
-          return Promise.reject(new RangeError("The gas sensor interval has to be 1, 10 or 60 seconds."));
-        }
+      if (interval === 1) {
+        mode = 1;
+      } else if (interval === 10) {
+        mode = 2;
+      } else if (interval === 60) {
+        mode = 3;
+      } else {
+        return Promise.reject(new RangeError("The gas sensor interval has to be 1, 10 or 60 seconds."));
+      }
 	
-        // Preserve values for those settings that are not being changed 
-        const receivedData = await this._readData(this.environmentConfigCharacteristic);
-        const dataArray = new Uint8Array(12);
+      // Preserve values for those settings that are not being changed 
+      const receivedData = await this._readData(this.environmentConfigCharacteristic);
+      const dataArray = new Uint8Array(12);
 							
-        for (let i = 0; i < dataArray.length; i++) {
-          dataArray[i] = receivedData.getUint8(i);
-        }
+      for (let i = 0; i < dataArray.length; i++) {
+        dataArray[i] = receivedData.getUint8(i);
+      }
 
-        dataArray[8] = mode;
+      dataArray[8] = mode;
 	
-        return await this._writeData(this.environmentConfigCharacteristic, dataArray);
-      }
-      catch (error) {
-        return new Error("Error when setting new gas sensor interval: ", error);
-      }
-    })(interval);
+      return await this._writeData(this.environmentConfigCharacteristic, dataArray);
+    }
+    catch (error) {
+      return new Error("Error when setting new gas sensor interval: ", error);
+    }
   }
 
   /**
@@ -1253,48 +1216,46 @@ export class Thingy {
      *  @return {Promise<Object>} Returns a LED status object. The content and structure depends on the current mode.
      *
      */
-  get ledStatus() {
-    return ( async () => {
-      try {
-        const data = await this._readData(this.ledCharacteristic);
-        const mode = data.getUint8(0);
-        const littleEndian = true;
-        let status;
+  async getLedStatus() {
+    try {
+      const data = await this._readData(this.ledCharacteristic);
+      const mode = data.getUint8(0);
+      const littleEndian = true;
+      let status;
 	
-        switch (mode) {
-        case 0:
-          status = { LEDstatus: { mode: mode } };
-          break;
-        case 1:
-          status = {
-            mode: mode,
-            r: data.getUint8(1),
-            g: data.getUint8(2),
-            b: data.getUint8(3)
-          };
-          break;
-        case 2:
-          status = {
-            mode: mode,
-            color: data.getUint8(1),
-            intensity: data.getUint8(2),
-            delay: data.getUint16(3, littleEndian)
-          };
-          break;
-        case 3:
-          status = {
-            mode: mode,
-            color: data.getUint8(1),
-            intensity: data.getUint8(2)
-          };
-          break;
-        }
-        return status;
+      switch (mode) {
+      case 0:
+        status = { LEDstatus: { mode: mode } };
+        break;
+      case 1:
+        status = {
+          mode: mode,
+          r: data.getUint8(1),
+          g: data.getUint8(2),
+          b: data.getUint8(3)
+        };
+        break;
+      case 2:
+        status = {
+          mode: mode,
+          color: data.getUint8(1),
+          intensity: data.getUint8(2),
+          delay: data.getUint16(3, littleEndian)
+        };
+        break;
+      case 3:
+        status = {
+          mode: mode,
+          color: data.getUint8(1),
+          intensity: data.getUint8(2)
+        };
+        break;
       }
-      catch (error) {
-        return new Error("Error when getting Thingy LED status: ", error);
-      }
-    })();
+      return status;
+    }
+    catch (error) {
+      return new Error("Error when getting Thingy LED status: ", error);
+    }
   }
 
   _ledSet(dataArray) {
@@ -1468,30 +1429,28 @@ export class Thingy {
      *  @return {Promise<Object|Error>} Returns a motion configuration object when promise resolves, or an error if rejected.
      *
      */
-  get motionConfig() {
-    return ( async () => {
-      try {
-        const data = await this._readData(this.tmsConfigCharacteristic);
-        const littleEndian = true;
-        const stepCounterInterval = data.getUint16(0, littleEndian);
-        const tempCompInterval = data.getUint16(2, littleEndian);
-        const magnetCompInterval = data.getUint16(4, littleEndian);
-        const motionProcessingFrequency = data.getUint16(6, littleEndian);
-        const wakeOnMotion = data.getUint8(8);
-        const config = {
-          stepCountInterval: stepCounterInterval,
-          tempCompInterval: tempCompInterval,
-          magnetCompInterval: magnetCompInterval,
-          motionProcessingFrequency: motionProcessingFrequency,
-          wakeOnMotion: wakeOnMotion
-        };
+  async getMotionConfig() {
+    try {
+      const data = await this._readData(this.tmsConfigCharacteristic);
+      const littleEndian = true;
+      const stepCounterInterval = data.getUint16(0, littleEndian);
+      const tempCompInterval = data.getUint16(2, littleEndian);
+      const magnetCompInterval = data.getUint16(4, littleEndian);
+      const motionProcessingFrequency = data.getUint16(6, littleEndian);
+      const wakeOnMotion = data.getUint8(8);
+      const config = {
+        stepCountInterval: stepCounterInterval,
+        tempCompInterval: tempCompInterval,
+        magnetCompInterval: magnetCompInterval,
+        motionProcessingFrequency: motionProcessingFrequency,
+        wakeOnMotion: wakeOnMotion
+      };
 	
-        return config;
-      }
-      catch (error) {
-        return new Error("Error when getting Thingy motion module configuration: ", error);
-      }
-    })();
+      return config;
+    }
+    catch (error) {
+      return new Error("Error when getting Thingy motion module configuration: ", error);
+    }
   }
 	
   /**
@@ -1501,63 +1460,59 @@ export class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-  set stepCounterInterval(interval) {
-    return ( async (interval) => {
-      try {
-        if (interval < 100 || interval > 5000) {
-          return Promise.reject(new Error("The interval has to be in the range 100 - 5000 ms."));
-        }
-	
-        // Preserve values for those settings that are not being changed 
-        const receivedData = await this._readData(this.tmsConfigCharacteristic);
-        const dataArray = new Uint8Array(9);
-	
-        for (let i = 0; i < dataArray.length; i++) {
-          dataArray[i] = receivedData.getUint8(i);
-        }
-	
-        dataArray[0] = interval & 0xFF;
-        dataArray[1] = (interval >> 8) & 0xFF;
-	
-        return await this._writeData(this.tmsConfigCharacteristic, dataArray);
+  async setStepCounterInterval(interval) {
+    try {
+      if (interval < 100 || interval > 5000) {
+        return Promise.reject(new Error("The interval has to be in the range 100 - 5000 ms."));
       }
-      catch (error) {
-        return new Error("Error when setting new step count interval: ", error);
+	
+      // Preserve values for those settings that are not being changed 
+      const receivedData = await this._readData(this.tmsConfigCharacteristic);
+      const dataArray = new Uint8Array(9);
+	
+      for (let i = 0; i < dataArray.length; i++) {
+        dataArray[i] = receivedData.getUint8(i);
       }
-    })(interval);
+	
+      dataArray[0] = interval & 0xFF;
+      dataArray[1] = (interval >> 8) & 0xFF;
+	
+      return await this._writeData(this.tmsConfigCharacteristic, dataArray);
+    }
+    catch (error) {
+      return new Error("Error when setting new step count interval: ", error);
+    }
   }
 
   /**
-     *  Sets the temperature compensation interval.
-     *
-     *  @param {Number} interval - Temperature compensation interval in milliseconds. Must be in the range 100 ms to 5 000 ms.
-     *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
-     *
-     */
-  set temperatureCompInterval(interval) {
-    return ( async (interval) => {
-      try {
-        if (interval < 100 || interval > 5000) {
-          return Promise.reject(new Error("The interval has to be in the range 100 - 5000 ms."));
-        }
-	
-        // Preserve values for those settings that are not being changed 
-        const receivedData = await this._readData(this.tmsConfigCharacteristic);
-        const dataArray = new Uint8Array(9);
-	
-        for (let i = 0; i < dataArray.length; i++) {
-          dataArray[i] = receivedData.getUint8(i);
-        }
-	
-        dataArray[2] = interval & 0xFF;
-        dataArray[3] = (interval >> 8) & 0xFF;
-	
-        return await this._writeData(this.tmsConfigCharacteristic, dataArray);
+   *  Sets the temperature compensation interval.
+   *
+   *  @param {Number} interval - Temperature compensation interval in milliseconds. Must be in the range 100 ms to 5 000 ms.
+   *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
+   *
+   */
+  async setTemperatureCompInterval(interval) {
+    try {
+      if (interval < 100 || interval > 5000) {
+        return Promise.reject(new Error("The interval has to be in the range 100 - 5000 ms."));
       }
-      catch (error) {
-        return new Error("Error when setting new temperature compensation interval: ", error);
+	
+      // Preserve values for those settings that are not being changed 
+      const receivedData = await this._readData(this.tmsConfigCharacteristic);
+      const dataArray = new Uint8Array(9);
+	
+      for (let i = 0; i < dataArray.length; i++) {
+        dataArray[i] = receivedData.getUint8(i);
       }
-    })(interval);
+	
+      dataArray[2] = interval & 0xFF;
+      dataArray[3] = (interval >> 8) & 0xFF;
+	
+      return await this._writeData(this.tmsConfigCharacteristic, dataArray);
+    }
+    catch (error) {
+      return new Error("Error when setting new temperature compensation interval: ", error);
+    }
   }
 
   /**
@@ -1567,30 +1522,28 @@ export class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-  set magnetCompInterval(interval) {
-    return ( async (interval) => {
-      try {
-        if (interval < 100 || interval > 1000) {
-          return Promise.reject(new Error("The interval has to be in the range 100 - 1000 ms."));
-        }
-	
-        // Preserve values for those settings that are not being changed 
-        const receivedData = await this._readData(this.tmsConfigCharacteristic);
-        const dataArray = new Uint8Array(9);
-	
-        for (let i = 0; i < dataArray.length; i++) {
-          dataArray[i] = receivedData.getUint8(i);
-        }
-	
-        dataArray[4] = interval & 0xFF;
-        dataArray[5] = (interval >> 8) & 0xFF;
-	
-        return await this._writeData(this.tmsConfigCharacteristic, dataArray);
+  async setMagnetCompInterval(interval) {
+    try {
+      if (interval < 100 || interval > 1000) {
+        return Promise.reject(new Error("The interval has to be in the range 100 - 1000 ms."));
       }
-      catch (error) {
-        return new Error("Error when setting new magnetometer compensation interval: ", error);
+	
+      // Preserve values for those settings that are not being changed 
+      const receivedData = await this._readData(this.tmsConfigCharacteristic);
+      const dataArray = new Uint8Array(9);
+	
+      for (let i = 0; i < dataArray.length; i++) {
+        dataArray[i] = receivedData.getUint8(i);
       }
-    })(interval);
+	
+      dataArray[4] = interval & 0xFF;
+      dataArray[5] = (interval >> 8) & 0xFF;
+	
+      return await this._writeData(this.tmsConfigCharacteristic, dataArray);
+    }
+    catch (error) {
+      return new Error("Error when setting new magnetometer compensation interval: ", error);
+    }
   }
 
   /**
@@ -1600,30 +1553,28 @@ export class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-  set motionProcessFrequency(frequency) {
-    return ( async (frequency) => {
-      try {
-        if (frequency < 100 || frequency > 200) {
-          return Promise.reject(new Error("The interval has to be in the range 5 - 200 Hz."));
-        }
+  async setMotionProcessFrequency(frequency) {
+    try {
+      if (frequency < 100 || frequency > 200) {
+        return Promise.reject(new Error("The interval has to be in the range 5 - 200 Hz."));
+      }
 	
-        // Preserve values for those settings that are not being changed 
-        const receivedData = await this._readData(this.tmsConfigCharacteristic);
-        const dataArray = new Uint8Array(9);
+      // Preserve values for those settings that are not being changed 
+      const receivedData = await this._readData(this.tmsConfigCharacteristic);
+      const dataArray = new Uint8Array(9);
 	
-        for (let i = 0; i < dataArray.length; i++) {
-          dataArray[i] = receivedData.getUint8(i);
-        }
+      for (let i = 0; i < dataArray.length; i++) {
+        dataArray[i] = receivedData.getUint8(i);
+      }
 							
-        dataArray[6] = frequency & 0xFF;
-        dataArray[7] = (frequency >> 8) & 0xFF;
+      dataArray[6] = frequency & 0xFF;
+      dataArray[7] = (frequency >> 8) & 0xFF;
 	
-        return await this._writeData(this.tmsConfigCharacteristic, dataArray);
-      }
-      catch (error) {
-        return new Error("Error when setting new motion porcessing unit update frequency: ", error);
-      }
-    })(frequency);
+      return await this._writeData(this.tmsConfigCharacteristic, dataArray);
+    }
+    catch (error) {
+      return new Error("Error when setting new motion porcessing unit update frequency: ", error);
+    }
   }
 
   /**
@@ -1633,36 +1584,34 @@ export class Thingy {
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
      *
      */
-  set wakeOnMotion(enable) {
-    return (async (enable) => {
-      try {
-        if (typeof(enable) !== "boolean")  {
-          return Promise.reject(new Error("The argument must be true or false."));
-        }
+  async setWakeOnMotion(enable) {
+    try {
+      if (typeof(enable) !== "boolean")  {
+        return Promise.reject(new Error("The argument must be true or false."));
+      }
 					
-        // Preserve values for those settings that are not being changed 
-        const receivedData = await this._readData(this.tmsConfigCharacteristic);
-        const dataArray = new Uint8Array(9);
+      // Preserve values for those settings that are not being changed 
+      const receivedData = await this._readData(this.tmsConfigCharacteristic);
+      const dataArray = new Uint8Array(9);
 	
-        for (let i = 0; i < dataArray.length; i++) {
-          dataArray[i] = receivedData.getUint8(i);
-        }
-	
-        dataArray[8] = enable ? 1 : 0;
-	
-        return await this._writeData(this.tmsConfigCharacteristic, dataArray);
+      for (let i = 0; i < dataArray.length; i++) {
+        dataArray[i] = receivedData.getUint8(i);
       }
-      catch (error) {
-        return new Error("Error when setting new magnetometer compensation interval: ", error);
-      }
-    })(enable);
+	
+      dataArray[8] = enable ? 1 : 0;
+	
+      return await this._writeData(this.tmsConfigCharacteristic, dataArray);
+    }
+    catch (error) {
+      return new Error("Error when setting new magnetometer compensation interval:" + error);
+    }
   }
 
   /**
      *  Enables tap detection notifications from Thingy. The assigned event handler will be called when notifications are received.
      *
-     *  @param {callback} eventHandler - The callback function that is triggered on notification. Will receive a tap detection object as argument.
-     *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+     *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a tap detection object as argument.
+     *  @param {boolean} enable - Enables notifications if true or disables them if set to false.
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection
      *
      */
@@ -1694,7 +1643,7 @@ export class Thingy {
      *  Enables orientation detection notifications from Thingy. The assigned event handler will be called when notifications are received.
      *
      *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a orientation detection object as argument.
-     *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+     *  @param {boolean} enable - Enables notifications if true or disables them if set to false.
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection
      *
      */
@@ -1722,7 +1671,7 @@ export class Thingy {
      *  Enables quaternion notifications from Thingy. The assigned event handler will be called when notifications are received.
      *
      *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a quaternion object as argument.
-     *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+     *  @param {boolean} enable - Enables notifications if true or disables them if set to false.
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection
      *
      */
@@ -1769,7 +1718,7 @@ export class Thingy {
      *  Enables step counter notifications from Thingy. The assigned event handler will be called when notifications are received.
      *
      *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a step counter object as argument.
-     *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+     *  @param {boolean} enable - Enables notifications if true or disables them if set to false.
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection
      *
      */
@@ -1805,7 +1754,7 @@ export class Thingy {
      *  Enables raw motion data notifications from Thingy. The assigned event handler will be called when notifications are received.
      *
      *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a raw motion data object as argument.
-     *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+     *  @param {boolean} enable - Enables notifications if true or disables them if set to false.
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection
      *
      */
@@ -1867,7 +1816,7 @@ export class Thingy {
      *  Enables Euler angle data notifications from Thingy. The assigned event handler will be called when notifications are received.
      *
      *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive an Euler angle data object as argument.
-     *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+     *  @param {boolean} enable - Enables notifications if true or disables them if set to false.
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection
      *
      */
@@ -1904,7 +1853,7 @@ export class Thingy {
      *  Enables rotation matrix notifications from Thingy. The assigned event handler will be called when notifications are received.
      *
      *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive an rotation matrix object as argument.
-     *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+     *  @param {boolean} enable - Enables notifications if true or disables them if set to false.
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection
      *
      */
@@ -1947,7 +1896,7 @@ export class Thingy {
      *  Enables heading notifications from Thingy. The assigned event handler will be called when notifications are received.
      *
      *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a heading object as argument.
-     *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+     *  @param {boolean} enable - Enables notifications if true or disables them if set to false.
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection
      *
      */
@@ -1981,7 +1930,7 @@ export class Thingy {
      *  Enables gravity vector notifications from Thingy. The assigned event handler will be called when notifications are received.
      *
      *  @param {function} eventHandler - The callback function that is triggered on notification. Will receive a heading object as argument.
-     *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+     *  @param {boolean} enable - Enables notifications if true or disables them if set to false.
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection
      *
      */
@@ -2026,28 +1975,26 @@ export class Thingy {
      *  @return {Promise<number | Error>} Returns battery level in percentage when promise is resolved or an error if rejected.
      *
      */
-  get batteryLevel() {
-    return ( async () => {
-      try {
-        const receivedData = await this._readData(this.batteryCharacteristic);
-        const level = receivedData.getUint8(0);
+  async getBatteryLevel() {
+    try {
+      const receivedData = await this._readData(this.batteryCharacteristic);
+      const level = receivedData.getUint8(0);
 	
-        return {
-          value: level,
-          unit: "%"
-        };
-      }
-      catch (error) {
-        return error;
-      }
-    })();
+      return {
+        value: level,
+        unit: "%"
+      };
+    }
+    catch (error) {
+      return error;
+    }
   }
 
   /**
      *  Enables battery level notifications.
      *
      *  @param {function} eventHandler - The callback function that is triggered on battery level change. Will receive a battery level object as argument.
-     *  @param {bool} enable - Enables notifications if true or disables them if set to false.
+     *  @param {boolean} enable - Enables notifications if true or disables them if set to false.
      *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection
      *
      */
