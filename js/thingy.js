@@ -90,17 +90,17 @@ export class Thingy {
   }
 
   /**
-     *  Method to read data from a Web Bluetooth characteristic.
-     *  Implements a simple solution to avoid starting new GATT requests while another is pending.
-     *  Any attempt to read while another GATT operation is in progress, will result in a rejected promise.
-     *
-     *  @async
-     *  @param {Object} characteristic - Web Bluetooth characteristic object
-     *  @return {Promise<DataView>} Returns Uint8Array when resolved or an error when rejected
-     *
-     *  @private
+   *  Method to read data from a Web Bluetooth characteristic.
+   *  Implements a simple solution to avoid starting new GATT requests while another is pending.
+   *  Any attempt to read while another GATT operation is in progress, will result in a rejected promise.
+   *
+   *  @async
+   *  @param {Object} characteristic - Web Bluetooth characteristic object
+   *  @return {Promise<DataView>} Returns Uint8Array when resolved or an error when rejected
+   *
+   *  @private
 
-    */
+  */
   async _readData(characteristic) {
     if (!this.bleIsBusy) {
       try {
@@ -118,19 +118,19 @@ export class Thingy {
   }
 
   /**
-	 *  Method to write data to a Web Bluetooth characteristic.
-	 *  Implements a simple solution to avoid starting new GATT requests while another is pending.
-	 *  Any attempt to send data during another GATT operation will result in a rejected promise.
-	 *  No retransmission is implemented at this level.
-	 *
-   *  @async
-	 *  @param {Object} characteristic - Web Bluetooth characteristic object
-	 *  @param {Uint8Array} dataArray - Typed array of bytes to send
-	 *  @return {Promise}
-	 *
-	 * 	@private
+   *  Method to write data to a Web Bluetooth characteristic.
+   *  Implements a simple solution to avoid starting new GATT requests while another is pending.
+   *  Any attempt to send data during another GATT operation will result in a rejected promise.
+   *  No retransmission is implemented at this level.
    *
-	 */
+   *  @async
+   *  @param {Object} characteristic - Web Bluetooth characteristic object
+   *  @param {Uint8Array} dataArray - Typed array of bytes to send
+   *  @return {Promise}
+   *
+   *  @private
+   *
+   */
   async _writeData(characteristic, dataArray) {
     if (!this.bleIsBusy) {
       try {
@@ -162,12 +162,9 @@ export class Thingy {
       }
 
       this.device = await navigator.bluetooth.requestDevice({
-	filters: [
-	  {
-	    services: [this.TCS_UUID],
-	  },
-	],
-	optionalServices: this.serviceUUIDs,
+        filters: [{services: [this.TCS_UUID]},
+        ],
+        optionalServices: this.serviceUUIDs,
       });
       if (this.logEnabled) {
         console.log(`Found Thingy named "${this.device.name}", trying to connect`);
@@ -347,12 +344,12 @@ export class Thingy {
       const params = {
         interval: {
           interval: interval,
-	  unit: "ms",
+          unit: "ms",
         },
         timeout: {
           timeout: timeout,
-	  unit: "s",
-	},
+          unit: "s",
+        },
       };
       return params;
     } catch (error) {
@@ -364,7 +361,7 @@ export class Thingy {
    *  Sets the advertising parameters
    *
    *  @async
-   * 	@param {Object} params - Object with key/value pairs 'interval' and 'timeout': <code>{interval: someInterval, timeout: someTimeout}</code>.
+   *  @param {Object} params - Object with key/value pairs 'interval' and 'timeout': <code>{interval: someInterval, timeout: someTimeout}</code>.
    *  @param {number} params.interval - The advertising interval in milliseconds in the range of 20 ms to 5 000 ms.
    *  @param {number} params.timeout - The advertising timeout in seconds in the range 1 s to 180 s.
    *  @return {Promise<Error>} Returns a promise.
@@ -373,10 +370,8 @@ export class Thingy {
   async setAdvParams(params) {
     if (typeof params !== "object" || params.interval === undefined || params.timeout === undefined) {
       return Promise.reject(
-	new TypeError(
-	  "The argument has to be an object with key/value pairs \
-																									'interval' and 'timeout': {interval: someInterval, timeout: someTimeout}"
-	)
+        new TypeError("The argument has to be an object with key/value pairs interval' and 'timeout': {interval: someInterval, timeout: someTimeout}"
+        )
       );
     }
 
@@ -423,16 +418,16 @@ export class Thingy {
         connectionInterval: {
           min: minConnInterval,
           max: maxConnInterval,
-	  unit: "ms",
+          unit: "ms",
         },
         slaveLatency: {
           value: slaveLatency,
-	  unit: "number of connection intervals",
+          unit: "number of connection intervals",
         },
         supervisionTimeout: {
           timeout: supervisionTimeout,
-	  unit: "ms",
-	},
+          unit: "ms",
+        },
       };
       return params;
     } catch (error) {
@@ -444,7 +439,7 @@ export class Thingy {
    *  Sets the connection interval
    *
    *  @async
-   * 	@param {Object} params - Connection interval object: <code>{minInterval: someValue, maxInterval: someValue}</code>
+   *  @param {Object} params - Connection interval object: <code>{minInterval: someValue, maxInterval: someValue}</code>
    *  @param {number} params.minInterval - The minimum connection interval in milliseconds. Must be >= 7.5 ms.
    *  @param {number} params.maxInterval - The maximum connection interval in milliseconds. Must be <= 4 000 ms.
    *  @return {Promise<Error>} Returns a promise.
@@ -465,12 +460,12 @@ export class Thingy {
     // Check parameters
     if (minInterval < 7.5 || minInterval > maxInterval) {
       return Promise.reject(
-	new RangeError("The minimum connection interval must be greater than 7.5 ms and <= maximum interval")
+        new RangeError("The minimum connection interval must be greater than 7.5 ms and <= maximum interval")
       );
     }
     if (maxInterval > 4000 || maxInterval < minInterval) {
       return Promise.reject(
-	new RangeError("The minimum connection interval must be less than 4 000 ms and >= minimum interval")
+        new RangeError("The minimum connection interval must be less than 4 000 ms and >= minimum interval")
       );
     }
 
@@ -509,7 +504,7 @@ export class Thingy {
     // Check parameters
     if (slaveLatency < 0 || slaveLatency > 499) {
       return Promise.reject(
-	new RangeError("The slave latency must be in the range from 0 to 499 connection intervals.")
+        new RangeError("The slave latency must be in the range from 0 to 499 connection intervals.")
       );
     }
 
@@ -532,7 +527,7 @@ export class Thingy {
 
   /**
    *  Sets the connection supervision timeout
-   * 	<b>Note:</b> According to the Bluetooth Low Energy specification, the supervision timeout in milliseconds must be greater
+   *  <b>Note:</b> According to the Bluetooth Low Energy specification, the supervision timeout in milliseconds must be greater
    *  than (1 + slaveLatency) * maxConnInterval * 2, where maxConnInterval is also given in milliseconds.
    *
    *  @async
@@ -562,11 +557,9 @@ export class Thingy {
       const slaveLatency = receivedData.getUint16(4, littleEndian);
 
       if (timeout * 4 < (1 + slaveLatency) * maxConnInterval) {
-	return Promise.reject(
-	  new Error(
-	    "The supervision timeout in milliseconds must be greater than (1 + slaveLatency) * maxConnInterval * 2, where maxConnInterval is also given in milliseconds."
-	  )
-	);
+        return Promise.reject(
+          new Error("The supervision timeout in milliseconds must be greater than (1 + slaveLatency) * maxConnInterval * 2, where maxConnInterval is also given in milliseconds.")
+        );
       }
 
       dataArray[6] = timeout & 0xff;
@@ -592,20 +585,20 @@ export class Thingy {
       // According to Eddystone URL encoding specification, certain elements can be expanded: https://github.com/google/eddystone/tree/master/eddystone-url
       const prefixArray = ["http://www.", "https://www.", "http://", "https://"];
       const expansionCodes = [
-	".com/",
-	".org/",
-	".edu/",
-	".net/",
-	".info/",
-	".biz/",
-	".gov/",
-	".com",
-	".org",
-	".edu",
-	".net",
-	".info",
-	".biz",
-	".gov",
+        ".com/",
+        ".org/",
+        ".edu/",
+        ".net/",
+        ".info/",
+        ".biz/",
+        ".gov/",
+        ".com",
+        ".org",
+        ".edu",
+        ".net",
+        ".info",
+        ".biz",
+        ".gov",
       ];
       const prefix = prefixArray[receivedData.getUint8(0)];
       const decoder = new TextDecoder("utf-8");
@@ -646,20 +639,20 @@ export class Thingy {
       // Details here: https://github.com/google/eddystone/tree/master/eddystone-url
       const prefixArray = ["http://www.", "https://www.", "http://", "https://"];
       const expansionCodes = [
-	".com/",
-	".org/",
-	".edu/",
-	".net/",
-	".info/",
-	".biz/",
-	".gov/",
-	".com",
-	".org",
-	".edu",
-	".net",
-	".info",
-	".biz",
-	".gov",
+        ".com/",
+        ".org/",
+        ".edu/",
+        ".net/",
+        ".info/",
+        ".biz/",
+        ".gov/",
+        ".com",
+        ".org",
+        ".edu",
+        ".net",
+        ".info",
+        ".biz",
+        ".gov",
       ];
       let prefixCode = null;
       let expansionCode = null;
@@ -667,7 +660,7 @@ export class Thingy {
       let len = eddystoneUrl.length;
 
       prefixArray.forEach((element, i) => {
-	if (url.href.indexOf(element) !== -1 && prefixCode === null) {
+        if (url.href.indexOf(element) !== -1 && prefixCode === null) {
           prefixCode = String.fromCharCode(i);
           eddystoneUrl = eddystoneUrl.replace(element, prefixCode);
           len -= element.length;
@@ -675,7 +668,7 @@ export class Thingy {
       });
 
       expansionCodes.forEach((element, i) => {
-	if (url.href.indexOf(element) !== -1 && expansionCode === null) {
+        if (url.href.indexOf(element) !== -1 && expansionCode === null) {
           expansionCode = String.fromCharCode(i);
           eddystoneUrl = eddystoneUrl.replace(element, expansionCode);
           len -= element.length;
@@ -683,11 +676,9 @@ export class Thingy {
       });
 
       if (len < 1 || len > 14) {
-	return Promise.reject(
-	  new TypeError(
-	    "The URL can't be longer than 14 characters, excluding URL scheme such as \"https://\" and \".com/\"."
-	  )
-	);
+        return Promise.reject(
+          new TypeError("The URL can't be longer than 14 characters, excluding URL scheme such as \"https://\" and \".com/\".")
+        );
       }
 
       const byteArray = new Uint8Array(eddystoneUrl.length);
@@ -726,7 +717,7 @@ export class Thingy {
    *
    *  @async
    *  @param {string} token - The cloud token to be stored.
-   * 	@return {Promise<Error>} Returns a promise.
+   *  @return {Promise<Error>} Returns a promise.
    *
    */
   async setCloudToken(token) {
@@ -762,10 +753,10 @@ export class Thingy {
    *  Sets the current Maximal Transmission Unit (MTU)
    *
    *  @async
-   * 	@param {Object} [params = {peripheralRequest: false}] - MTU settings object: {mtuSize: value, peripheralRequest: value}, where peripheralRequest is optional.
+   *  @param {Object} [params = {peripheralRequest: false}] - MTU settings object: {mtuSize: value, peripheralRequest: value}, where peripheralRequest is optional.
    *  @param {number} params.mtuSize - The desired MTU size.
-   * 	@param {boolean} params.peripheralRequest - Optional. Set to <code>true</code> if peripheral should send an MTU exchange request. Default is <code>false</code>;
-   * 	@return {Promise<Error>} Returns a promise.
+   *  @param {boolean} params.peripheralRequest - Optional. Set to <code>true</code> if peripheral should send an MTU exchange request. Default is <code>false</code>;
+   *  @return {Promise<Error>} Returns a promise.
    *
    */
   async setMtu(params) {
@@ -835,12 +826,12 @@ export class Thingy {
       const config = {
         tempInterval: tempInterval,
         pressureInterval: pressureInterval,
-	humidityInterval: humidityInterval,
+        humidityInterval: humidityInterval,
         colorInterval: colorInterval,
         gasMode: gasMode,
         colorSensorRed: colorSensorRed,
         colorSensorGreen: colorSensorGreen,
-	colorSensorBlue: colorSensorBlue,
+        colorSensorBlue: colorSensorBlue,
       };
 
       return config;
@@ -860,9 +851,9 @@ export class Thingy {
   async setTemperatureInterval(interval) {
     try {
       if (interval < 50 || interval > 60000) {
-	return Promise.reject(
-	  new RangeError("The temperature sensor update interval must be in the range 100 ms - 60 000 ms")
-	);
+        return Promise.reject(
+          new RangeError("The temperature sensor update interval must be in the range 100 ms - 60 000 ms")
+        );
       }
 
       // Preserve values for those settings that are not being changed
@@ -893,9 +884,9 @@ export class Thingy {
   async setPressureInterval(interval) {
     try {
       if (interval < 50 || interval > 60000) {
-	return Promise.reject(
-	  new RangeError("The pressure sensor update interval must be in the range 100 ms - 60 000 ms")
-	);
+        return Promise.reject(
+          new RangeError("The pressure sensor update interval must be in the range 100 ms - 60 000 ms")
+        );
       }
 
       // Preserve values for those settings that are not being changed
@@ -926,9 +917,9 @@ export class Thingy {
   async setHumidityInterval(interval) {
     try {
       if (interval < 100 || interval > 60000) {
-	return Promise.reject(
-	  new RangeError("The humidity sensor sampling interval must be in the range 100 ms - 60 000 ms")
-	);
+        return Promise.reject(
+          new RangeError("The humidity sensor sampling interval must be in the range 100 ms - 60 000 ms")
+        );
       }
 
       // Preserve values for those settings that are not being changed
@@ -959,9 +950,9 @@ export class Thingy {
   async setColorInterval(interval) {
     try {
       if (interval < 200 || interval > 60000) {
-	return Promise.reject(
-	  new RangeError("The color sensor sampling interval must be in the range 200 ms - 60 000 ms")
-	);
+        return Promise.reject(
+          new RangeError("The color sensor sampling interval must be in the range 200 ms - 60 000 ms")
+        );
       }
 
       // Preserve values for those settings that are not being changed
@@ -1076,7 +1067,7 @@ export class Thingy {
     this.tempEventListeners[1].forEach((eventHandler) => {
       eventHandler({
         value: temperature,
-	unit: "Celsius",
+        unit: "Celsius",
       });
     });
   }
@@ -1110,7 +1101,7 @@ export class Thingy {
     this.pressureEventListeners[1].forEach((eventHandler) => {
       eventHandler({
         value: pressure,
-	unit: "hPa",
+        unit: "hPa",
       });
     });
   }
@@ -1140,7 +1131,7 @@ export class Thingy {
     this.humidityEventListeners[1].forEach((eventHandler) => {
       eventHandler({
         value: humidity,
-	unit: "%",
+        unit: "%",
       });
     });
   }
@@ -1174,12 +1165,12 @@ export class Thingy {
       eventHandler({
         eCO2: {
           value: eco2,
-	  unit: "ppm",
+          unit: "ppm",
         },
         TVOC: {
           value: tvoc,
-	  unit: "ppb",
-	},
+          unit: "ppb",
+        },
       });
     });
   }
@@ -1243,7 +1234,7 @@ export class Thingy {
       eventHandler({
         red: red.toFixed(0),
         green: green.toFixed(0),
-	blue: blue.toFixed(0),
+        blue: blue.toFixed(0),
       });
     });
   }
@@ -1267,14 +1258,14 @@ export class Thingy {
 
       switch (mode) {
       case 0:
-	status = {LEDstatus: {mode: mode}};
+        status = {LEDstatus: {mode: mode}};
         break;
       case 1:
         status = {
           mode: mode,
           r: data.getUint8(1),
           g: data.getUint8(2),
-	  b: data.getUint8(3),
+          b: data.getUint8(3),
         };
         break;
       case 2:
@@ -1282,14 +1273,14 @@ export class Thingy {
           mode: mode,
           color: data.getUint8(1),
           intensity: data.getUint8(2),
-	  delay: data.getUint16(3, littleEndian),
+          delay: data.getUint16(3, littleEndian),
         };
         break;
       case 3:
         status = {
           mode: mode,
           color: data.getUint8(1),
-	  intensity: data.getUint8(2),
+          intensity: data.getUint8(2),
         };
         break;
       }
@@ -1307,7 +1298,7 @@ export class Thingy {
    *  Sets the LED in constant mode with the specified RGB color.
    *
    *  @async
-   * 	@param {Object} color - Color object with RGB values
+   *  @param {Object} color - Color object with RGB values
    *  @param {number} color.red - The value for red color in an RGB color. Ranges from 0 to 255.
    *  @param {number} color.green - The value for green color in an RGB color. Ranges from 0 to 255.
    *  @param {number} color.blue - The value for blue color in an RGB color. Ranges from 0 to 255.
@@ -1335,7 +1326,7 @@ export class Thingy {
    *  Sets the LED in "breathe" mode where the LED continuously pulses with the specified color, intensity and delay between pulses.
    *
    *  @async
-   *	@param {Object} params - Options object for LED breathe mode
+   * @param {Object} params - Options object for LED breathe mode
    *  @param {number|string} params.color - The color code or color name. 1 = red, 2 = green, 3 = yellow, 4 = blue, 5 = purple, 6 = cyan, 7 = white.
    *  @param {number} params.intensity - Intensity of LED pulses. Range from 0 to 100 [%].
    *  @param {number} params.delay - Delay between pulses in milliseconds. Range from 50 ms to 10 000 ms.
@@ -1348,7 +1339,7 @@ export class Thingy {
 
     if (params.color === undefined || params.intensity === undefined || params.delay === undefined) {
       return Promise.reject(
-	new TypeError("The options object for must have the properties 'color', 'intensity' and 'intensity'.")
+        new TypeError("The options object for must have the properties 'color', 'intensity' and 'intensity'.")
       );
     }
     if (colorCode < 1 || colorCode > 7) {
@@ -1370,7 +1361,7 @@ export class Thingy {
    *  Sets the LED in one-shot mode. One-shot mode will result in one single pulse of the LED.
    *
    *  @async
-   * 	@param {Object} params - Option object for LED in one-shot mode
+   *  @param {Object} params - Option object for LED in one-shot mode
    *  @param {number} params.color - The color code. 1 = red, 2 = green, 3 = yellow, 4 = blue, 5 = purple, 6 = cyan, 7 = white.
    *  @param {number} params.intensity - Intensity of LED pulses. Range from 0 to 100 [%].
    *  @return {Promise<Error>} Returns a resolved promise or an error in a rejected promise.
@@ -1379,7 +1370,7 @@ export class Thingy {
   async ledOneShot(params) {
     if (params.color === undefined || params.intensity === undefined) {
       return Promise.reject(
-	new TypeError("The options object for LED one-shot must have the properties 'color' and 'intensity.")
+        new TypeError("The options object for LED one-shot must have the properties 'color' and 'intensity.")
       );
     }
     if (params.color < 1 || params.color > 7) {
@@ -1433,7 +1424,7 @@ export class Thingy {
         pin1: data.getUint8(0),
         pin2: data.getUint8(1),
         pin3: data.getUint8(2),
-	pin4: data.getUint8(3),
+        pin4: data.getUint8(3),
       };
       return pinStatus;
     } catch (error) {
@@ -1498,7 +1489,7 @@ export class Thingy {
         tempCompInterval: tempCompInterval,
         magnetCompInterval: magnetCompInterval,
         motionProcessingFrequency: motionProcessingFrequency,
-	wakeOnMotion: wakeOnMotion,
+        wakeOnMotion: wakeOnMotion,
       };
 
       return config;
@@ -1688,7 +1679,7 @@ export class Thingy {
     this.tapEventListeners[1].forEach((eventHandler) => {
       eventHandler({
         direction: direction,
-	count: count,
+        count: count,
       });
     });
   }
@@ -1763,7 +1754,7 @@ export class Thingy {
         w: w,
         x: x,
         y: y,
-	z: z,
+        z: z,
       });
     });
   }
@@ -1798,8 +1789,8 @@ export class Thingy {
         count: count,
         time: {
           value: time,
-	  unit: "ms",
-	},
+          unit: "ms",
+        },
       });
     });
   }
@@ -1848,20 +1839,20 @@ export class Thingy {
           x: accX,
           y: accY,
           z: accZ,
-	  unit: "G",
+          unit: "G",
         },
         gyroscope: {
           x: gyroX,
           y: gyroY,
           z: gyroZ,
-	  unit: "deg/s",
+          unit: "deg/s",
         },
         compass: {
           x: compassX,
           y: compassY,
           z: compassZ,
-	  unit: "microTesla",
-	},
+          unit: "microTesla",
+        },
       });
     });
   }
@@ -1898,7 +1889,7 @@ export class Thingy {
       eventHandler({
         roll: roll,
         pitch: pitch,
-	yaw: yaw,
+        yaw: yaw,
       });
     });
   }
@@ -1945,7 +1936,7 @@ export class Thingy {
       eventHandler({
         row1: [r1c1, r1c2, r1c3],
         row2: [r2c1, r2c2, r2c3],
-	row3: [r3c1, r3c2, r3c3],
+        row3: [r3c1, r3c2, r3c3],
       });
     });
   }
@@ -1979,7 +1970,7 @@ export class Thingy {
     this.headingEventListeners[1].forEach((eventHandler) => {
       eventHandler({
         value: heading,
-	unit: "degrees",
+        unit: "degrees",
       });
     });
   }
@@ -2018,7 +2009,7 @@ export class Thingy {
       eventHandler({
         x: x,
         y: y,
-	z: z,
+        z: z,
       });
     });
   }
@@ -2042,7 +2033,7 @@ export class Thingy {
 
       return {
         value: level,
-	unit: "%",
+        unit: "%",
       };
     } catch (error) {
       return error;
@@ -2076,7 +2067,7 @@ export class Thingy {
     this.batteryLevelEventListeners[1].forEach((eventHandler) => {
       eventHandler({
         value: value,
-	unit: "%",
+        unit: "%",
       });
     });
   }

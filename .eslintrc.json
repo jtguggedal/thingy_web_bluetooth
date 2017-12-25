@@ -40,7 +40,8 @@
             }],
         "curly": 2,
         "eqeqeq": "error",
-	"no-console": 0,
-	"max-len": 0
+        "require-jsdoc": 0,
+        "no-console": 0,
+        "max-len": 0
     }
 }
