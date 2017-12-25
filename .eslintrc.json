@@ -3,15 +3,18 @@
         "browser": true,
         "es6": true
     },
-    "extends": "eslint:recommended",
+    "extends": [
+        "eslint:recommended",
+        "google"
+    ],
     "parserOptions": {
         "sourceType": "module",
-        "ecmaVersion": 2017
+        "ecmaVersion": 6
     },
     "rules": {
         "indent": [
             "error",
-            "tab"
+            2
         ],
         "linebreak-style": [
             "error",
@@ -30,7 +33,12 @@
             "ignoreReadBeforeAssign": false
         }],
         "quote-props": ["error", "as-needed"],
-
+        "keyword-spacing": ["error", { 
+            "before": true,
+            "after": true
+            }],
+        "curly": 2,
+        "eqeqeq": "error",
         "no-console": 0
     }
 }
