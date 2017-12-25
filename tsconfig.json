@@ -3,11 +3,17 @@
     "allowJs": true,
     "target": "es6",
     "outDir": "build",
-    "checkJs": true
+    "checkJs": true,
+    "lib": [
+      "es6",
+      "dom",
+
+    ]
   },
   "exclude": [
     "node_modules",
-    "docs"
+    "docs",
+    "build"
   ]
   
 }

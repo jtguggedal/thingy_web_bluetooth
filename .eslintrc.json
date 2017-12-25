@@ -3,6 +3,7 @@
         "browser": true,
         "es6": true
     },
+    "parser": "babel-eslint",
     "extends": [
         "eslint:recommended",
         "google"
@@ -39,6 +40,7 @@
             }],
         "curly": 2,
         "eqeqeq": "error",
-        "no-console": 0
+	"no-console": 0,
+	"max-len": 0
     }
 }
