@@ -1,6 +1,7 @@
-// @ts-check -
+// @ts-check
 
 export class Thingy {
+
   /** 
      *  Thingy:52 Web Bluetooth API. <br> 
      *  BLE service details {@link https://nordicsemiconductor.github.io/Nordic-Thingy52-FW/documentation/firmware_architecture.html#fw_arch_ble_services here}
