@@ -90,17 +90,17 @@ export class Thingy {
   }
 
   /**
-   *  Method to read data from a Web Bluetooth characteristic.
-   *  Implements a simple solution to avoid starting new GATT requests while another is pending.
-   *  Any attempt to read while another GATT operation is in progress, will result in a rejected promise.
-   *
-   *  @async
-   *  @param {Object} characteristic - Web Bluetooth characteristic object
-   *  @return {Promise<DataView>} Returns Uint8Array when resolved or an error when rejected
-   *
-   *  @private
+     *  Method to read data from a Web Bluetooth characteristic.
+     *  Implements a simple solution to avoid starting new GATT requests while another is pending.
+     *  Any attempt to read while another GATT operation is in progress, will result in a rejected promise.
+     *
+     *  @async
+     *  @param {Object} characteristic - Web Bluetooth characteristic object
+     *  @return {Promise<DataView>} Returns Uint8Array when resolved or an error when rejected
+     *
+     *  @private
 
-  */
+    */
   async _readData(characteristic) {
     if (!this.bleIsBusy) {
       try {
@@ -130,7 +130,7 @@ export class Thingy {
    *
    *  @private
    *
-   */
+  */
   async _writeData(characteristic, dataArray) {
     if (!this.bleIsBusy) {
       try {
@@ -162,7 +162,10 @@ export class Thingy {
       }
 
       this.device = await navigator.bluetooth.requestDevice({
-        filters: [{services: [this.TCS_UUID]},
+        filters: [
+          {
+            services: [this.TCS_UUID],
+          },
         ],
         optionalServices: this.serviceUUIDs,
       });
@@ -370,8 +373,7 @@ export class Thingy {
   async setAdvParams(params) {
     if (typeof params !== "object" || params.interval === undefined || params.timeout === undefined) {
       return Promise.reject(
-        new TypeError("The argument has to be an object with key/value pairs interval' and 'timeout': {interval: someInterval, timeout: someTimeout}"
-        )
+        new TypeError("The argument has to be an object with key/value pairs interval' and 'timeout': {interval: someInterval, timeout: someTimeout}")
       );
     }
 
@@ -557,8 +559,7 @@ export class Thingy {
       const slaveLatency = receivedData.getUint16(4, littleEndian);
 
       if (timeout * 4 < (1 + slaveLatency) * maxConnInterval) {
-        return Promise.reject(
-          new Error("The supervision timeout in milliseconds must be greater than (1 + slaveLatency) * maxConnInterval * 2, where maxConnInterval is also given in milliseconds.")
+        return Promise.reject(new Error("The supervision timeout in milliseconds must be greater than (1 + slaveLatency) * maxConnInterval * 2, where maxConnInterval is also given in milliseconds.")
         );
       }
 
@@ -676,8 +677,7 @@ export class Thingy {
       });
 
       if (len < 1 || len > 14) {
-        return Promise.reject(
-          new TypeError("The URL can't be longer than 14 characters, excluding URL scheme such as \"https://\" and \".com/\".")
+        return Promise.reject(new TypeError("The URL can't be longer than 14 characters, excluding URL scheme such as \"https://\" and \".com/\".")
         );
       }
 
@@ -851,9 +851,7 @@ export class Thingy {
   async setTemperatureInterval(interval) {
     try {
       if (interval < 50 || interval > 60000) {
-        return Promise.reject(
-          new RangeError("The temperature sensor update interval must be in the range 100 ms - 60 000 ms")
-        );
+        return Promise.reject(new RangeError("The temperature sensor update interval must be in the range 100 ms - 60 000 ms"));
       }
 
       // Preserve values for those settings that are not being changed
@@ -884,9 +882,7 @@ export class Thingy {
   async setPressureInterval(interval) {
     try {
       if (interval < 50 || interval > 60000) {
-        return Promise.reject(
-          new RangeError("The pressure sensor update interval must be in the range 100 ms - 60 000 ms")
-        );
+        return Promise.reject(new RangeError("The pressure sensor update interval must be in the range 100 ms - 60 000 ms"));
       }
 
       // Preserve values for those settings that are not being changed
@@ -917,9 +913,7 @@ export class Thingy {
   async setHumidityInterval(interval) {
     try {
       if (interval < 100 || interval > 60000) {
-        return Promise.reject(
-          new RangeError("The humidity sensor sampling interval must be in the range 100 ms - 60 000 ms")
-        );
+        return Promise.reject(new RangeError("The humidity sensor sampling interval must be in the range 100 ms - 60 000 ms"));
       }
 
       // Preserve values for those settings that are not being changed
@@ -950,9 +944,7 @@ export class Thingy {
   async setColorInterval(interval) {
     try {
       if (interval < 200 || interval > 60000) {
-        return Promise.reject(
-          new RangeError("The color sensor sampling interval must be in the range 200 ms - 60 000 ms")
-        );
+        return Promise.reject(new RangeError("The color sensor sampling interval must be in the range 200 ms - 60 000 ms"));
       }
 
       // Preserve values for those settings that are not being changed
@@ -1326,7 +1318,7 @@ export class Thingy {
    *  Sets the LED in "breathe" mode where the LED continuously pulses with the specified color, intensity and delay between pulses.
    *
    *  @async
-   * @param {Object} params - Options object for LED breathe mode
+   *  @param {Object} params - Options object for LED breathe mode
    *  @param {number|string} params.color - The color code or color name. 1 = red, 2 = green, 3 = yellow, 4 = blue, 5 = purple, 6 = cyan, 7 = white.
    *  @param {number} params.intensity - Intensity of LED pulses. Range from 0 to 100 [%].
    *  @param {number} params.delay - Delay between pulses in milliseconds. Range from 50 ms to 10 000 ms.
