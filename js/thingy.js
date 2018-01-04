@@ -1431,7 +1431,7 @@ export class Thingy {
    *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
    *
    */
-  async externalPinControl(pin, value) {
+  async setExternalPin(pin, value) {
     if (pin < 1 || pin > 4) {
       return Promise.reject(new Error("Pin number must be 1 - 4"));
     }
@@ -1457,7 +1457,7 @@ export class Thingy {
   }
 
   //  ******  //
-  /**  Motion service  */
+  /*  Motion service  */
   /**
    *  Gets the current configuration of the Thingy motion module.
    *
