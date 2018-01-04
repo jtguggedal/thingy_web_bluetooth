@@ -258,7 +258,7 @@ export class Thingy {
    */
   async disconnect() {
     try {
-      return await this.device.gatt.disconnect();
+      await this.device.gatt.disconnect();
     } catch (error) {
       return error;
     }
