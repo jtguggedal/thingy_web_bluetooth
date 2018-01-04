@@ -1344,9 +1344,7 @@ export class Thingy {
       return Promise.reject(new RangeError("The delay must be in the range 50 ms - 10 000 ms"));
     }
 
-    return await this._ledSet(
-      new Uint8Array([2, colorCode, params.intensity, params.delay & 0xff, (params.delay >> 8) & 0xff])
-    );
+    return await this._ledSet(new Uint8Array([2, colorCode, params.intensity, params.delay & 0xff, (params.delay >> 8) & 0xff]));
   }
 
   /**

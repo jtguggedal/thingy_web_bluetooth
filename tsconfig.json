@@ -1,19 +1,18 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "target": "es6",
+    "target": "es5",
     "outDir": "build",
     "checkJs": true,
     "lib": [
       "es6",
-      "dom",
-
+      "dom"
     ]
   },
   "exclude": [
     "node_modules",
     "docs",
-    "build"
+    "build",
+    "ts"
   ]
-  
 }
