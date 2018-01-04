@@ -65,16 +65,19 @@ import {Thingy} from "./js/thingy.js";
 const thingy = new Thingy({logEnabled: true});
 
 async function start(device) {
-    await device.connect();
-    await device.ledBreathe({color: 5, intensity: 20, delay: 1500});
-    console.log(`Thingy name: ${await device.getName()}`);
-    console.log(`Current firmware: ${await device.getFirmwareVersion()}`);
-    return;
+    try {
+        await device.connect();
+        await device.ledBreathe({color: 5, intensity: 20, delay: 1500});
+        console.log(`Thingy name: ${await device.getName()}`);
+        console.log(`Current firmware: ${await device.getFirmwareVersion()}`);
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 start(thingy);
 ```
-**Note**: the Web Bluetooth API requires that a function trying to connect to a BLE device is initiated by a user action such as a click.
+**Note**: the Web Bluetooth API requires that a function trying to connect to a BLE device is initiated by a user action such as a mouse click.
 
 ### API documentation
 Documentation is also available in HTML format [here](https://jtguggedal.github.io/thingy_web_bluetooth/docs).
