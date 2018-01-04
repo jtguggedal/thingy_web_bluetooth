@@ -5,9 +5,9 @@ The Nordic Thingy:52™ is a compact, power-optimized, multi-sensor development 
 
 **This repository**
 
-This repository is an attempt to make it easier to start developing applications for Thingy:52 using Web Bluetooth. Web Bluetooth is a JavaScript API that makes it possible to communicate with Bluetooth Low Energy devices in web browsers. The implementation status for different browsers and platforms can be seen [here](https://github.com/WebBluetoothCG/web-bluetooth/blob/gh-pages/implementation-status.md). Just like the Web Bluetooth API, the methods in the Thingy object return promises.
+This repository is an attempt to make it easier to start developing applications for Thingy:52 using Web Bluetooth. Web Bluetooth is a JavaScript API that makes it possible to communicate with Bluetooth Low Energy devices in web browsers. The implementation status for different browsers and platforms can be seen [here](https://github.com/WebBluetoothCG/web-bluetooth/blob/gh-pages/implementation-status.md). 
 
-This is work in progress, and for now this repository will help you connect to a Thingy:52 and access the following services and characteristics:
+This is work in progress, and for now this repository will help you connect to a Thingy:52 and access all services and characteristics except sound and DFU (Device Firmware Upgrade):
 
 - Configuration
     - Name
@@ -49,119 +49,96 @@ This is work in progress, and for now this repository will help you connect to a
 - Clone or download this repository, or just copy `js/thingy.js` into your own project.
 - If you've used this repository, you can open `index.html` in a supported browser and open the console (ctrl + shift + J or cmd + alt + J). 
 - Turn on your Thingy:52. 
-- Create a new Thingy object and use the [`connect`](#connect) method to establish a BLE connection. 
-- You can now use the methods described in the documentation below to access sensor data.
-- Note that Web Bluetooth requires connection requests to originate from a user action such as a click. From the console you can however call `connect()` directly.
+- Click the "Connect" button found in `index.html`.
+- You can now choose your Thingy:52 and connect to it.
+- In the console, you can see the browser connect to the device and discover its services. 
+- When connected, the Thingy:52 will use the LED breathe feature and the LED will pulsate with RED light. 
+- In the browser, it will also show the current temperature measured by the device in the HTML element below the connect button.
 
 ### Example
-The following example will first connect to a thingy:52, then read its name and configure the RGB LED to "breathe"  purple (color code 5, see [here](#ledsetbreathe)) pulses with 20% intensity and with 1500 ms delays between each pulse. 
+The following example will first connect to a thingy:52, then read its name and configure the RGB LED to "breathe"  purple (color code 5, see [here](#ledsetbreathe)) pulses with 20% intensity and with 1500 ms delays between each pulse. It will also print the name of the device and the firmware version to the console.
 
 ```javascript
-async function start() {
-  try {
-    const thingy = new Thingy();
-    await thingy.connect();
-    const name = await thingy.nameGet();
-    console.log(`This Thingy:52 is called ${name}`);
-    thingy.ledSetBreathe(1, 20, 1500); 
-  }
-  catch(err) {
-    console.error(err); 
-  }
+
+import {Thingy} from "./js/thingy.js";
+
+const thingy = new Thingy({logEnabled: true});
+
+async function start(device) {
+    await device.connect();
+    await device.ledBreathe({color: 5, intensity: 20, delay: 1500});
+    console.log(`Thingy name: ${await device.getName()}`);
+    console.log(`Current firmware: ${await device.getFirmwareVersion()}`);
+    return;
 }
 
-start();
+start(thingy);
 ```
-
+**Note**: the Web Bluetooth API requires that a function trying to connect to a BLE device is initiated by a user action such as a click.
 
 ### API documentation
 Documentation is also available in HTML format [here](https://jtguggedal.github.io/thingy_web_bluetooth/docs).
 
-
 -   [Thingy](#thingy)
-    -   [advParamsGet](#advparamsget)
-    -   [advParamsSet](#advparamsset)
     -   [batteryLevelEnable](#batterylevelenable)
-    -   [batteryLevelGet](#batterylevelget)
     -   [buttonEnable](#buttonenable)
-    -   [cloudTokenGet](#cloudtokenget)
-    -   [cloudTokenSet](#cloudtokenset)
     -   [colorEnable](#colorenable)
-    -   [colorIntervalSet](#colorintervalset)
-    -   [colorSensorSet](#colorsensorset)
-    -   [connIntervalSet](#connintervalset)
-    -   [connParamsGet](#connparamsget)
-    -   [connSlaveLatencySet](#connslavelatencyset)
-    -   [connTimeoutSet](#conntimeoutset)
+    -   [colorSensorCalibrate](#colorsensorcalibrate)
     -   [connect](#connect)
     -   [disconnect](#disconnect)
-    -   [eddystoneGet](#eddystoneget)
-    -   [eddystoneSet](#eddystoneset)
-    -   [environmentConfigGet](#environmentconfigget)
     -   [eulerEnable](#eulerenable)
-    -   [externalPinSet](#externalpinset)
-    -   [externalPinsGet](#externalpinsget)
-    -   [firmwareVersionGet](#firmwareversionget)
+    -   [externalPinsStatus](#externalpinsstatus)
     -   [gasEnable](#gasenable)
-    -   [gasModeSet](#gasmodeset)
+    -   [getAdvParams](#getadvparams)
+    -   [getBatteryLevel](#getbatterylevel)
+    -   [getCloudToken](#getcloudtoken)
+    -   [getConnParams](#getconnparams)
+    -   [getEddystoneUrl](#geteddystoneurl)
+    -   [getEnvironmentConfig](#getenvironmentconfig)
+    -   [getFirmwareVersion](#getfirmwareversion)
+    -   [getLedStatus](#getledstatus)
+    -   [getMotionConfig](#getmotionconfig)
+    -   [getMtu](#getmtu)
+    -   [getName](#getname)
     -   [gravityVectorEnable](#gravityvectorenable)
     -   [headingEnable](#headingenable)
     -   [humidityEnable](#humidityenable)
-    -   [humidityIntervalSet](#humidityintervalset)
-    -   [ledGetStatus](#ledgetstatus)
-    -   [ledSetBreathe](#ledsetbreathe)
-    -   [ledSetConstant](#ledsetconstant)
-    -   [ledSetOneShot](#ledsetoneshot)
-    -   [magnetCompIntervalSet](#magnetcompintervalset)
-    -   [motionConfigGet](#motionconfigget)
-    -   [motionConfigGet](#motionconfigget-1)
-    -   [motionProcessingFrequencySet](#motionprocessingfrequencyset)
+    -   [ledBreathe](#ledbreathe)
+    -   [ledConstant](#ledconstant)
+    -   [ledOneShot](#ledoneshot)
     -   [motionRawEnable](#motionrawenable)
-    -   [mtuGet](#mtuget)
-    -   [mtuSet](#mtuset)
-    -   [nameGet](#nameget)
-    -   [nameGet](#nameget-1)
-    -   [nameSet](#nameset)
     -   [orientationEnable](#orientationenable)
     -   [pressureEnable](#pressureenable)
-    -   [pressureIntervalSet](#pressureintervalset)
     -   [quaternionEnable](#quaternionenable)
-    -   [readData](#readdata)
     -   [rotationMatrixEnable](#rotationmatrixenable)
-    -   [stepCounterIntervalSet](#stepcounterintervalset)
+    -   [setAdvParams](#setadvparams)
+    -   [setCloudToken](#setcloudtoken)
+    -   [setColorInterval](#setcolorinterval)
+    -   [setConnInterval](#setconninterval)
+    -   [setConnSlaveLatency](#setconnslavelatency)
+    -   [setConnTimeout](#setconntimeout)
+    -   [setEddystoneUrl](#seteddystoneurl)
+    -   [setExternalPin](#setexternalpin)
+    -   [setGasInterval](#setgasinterval)
+    -   [setHumidityInterval](#sethumidityinterval)
+    -   [setMagnetCompInterval](#setmagnetcompinterval)
+    -   [setMotionProcessFrequency](#setmotionprocessfrequency)
+    -   [setMtu](#setmtu)
+    -   [setName](#setname)
+    -   [setPressureInterval](#setpressureinterval)
+    -   [setStepCounterInterval](#setstepcounterinterval)
+    -   [setTemperatureCompInterval](#settemperaturecompinterval)
+    -   [setTemperatureInterval](#settemperatureinterval)
+    -   [setWakeOnMotion](#setwakeonmotion)
     -   [stepEnable](#stepenable)
     -   [tapEnable](#tapenable)
-    -   [temperatureCompIntervalSet](#temperaturecompintervalset)
     -   [temperatureEnable](#temperatureenable)
-    -   [temperatureIntervalSet](#temperatureintervalset)
-    -   [wakeOnMotionSet](#wakeonmotionset)
-    -   [writeData](#writedata)
 
 ## Thingy
 
-Thingy:52 Web Bluetooth API. <br> 
- BLE service details [here](https://nordicsemiconductor.github.io/Nordic-Thingy52-FW/documentation/firmware_architecture.html#fw_arch_ble_services)
-
 **Parameters**
 
--   `logEnabled` **bool** Enables logging of all BLE actions. (optional, default `true`)
-
-### advParamsGet
-
-Gets the current advertising parameters
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns an object with the advertising parameters when resolved or a promise with error on rejection.
-
-### advParamsSet
-
-Sets the advertising parameters
-
-**Parameters**
-
--   `interval` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The advertising interval in milliseconds in the range of 20 ms to 5 000 ms.
--   `timeout` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The advertising timeout in seconds in the range 1 s to 180 s.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
+-   `options`   (optional, default `{logEnabled:false}`)
 
 ### batteryLevelEnable
 
@@ -170,15 +147,9 @@ Enables battery level notifications.
 **Parameters**
 
 -   `eventHandler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** The callback function that is triggered on battery level change. Will receive a battery level object as argument.
--   `enable` **bool** Enables notifications if true or disables them if set to false.
+-   `enable` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Enables notifications if true or disables them if set to false.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection
-
-### batteryLevelGet
-
-Gets the battery level of Thingy.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns battery level in percentage when promise is resolved or an error if rejected.
 
 ### buttonEnable
 
@@ -187,25 +158,9 @@ Enables button notifications from Thingy. The assigned event handler will be cal
 **Parameters**
 
 -   `eventHandler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** The callback function that is triggered on notification. Will receive a button object as argument.
--   `enable` **bool** Enables notifications if true or disables them if set to false.
+-   `enable` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Enables notifications if true or disables them if set to false.
 
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
-
-### cloudTokenGet
-
-Gets the cloud token.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns a string with the cloud token when resolved or a promise with error on rejection.
-
-### cloudTokenSet
-
-Sets the cloud token.
-
-**Parameters**
-
--   `token` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The cloud token to be stored.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise with button state when resolved or a promise with an error on rejection.
 
 ### colorEnable
 
@@ -214,23 +169,13 @@ Enables color sensor notifications from Thingy. The assigned event handler will 
 **Parameters**
 
 -   `eventHandler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** The callback function that is triggered on notification. Will receive a color sensor object as argument.
--   `enable` **bool** Enables notifications if true or disables them if set to false.
+-   `enable` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Enables notifications if true or disables them if set to false.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection
 
-### colorIntervalSet
+### colorSensorCalibrate
 
-Sets the color sensor update interval.
-
-**Parameters**
-
--   `interval` **[Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Step counter interval in milliseconds. Must be in the range 200 ms to 60 000 ms.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
-
-### colorSensorSet
-
-Sets color sensor LED calibration parameters.
+Configures color sensor LED calibration parameters.
 
 **Parameters**
 
@@ -239,45 +184,6 @@ Sets color sensor LED calibration parameters.
 -   `blue` **[Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** The blue intensity, ranging from 0 to 255.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
-
-### connIntervalSet
-
-Sets the connection interval
-
-**Parameters**
-
--   `minInterval` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The minimum connection interval in milliseconds. Must be >= 7.5 ms.
--   `maxInterval` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The maximum connection interval in milliseconds. Must be &lt;= 4 000 ms.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
-
-### connParamsGet
-
-Gets the current connection parameters.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns an object with the connection parameters when resolved or a promise with error on rejection.
-
-### connSlaveLatencySet
-
-Sets the connection slave latency
-
-**Parameters**
-
--   `slaveLatency` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The desired slave latency in the range from 0 to 499 connection intervals.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns a promise.
-
-### connTimeoutSet
-
-Sets the connection supervision timeout
-	<b>Note:</b> According to the Bluetooth Low Energy specification, the supervision timeout in milliseconds must be greater
- than (1 + slaveLatency) _ maxConnInterval _ 2, where maxConnInterval is also given in milliseconds.
-
-**Parameters**
-
--   `timeout` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The desired connection supervision timeout in milliseconds and in the rango of 100 ms to 32 000 ms.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
 
 ### connect
 
@@ -292,30 +198,6 @@ Method to disconnect from Thingy.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns an empty promise when resolved or a promise with error on rejection.
 
-### eddystoneGet
-
-Gets the configured Eddystone URL
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns a string with the URL when resolved or a promise with error on rejection.
-
-### eddystoneSet
-
-Sets the Eddystone URL
-
-**Parameters**
-
--   `prefix` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Code for prefix, according to [specification](https://github.com/google/eddystone/tree/master/eddystone-url#url-scheme-prefix).
--   `url` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The URL.
--   `postfix` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Optional code for postfix according to [specification](https://github.com/google/eddystone/tree/master/eddystone-url#eddystone-url-http-url-encoding). (optional, default `null`)
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
-
-### environmentConfigGet
-
-Gets the current configuration of the Thingy environment module.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns an environment configuration object when promise resolves, or an error if rejected.
-
 ### eulerEnable
 
 Enables Euler angle data notifications from Thingy. The assigned event handler will be called when notifications are received.
@@ -323,32 +205,15 @@ Enables Euler angle data notifications from Thingy. The assigned event handler w
 **Parameters**
 
 -   `eventHandler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** The callback function that is triggered on notification. Will receive an Euler angle data object as argument.
--   `enable` **bool** Enables notifications if true or disables them if set to false.
+-   `enable` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Enables notifications if true or disables them if set to false.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection
 
-### externalPinSet
-
-Set an external pin to chosen state.
-
-**Parameters**
-
--   `pin`  Determines which pin is set. Range 1 - 4.
--   `value`  Sets the value of the pin. 0 = OFF, 255 = ON.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
-
-### externalPinsGet
+### externalPinsStatus
 
 Gets the current external pin settings from the Thingy device. Returns an object with pin status information.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns an external pin status object.
-
-### firmwareVersionGet
-
-Gets the current firmware version.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns a string with the firmware version or a promise with error on rejection.
 
 ### gasEnable
 
@@ -357,19 +222,75 @@ Enables gas notifications from Thingy. The assigned event handler will be called
 **Parameters**
 
 -   `eventHandler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** The callback function that is triggered on notification. Will receive a gas object as argument.
--   `enable` **bool** Enables notifications if true or disables them if set to false.
+-   `enable` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Enables notifications if true or disables them if set to false.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection
 
-### gasModeSet
+### getAdvParams
 
-Sets the gas mode.
+Gets the current advertising parameters
 
-**Parameters**
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns an object with the advertising parameters when resolved or a promise with error on rejection.
 
--   `mode` **[Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** 1 = 1 s update interval, 2 = 10 s update interval, 3 = 60 s update interval.
+### getBatteryLevel
 
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
+Gets the battery level of Thingy.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns battery level in percentage when promise is resolved or an error if rejected.
+
+### getCloudToken
+
+Gets the configured cloud token.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns a string with the cloud token when resolved or a promise with error on rejection.
+
+### getConnParams
+
+Gets the current connection parameters.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns an object with the connection parameters when resolved or a promise with error on rejection.
+
+### getEddystoneUrl
+
+Gets the configured Eddystone URL
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([URL](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns a string with the URL when resolved or a promise with error on rejection.
+
+### getEnvironmentConfig
+
+Gets the current configuration of the Thingy environment module.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns an environment configuration object when promise resolves, or an error if rejected.
+
+### getFirmwareVersion
+
+Gets the current firmware version.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns a string with the firmware version or a promise with error on rejection.
+
+### getLedStatus
+
+Gets the current LED settings from the Thingy device. Returns an object with structure that depends on the settings.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>** Returns a LED status object. The content and structure depends on the current mode.
+
+### getMotionConfig
+
+Gets the current configuration of the Thingy motion module.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns a motion configuration object when promise resolves, or an error if rejected.
+
+### getMtu
+
+Gets the current Maximal Transmission Unit (MTU)
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns the MTU when resolved or a promise with error on rejection.
+
+### getName
+
+Gets the name of the Thingy device.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns a string with the name when resolved or a promise with error on rejection.
 
 ### gravityVectorEnable
 
@@ -378,7 +299,7 @@ Enables gravity vector notifications from Thingy. The assigned event handler wil
 **Parameters**
 
 -   `eventHandler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** The callback function that is triggered on notification. Will receive a heading object as argument.
--   `enable` **bool** Enables notifications if true or disables them if set to false.
+-   `enable` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Enables notifications if true or disables them if set to false.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection
 
@@ -389,7 +310,7 @@ Enables heading notifications from Thingy. The assigned event handler will be ca
 **Parameters**
 
 -   `eventHandler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** The callback function that is triggered on notification. Will receive a heading object as argument.
--   `enable` **bool** Enables notifications if true or disables them if set to false.
+-   `enable` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Enables notifications if true or disables them if set to false.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection
 
@@ -400,90 +321,47 @@ Enables humidity notifications from Thingy. The assigned event handler will be c
 **Parameters**
 
 -   `eventHandler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** The callback function that is triggered on notification. Will receive a humidity object as argument.
--   `enable` **bool** Enables notifications if true or disables them if set to false.
+-   `enable` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Enables notifications if true or disables them if set to false.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection
 
-### humidityIntervalSet
+### ledBreathe
 
-Sets the humidity measurement update interval.
-
-**Parameters**
-
--   `interval` **[Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Step counter interval in milliseconds. Must be in the range 100 ms to 60 000 ms.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
-
-### ledGetStatus
-
-Gets the current LED settings from the Thingy device. Returns an object with structure that depends on the settings.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>** Returns a LED status object. The content and structure depends on the current mode.
-
-### ledSetBreathe
-
-Sets the LED in "breathe" mode where the LED pulses with the specified color, intensity and delay between pulses.
+Sets the LED in "breathe" mode where the LED continuously pulses with the specified color, intensity and delay between pulses.
 
 **Parameters**
 
--   `color`  The color code. 1 = red, 2 = green, 3 = yellow, 4 = blue, 5 = purple, 6 = cyan, 7 = white.
--   `intensity`  Intensity of LED pulses. Range from 0 to 100 [%].
--   `delay`  Delay between pulses in milliseconds. Range from 50 ms to 10 000 ms.
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Options object for LED breathe mode
+    -   `params.color` **([number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number) \| [string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String))** The color code or color name. 1 = red, 2 = green, 3 = yellow, 4 = blue, 5 = purple, 6 = cyan, 7 = white.
+    -   `params.intensity` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Intensity of LED pulses. Range from 0 to 100 [%].
+    -   `params.delay` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Delay between pulses in milliseconds. Range from 50 ms to 10 000 ms.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a resolved promise or an error in a rejected promise.
 
-### ledSetConstant
+### ledConstant
 
 Sets the LED in constant mode with the specified RGB color.
 
 **Parameters**
 
--   `red`  The value for red color in an RGB color. Ranges from 0 to 255.
--   `green`  The value for green color in an RGB color. Ranges from 0 to 255.
--   `blue`  The value for blue color in an RGB color. Ranges from 0 to 255.
+-   `color` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Color object with RGB values
+    -   `color.red` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** The value for red color in an RGB color. Ranges from 0 to 255.
+    -   `color.green` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** The value for green color in an RGB color. Ranges from 0 to 255.
+    -   `color.blue` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** The value for blue color in an RGB color. Ranges from 0 to 255.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a resolved promise or an error in a rejected promise.
 
-### ledSetOneShot
+### ledOneShot
 
-Sets the LED in one-shot mode
+Sets the LED in one-shot mode. One-shot mode will result in one single pulse of the LED.
 
 **Parameters**
 
--   `color`  The color code. 1 = red, 2 = green, 3 = yellow, 4 = blue, 5 = purple, 6 = cyan, 7 = white.
--   `intensity`  Intensity of LED pulses. Range from 0 to 100 [%].
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Option object for LED in one-shot mode
+    -   `params.color` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** The color code. 1 = red, 2 = green, 3 = yellow, 4 = blue, 5 = purple, 6 = cyan, 7 = white.
+    -   `params.intensity` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Intensity of LED pulses. Range from 0 to 100 [%].
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a resolved promise or an error in a rejected promise.
-
-### magnetCompIntervalSet
-
-Sets the magnetometer compensation interval.
-
-**Parameters**
-
--   `interval` **[Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Magnetometer compensation interval in milliseconds. Must be in the range 100 ms to 1 000 ms.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
-
-### motionConfigGet
-
-Gets the current configuration of the Thingy motion module.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns a motion configuration object when promise resolves, or an error if rejected.
-
-### motionConfigGet
-
-Motion service
-
-### motionProcessingFrequencySet
-
-Sets motion processing unit update frequency.
-
-**Parameters**
-
--   `frequency` **[Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Motion processing frequency in Hz. The allowed range is 5 - 200 Hz.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
 
 ### motionRawEnable
 
@@ -492,46 +370,9 @@ Enables raw motion data notifications from Thingy. The assigned event handler wi
 **Parameters**
 
 -   `eventHandler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** The callback function that is triggered on notification. Will receive a raw motion data object as argument.
--   `enable` **bool** Enables notifications if true or disables them if set to false.
+-   `enable` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Enables notifications if true or disables them if set to false.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection
-
-### mtuGet
-
-Gets the current Maximal Transmission Unit (MTU)
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns the MTU when resolved or a promise with error on rejection.
-
-### mtuSet
-
-Sets the current Maximal Transmission Unit (MTU)
-
-**Parameters**
-
--   `mtuSize` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** The desired MTU size.
--   `peripheralRequest` **bool** Optional. Set to <code>true</code> if peripheral should send an MTU exchange request. Default is <code>false</code>; (optional, default `false`)
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
-
-### nameGet
-
-Gets the name of the Thingy device.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns a string with the name when resolved or a promise with error on rejection.
-
-### nameGet
-
-Configuration service
-
-### nameSet
-
-Sets the name of the Thingy device.
-
-**Parameters**
-
--   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The name that will be given to the Thingy.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
 
 ### orientationEnable
 
@@ -540,7 +381,7 @@ Enables orientation detection notifications from Thingy. The assigned event hand
 **Parameters**
 
 -   `eventHandler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** The callback function that is triggered on notification. Will receive a orientation detection object as argument.
--   `enable` **bool** Enables notifications if true or disables them if set to false.
+-   `enable` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Enables notifications if true or disables them if set to false.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection
 
@@ -551,19 +392,9 @@ Enables pressure notifications from Thingy. The assigned event handler will be c
 **Parameters**
 
 -   `eventHandler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** The callback function that is triggered on notification. Will receive a pressure object as argument.
--   `enable` **bool** Enables notifications if true or disables them if set to false.
+-   `enable` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Enables notifications if true or disables them if set to false.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection
-
-### pressureIntervalSet
-
-Sets the pressure measurement update interval.
-
-**Parameters**
-
--   `interval` **[Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Step counter interval in milliseconds. Must be in the range 50 ms to 60 000 ms.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
 
 ### quaternionEnable
 
@@ -572,21 +403,9 @@ Enables quaternion notifications from Thingy. The assigned event handler will be
 **Parameters**
 
 -   `eventHandler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** The callback function that is triggered on notification. Will receive a quaternion object as argument.
--   `enable` **bool** Enables notifications if true or disables them if set to false.
+-   `enable` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Enables notifications if true or disables them if set to false.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection
-
-### readData
-
-Method to read data from a Web Bluetooth characteristic. 
- Implements a simple solution to avoid starting new GATT requests while another is pending.
- Any attempt to read while another GATT operation is in progress, will result in a rejected promise.
-
-**Parameters**
-
--   `characteristic` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Web Bluetooth characteristic object
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array) \| [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error))>** Returns Uint8Array when resolved or an error when rejected
 
 ### rotationMatrixEnable
 
@@ -595,17 +414,210 @@ Enables rotation matrix notifications from Thingy. The assigned event handler wi
 **Parameters**
 
 -   `eventHandler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** The callback function that is triggered on notification. Will receive an rotation matrix object as argument.
--   `enable` **bool** Enables notifications if true or disables them if set to false.
+-   `enable` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Enables notifications if true or disables them if set to false.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection
 
-### stepCounterIntervalSet
+### setAdvParams
+
+Sets the advertising parameters
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Object with key/value pairs 'interval' and 'timeout': <code>{interval: someInterval, timeout: someTimeout}</code>.
+    -   `params.interval` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** The advertising interval in milliseconds in the range of 20 ms to 5 000 ms.
+    -   `params.timeout` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** The advertising timeout in seconds in the range 1 s to 180 s.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
+
+### setCloudToken
+
+Sets the cloud token.
+
+**Parameters**
+
+-   `token` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The cloud token to be stored.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
+
+### setColorInterval
+
+Sets the color sensor update interval.
+
+**Parameters**
+
+-   `interval` **[Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Color sensor sampling interval in milliseconds. Must be in the range 200 ms to 60 000 ms.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
+
+### setConnInterval
+
+Sets the connection interval
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Connection interval object: <code>{minInterval: someValue, maxInterval: someValue}</code>
+    -   `params.minInterval` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** The minimum connection interval in milliseconds. Must be >= 7.5 ms.
+    -   `params.maxInterval` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** The maximum connection interval in milliseconds. Must be &lt;= 4 000 ms.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
+
+### setConnSlaveLatency
+
+Sets the connection slave latency
+
+**Parameters**
+
+-   `slaveLatency` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** The desired slave latency in the range from 0 to 499 connection intervals.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)>** Returns a promise.
+
+### setConnTimeout
+
+Sets the connection supervision timeout
+ <b>Note:</b> According to the Bluetooth Low Energy specification, the supervision timeout in milliseconds must be greater
+ than (1 + slaveLatency) _ maxConnInterval _ 2, where maxConnInterval is also given in milliseconds.
+
+**Parameters**
+
+-   `timeout` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** The desired connection supervision timeout in milliseconds and in the range of 100 ms to 32 000 ms.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
+
+### setEddystoneUrl
+
+Sets the Eddystone URL
+ It's recommeended to use URL shortener to stay within the limit of 14 characters long URL
+ URL scheme prefix such as "https&#x3A;//" and "<https://www.>" do not count towards that limit,
+ neither does expansion codes such as ".com/" and ".org".
+ Full details in the Eddystone URL specification: <https://github.com/google/eddystone/tree/master/eddystone-url>
+
+**Parameters**
+
+-   `urlString` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The URL that should be broadcasted.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
+
+### setExternalPin
+
+Set an external pin to chosen state.
+
+**Parameters**
+
+-   `pin` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Determines which pin is set. Range 1 - 4.
+-   `value` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Sets the value of the pin. 0 = OFF, 255 = ON.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
+
+### setGasInterval
+
+Sets the gas sensor sampling interval.
+
+**Parameters**
+
+-   `interval` **[Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** The gas sensor update interval in seconds. Allowed values are 1, 10, and 60 seconds.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
+
+### setHumidityInterval
+
+Sets the humidity measurement update interval.
+
+**Parameters**
+
+-   `interval` **[Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Humidity sensor interval in milliseconds. Must be in the range 100 ms to 60 000 ms.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
+
+### setMagnetCompInterval
+
+Sets the magnetometer compensation interval.
+
+**Parameters**
+
+-   `interval` **[Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Magnetometer compensation interval in milliseconds. Must be in the range 100 ms to 1 000 ms.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
+
+### setMotionProcessFrequency
+
+Sets motion processing unit update frequency.
+
+**Parameters**
+
+-   `frequency` **[Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Motion processing frequency in Hz. The allowed range is 5 - 200 Hz.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
+
+### setMtu
+
+Sets the current Maximal Transmission Unit (MTU)
+
+**Parameters**
+
+-   `params` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** MTU settings object: {mtuSize: value, peripheralRequest: value}, where peripheralRequest is optional. (optional, default `{peripheralRequest:false}`)
+    -   `params.mtuSize` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** The desired MTU size.
+    -   `params.peripheralRequest` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Optional. Set to <code>true</code> if peripheral should send an MTU exchange request. Default is <code>false</code>;
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
+
+### setName
+
+Sets the name of the Thingy device.
+
+**Parameters**
+
+-   `name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** The name that will be given to the Thingy.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise.
+
+### setPressureInterval
+
+Sets the pressure measurement update interval.
+
+**Parameters**
+
+-   `interval` **[Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** The pressure sensor update interval in milliseconds. Must be in the range 50 ms to 60 000 ms.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
+
+### setStepCounterInterval
 
 Sets the step counter interval.
 
 **Parameters**
 
--   `interval` **[Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Step counter interval in milliseconds. Must be in the range 100 ms to 5 000 ms.
+-   `interval` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Step counter interval in milliseconds. Must be in the range 100 ms to 5 000 ms.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
+
+### setTemperatureCompInterval
+
+Sets the temperature compensation interval.
+
+**Parameters**
+
+-   `interval` **[Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Temperature compensation interval in milliseconds. Must be in the range 100 ms to 5 000 ms.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
+
+### setTemperatureInterval
+
+Sets the temperature measurement update interval.
+
+**Parameters**
+
+-   `interval` **[Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Temperature sensor update interval in milliseconds. Must be in the range 100 ms to 60 000 ms.
+
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
+
+### setWakeOnMotion
+
+Sets wake-on-motion feature to enabled or disabled state.
+
+**Parameters**
+
+-   `enable` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Set to True to enable or False to disable wake-on-motion feature.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
 
@@ -616,7 +628,7 @@ Enables step counter notifications from Thingy. The assigned event handler will 
 **Parameters**
 
 -   `eventHandler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** The callback function that is triggered on notification. Will receive a step counter object as argument.
--   `enable` **bool** Enables notifications if true or disables them if set to false.
+-   `enable` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Enables notifications if true or disables them if set to false.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection
 
@@ -626,20 +638,10 @@ Enables tap detection notifications from Thingy. The assigned event handler will
 
 **Parameters**
 
--   `eventHandler` **callback** The callback function that is triggered on notification. Will receive a tap detection object as argument.
--   `enable` **bool** Enables notifications if true or disables them if set to false.
+-   `eventHandler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** The callback function that is triggered on notification. Will receive a tap detection object as argument.
+-   `enable` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Enables notifications if true or disables them if set to false.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection
-
-### temperatureCompIntervalSet
-
-Sets the temperature compensation interval.
-
-**Parameters**
-
--   `interval` **[Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Temperature compensation interval in milliseconds. Must be in the range 100 ms to 5 000 ms.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
 
 ### temperatureEnable
 
@@ -648,40 +650,6 @@ Enables temperature notifications from Thingy. The assigned event handler will b
 **Parameters**
 
 -   `eventHandler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** The callback function that is triggered on notification. Will receive a temperature object as argument.
--   `enable` **bool** Enables notifications if true or disables them if set to false.
+-   `enable` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Enables notifications if true or disables them if set to false.
 
 Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection
-
-### temperatureIntervalSet
-
-Sets the temperature measurement update interval.
-
-**Parameters**
-
--   `interval` **[Number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Step counter interval in milliseconds. Must be in the range 100 ms to 60 000 ms.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
-
-### wakeOnMotionSet
-
-Sets wake-on-motion feature to enabled or disabled state.
-
-**Parameters**
-
--   `enable` **bool** Set to True to enable or False to disable wake-on-motion feature.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection.
-
-### writeData
-
-Method to write data to a Web Bluetooth characteristic.
- Implements a simple solution to avoid starting new GATT requests while another is pending.
- Any attempt to send data during another GATT operation will result in a rejected promise.
- No retransmission is implemented at this level.
-
-**Parameters**
-
--   `characteristic` **[Object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object)** Web Bluetooth characteristic object
--   `dataArray` **[Uint8Array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)** Typed array of bytes to send
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)** 
