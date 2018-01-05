@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Thingy:52 Web Bluetooth</title>
+  </head>
+  <body>
+    <button id="connectBtn">Connect</button>
+    <div id="temperature_1"></div>
+    <div id="temperature_2"></div>
+    <script type="module">
+      import {Thingy} from "../js/thingy.js";
+      
+      const thingy_1 = new Thingy({logEnabled: true});
+      const thingy_2 = new Thingy({logEnabled: true});
+      let first = true;
+
+      async function start(_thingy) {
+        await _thingy.connect();
+        await _thingy.ledBreathe({color: "purple", intensity: 20, delay: 1500});
+        if (first) {
+          await _thingy.temperatureEnable(onTemperatureUpdate_1, true);
+        } else {
+          await _thingy.temperatureEnable(onTemperatureUpdate_2, true);
+        }
+
+        console.log(await _thingy.firmwareVersion);
+        return Promise.resolve();
+      }
+
+      function onTemperatureUpdate_1(data) {
+        const el = document.querySelector("#temperature_1");
+        el.innerHTML = data.value.toFixed(1) + " " + data.unit;
+      }
+
+      function onTemperatureUpdate_2(data) {
+        const el = document.querySelector("#temperature_2");
+        el.innerHTML = data.value.toFixed(1) + " " + data.unit;
+      }
+
+      document.querySelector("#connectBtn").addEventListener("click", async () => {
+        if(first) {
+          await start(thingy_1);
+          first = false;
+        } else {
+          await start(thingy_2);
+        }
+      })
+
+    </script>
+  </body>
+</html>
+
