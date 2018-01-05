@@ -4,6 +4,7 @@
     <title>Thingy:52 Web Bluetooth</title>
   </head>
   <body>
+    <h1>Thingy:52 temperature reading</h1>
     <button id="connectBtn">Connect</button>
     <div id="temperature"></div>
     <script type="module">
@@ -14,7 +15,6 @@
 
       async function start(device) {
         await device.connect();
-        await device.ledBreathe({color: "red", intensity: 10, delay: 1500});
         await device.temperatureEnable(onTemperatureUpdate, true);
       }
 
