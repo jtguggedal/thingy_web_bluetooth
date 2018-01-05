@@ -17,6 +17,7 @@
         await device.ledBreathe({color: "red", intensity: 10, delay: 1500});
         await device.temperatureEnable(onTemperatureUpdate, true);
       }
+      window.thingy = thingy;
 
       function onTemperatureUpdate(data) {
         const el = document.querySelector("#temperature");

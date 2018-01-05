@@ -12,6 +12,7 @@ export class Thingy {
     */
   constructor(options = {logEnabled: false}) {
     this.logEnabled = options.logEnabled;
+    this.events = {};
 
     // TCS = Thingy Configuration Service
     this.TCS_UUID = "ef680100-9b35-4933-9b10-52ffa9740042";
@@ -67,6 +68,8 @@ export class Thingy {
       this.TSS_UUID,
     ];
 
+    this._temperatureUpdateEvent = "temperatureUpdate";
+
     this.bleIsBusy = false;
     this.device;
     this.batteryLevelEventListeners = [null, []];
@@ -87,6 +90,43 @@ export class Thingy {
     this.gravityVectorEventListeners = [null, []];
     this.speakerStatusEventListeners = [null, []];
     this.micMatrixEventListeners = [null, []];
+  }
+
+  _emit(type, data) {
+    const events = this.events[type];
+    if (events === undefined) {
+      return;
+    } else if (typeof(events) === "function") {
+      events(data);
+    } else {
+      events.forEach( (eventHandler) => {
+        eventHandler(data);
+      });
+    }
+  }
+
+  addListener(type, eventHandler) {
+    let events = this.events[type];
+    if (events === undefined) {
+      events = eventHandler;
+    } else if (typeof(events) === "function") {
+      events = [events, eventHandler];
+    } else {
+      events.push(eventHandler);
+    }
+    this.events[type] = events;
+  }
+
+  removeListener(type, eventHandler) {
+    let events = this.events[type];
+    if (events === undefined) {
+      console.warn("The provided event handler was not registered.");
+    } else if (typeof(events) === "function") {
+      events = [events, eventHandler];
+    } else {
+      const index = events[type].indexOf(eventHandler);
+      events[type].splice(index, 1);
+    }
   }
 
   /**
@@ -1040,15 +1080,22 @@ export class Thingy {
    *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection
    *
    */
-  async temperatureEnable(eventHandler, enable) {
+  async temperatureEnable(eventHandler, enable) {/*
     if (enable) {
       this.tempEventListeners[0] = this._temperatureNotifyHandler.bind(this);
       this.tempEventListeners[1].push(eventHandler);
     } else {
       this.tempEventListeners[1].splice(this.tempEventListeners.indexOf([eventHandler]), 1);
     }
+*/
+    await this.temperatureCharacteristic.startNotifications();
+    return this.temperatureCharacteristic.addEventListener("characteristicvaluechanged", this._temperatureNotifyHandler.bind(this));
+    //return await this._notifyCharacteristic(this.temperatureCharacteristic, enable, this.tempEventListeners[0]);
+  }
 
-    return await this._notifyCharacteristic(this.temperatureCharacteristic, enable, this.tempEventListeners[0]);
+  async temperatureDisable() {
+    await this.temperatureCharacteristic.stopNotifications();
+    return this.temperatureCharacteristic.removeEventListener("characteristicvaluechanged", this._temperatureNotifyHandler.bind(this));
   }
 
   _temperatureNotifyHandler(event) {
@@ -1056,12 +1103,18 @@ export class Thingy {
     const integer = data.getUint8(0);
     const decimal = data.getUint8(1);
     const temperature = integer + decimal / 100;
+    this._emit("temperatureUpdate", {
+      value: temperature,
+      unit: "Celsius",
+    });
+    /*
     this.tempEventListeners[1].forEach((eventHandler) => {
       eventHandler({
         value: temperature,
         unit: "Celsius",
       });
     });
+    */
   }
 
   /**
