@@ -18,7 +18,7 @@ export default class Sensor {
 		this.characteristic = characteristic;
 	}
 
-	start() {
+	async start() {
 		let sensor_state = this.state;
 
 		if (sensor_state == 'activating' || sensor_state == 'activated') {
@@ -38,12 +38,29 @@ export default class Sensor {
 				e = throw new Error(`The ${this.type} sensor is not readable at the moment.`);
 			}
 
-			await this.device.castError(e, this);
+			await this.device.notifyError(this, e);
 			return;
 		}
 
-		await this.device.activateSensor(this);
-		return;
+		let permission_state = await this.device.requestSensorAccess(this);
+
+		if (permission_state == 'granted') {
+			await this.device.activateSensor(this);
+
+			return;
+		} else {
+			let e;
+
+			try {
+				e = throw new DOMException(`You don't have the necessary permissions to access the ${this.type} sensor.`, 'NotAllowedError');
+			} catch {
+				e = throw new Error(`You don't have the necessary permissions to access the ${this.type} sensor.`);
+			}
+
+			await this.device.notifyError(this, e);
+
+			return;
+		}
 	}
 
 	async stop() {
@@ -52,6 +69,7 @@ export default class Sensor {
 		}
 
 		this.state = 'idle';
+
 		await this.device.deactivateSensor(this);
 		return;
 	}
@@ -74,12 +92,32 @@ export default class Sensor {
 		return this.state == 'activated' ? true : false;
 	}
 
-	get activating() {
-		return this.state == 'activating' ? true : false;	
+	get hasReading() {
+		let timestamp = this.getValueFromLatestReading(this, "timestamp");
+
+
+		if (timestamp != null) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
+	getValueFromLatestReading(sensor, value) {
+		if (this.state == 'activated') {
+			const numReadings = sensor.readings.length;
 
-	get hasReading(this, timestamp) {
-		return;
+			if (numReadings > 0) {
+				return sensor.readings[numReadings - 1][value];
+			} else {
+				return null;
+			}
+		} else {
+			return null;
+		}
+	}
+
+	get timestamp() {
+		return this.getValueFromLatestReading(this, "timestamp");
 	}
 }

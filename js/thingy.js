@@ -78,6 +78,8 @@ export class Thingy {
 
 	deactivateSensor(sensor) {
 		sensor.state = 'idle';
+
+		await this.notifyIdleState(sensor);
 		return;	
 	}
 
@@ -91,6 +93,14 @@ export class Thingy {
 		
 		return reading[key];
 	}*/
+
+	async notifyError(sensor, error) {
+		sensor.state = 'idle';
+
+		let event = new Event('error');
+		console.log(event); // have to implement SensorErrorEvent Interface
+		sensor.dispatchEvent(event);
+	}
 
 	async notifyActivatedState(sensor) {
 		sensor.state = 'activated';
