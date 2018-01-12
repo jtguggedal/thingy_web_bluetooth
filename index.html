@@ -11,23 +11,13 @@
       import {Thingy} from "./js/thingy.js";
       
       const thingy = new Thingy({logEnabled: true});
-
       async function start(device) {
         await device.connect();
-        await device.ledBreathe({color: "red", intensity: 10, delay: 1500});
-        await device.temperatureEnable(onTemperatureUpdate, true);
       }
-
-      function onTemperatureUpdate(data) {
-        const el = document.querySelector("#temperature");
-        el.innerHTML = `Temperature: ${data.value.toFixed(1)} ${data.unit}`;
-      }
-
+      
       document.querySelector("#connectBtn").addEventListener("click", async () => {
           await start(thingy);
       })
-
     </script>
   </body>
 </html>
-
