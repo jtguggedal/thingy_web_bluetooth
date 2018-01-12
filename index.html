@@ -15,7 +15,7 @@
       async function start(device) {
         await device.connect();
         await device.ledBreathe({color: "red", intensity: 10, delay: 1500});
-        await device.temperatureEnable(onTemperatureUpdate, true);
+        await device.buttonEnable(onButtonChange, true);
       }
 
       function onTemperatureUpdate(data) {
@@ -26,6 +26,45 @@
       document.querySelector("#connectBtn").addEventListener("click", async () => {
           await start(thingy);
       })
+
+      function onButtonChange(state) {
+            console.log('Button: ' + state);
+
+            let button = state;
+
+            if (state == 1)
+            {
+                var led = {
+                    red: 1,
+                    green: 40,
+                    blue: 1
+                };
+                /*
+                connected_thingy.mic_enable(function(error) {
+                    console.log('Microphone enabled! ' + ((error) ? error : ''));
+                });*/
+
+                setTimeout(function() {
+                    if (button === 1) {
+                        thingy.ledConstant(led);
+                    }
+                }, 1);
+            }
+            else
+            {
+                var led = {
+                    color: 6,
+                    intensity: 20,
+                    delay: 3500
+                };
+                /*
+                thingy.mic_disable(function(error) {
+                    console.log('Microphone disabled! ' + ((error) ? error : ''));
+                });*/
+
+                thingy.ledBreathe({color: 'red', intensity: 10, delay: 1500});
+            }
+        }
 
     </script>
   </body>
