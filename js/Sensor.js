@@ -15,13 +15,14 @@ export default class Sensor {
 		this.addEventListener('error', this.onError);
 		this.addEventListener('reading', this.onReading);
 
-		this.characteristic = characteristic;
+		this.latestReading = new Map();
+		this.latestReading.set('timestamp', null);
 	}
 
 	async start() {
-		let sensor_state = this.state;
+		let sensorState = this.state;
 
-		if (sensor_state == 'activating' || sensor_state == 'activated') {
+		if (sensorState == 'activating' || sensorState == 'activated') {
 			return;
 		}
 
@@ -38,29 +39,28 @@ export default class Sensor {
 				e = throw new Error(`The ${this.type} sensor is not readable at the moment.`);
 			}
 
-			await this.device.notifyError(this, e);
-			return;
+			await this.notifyError(this, e);
 		}
 
-		let permission_state = await this.device.requestSensorAccess(this);
+		await this.device.activateSensor(this);
+	}
 
-		if (permission_state == 'granted') {
-			await this.device.activateSensor(this);
+	async connect() {
+		try {
+			this.service = await this.device.server.getPrimaryService(this.serviceUuid);
+      		this.characteristic = await this.service.getCharacteristic(this.characteristicUuid);
 
-			return;
-		} else {
-			let e;
+      		return true;
+		} catch (error) {
+			this.notifyError(this, error);
 
-			try {
-				e = throw new DOMException(`You don't have the necessary permissions to access the ${this.type} sensor.`, 'NotAllowedError');
-			} catch {
-				e = throw new Error(`You don't have the necessary permissions to access the ${this.type} sensor.`);
-			}
-
-			await this.device.notifyError(this, e);
-
-			return;
+			return false;
 		}
+		
+	}
+
+	notifyError(sensorInstance, error) {
+		//this.device.... notify the device of a new error on a sensor instance
 	}
 
 	async stop() {
@@ -80,8 +80,8 @@ export default class Sensor {
 		this.characteristic.startNotifications();
 	}
 
-	onerror() {
-		console.log("I am error");
+	onerror(error, sensorInstance) {
+		console.log(`Error occurred during operations on ${sensorInstance}: ${error}`);
 	}
 
 	onreading() {
@@ -119,5 +119,9 @@ export default class Sensor {
 
 	get timestamp() {
 		return this.getValueFromLatestReading(this, "timestamp");
+	}
+
+	newSensorInstance(options) {
+
 	}
 }
