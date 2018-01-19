@@ -5,7 +5,7 @@
   </head>
   <body>
     <button id="connectBtn">Connect</button>
-    <div id="temperature"></div>
+    <div id="microphone"></div>
     <script type="module">
       
 		import Thingy from "./js/Thingy.js";
@@ -15,15 +15,9 @@
 		async function start(device) {
 			await device.connect()
 			.then(async () => {
-				await device.temperature.connect()
+				await device.microphone.connect()
 				.then(async () => {
-					await device.temperature._notify(true, 'config')
-					.then(() => {
-						setTimeout(async () => {
-							console.log("\n Stopping notifications");
-							await device.temperature._notify(false);
-						}, 10000)
-					})
+					await device.microphone._notify(true);
 				});
 			});
 		}

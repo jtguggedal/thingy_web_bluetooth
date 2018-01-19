@@ -1,4 +1,4 @@
-import Temperature from './Temperature.js';
+import Microphone from './Microphone.js';
 
 class Thingy {
 	constructor(options = {logEnabled: true}) {
@@ -60,7 +60,7 @@ class Thingy {
 			this.TSS_UUID,
 	    ];
 
-	    this.temperature = new Temperature(this);
+	    this.microphone = new Microphone(this);
 	}
 	
 	async connect() {
