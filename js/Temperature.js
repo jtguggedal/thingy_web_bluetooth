@@ -5,30 +5,27 @@ class Temperature extends Sensor {
 		super(device, 'temperature', eventListeners);
 
 		// gatt service and characteristic used to communicate with thingy's temperature sensor
-		this.serviceUuid = this.device.TES_UUID;
+		this.service = {
+			uuid: this.device.TES_UUID
+		}
 
-		this.characteristicUuids = {
-			default: this.device.TES_TEMP_UUID,
-			config: this.device.TES_CONFIG_UUID
+		this.characteristics = {
+			default: {
+				uuid: this.device.TES_TEMP_UUID
+			},
+			config: {
+				uuid: this.device.TES_CONFIG_UUID
+			}
 		}
 
 		this.handlers = {
 			default: this.parseTemperatureData.bind(this),
 			config: this.parseConfigData.bind(this)
 		}
-
 	}
 
-	parseTemperatureData(event) {
+	parseTemperatureData(data) {
 		try {
-			let data;
-
-			if (event.hasOwnProperty('target') && event.target.hasOwnProperty('value')) {
-				data = event.target.value;
-			} else {
-				data = event;
-			}
-
 		    const integer = data.getUint8(0);
 		    const decimal = data.getUint8(1);
 		    const temperature = integer + decimal / 100;
@@ -44,16 +41,8 @@ class Temperature extends Sensor {
 	   	}
 	}
 
-	parseConfigData(event) {
+	parseConfigData(data) {
 		try {
-			let data;
-
-			if (event.hasOwnProperty('target') && event.target.hasOwnProperty('value')) {
-				data = event.target.value;
-			} else {
-				data = event;
-			}
-
 			const littleEndian = true;
 			const tempInterval = data.getUint16(0, littleEndian);
 			const pressureInterval = data.getUint16(2, littleEndian);

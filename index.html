@@ -26,8 +26,15 @@
 			.then(async () => {
 				await device.temperature.connect()
 				.then(async () => {
-					//device.temperature.addListener(myHandler);
-					await device.temperature._notify(true);
+					/*await device.temperature._notify(true)
+					.then(() => {
+						setTimeout(async () => {
+							console.log("\n Stopping notifications");
+							await device.temperature._notify(false);
+						}, 10000)
+					})*/
+
+					let c = await device.temperature._notify(true, 'config');
 				});
 			});
 		}
