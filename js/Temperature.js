@@ -11,16 +11,13 @@ class Temperature extends Sensor {
 
 		this.characteristics = {
 			default: {
-				uuid: this.device.TES_TEMP_UUID
+				uuid: this.device.TES_TEMP_UUID,
+				handler: this.parseTemperatureData.bind(this)
 			},
 			config: {
-				uuid: this.device.TES_CONFIG_UUID
+				uuid: this.device.TES_CONFIG_UUID,
+				handler: this.parseConfigData.bind(this)
 			}
-		}
-
-		this.handlers = {
-			default: this.parseTemperatureData.bind(this),
-			config: this.parseConfigData.bind(this)
 		}
 	}
 
@@ -77,7 +74,7 @@ class Temperature extends Sensor {
 			}
 
 			// Preserve values for those settings that are not being changed
-			const receivedData = await this._read(this.characteristics.config);
+			const receivedData = await this._read('config');
 			const dataArray = new Uint8Array(12);
 
 			for (let i = 0; i < dataArray.length; i++) {
@@ -87,7 +84,7 @@ class Temperature extends Sensor {
 			dataArray[0] = interval & 0xff;
 			dataArray[1] = (interval >> 8) & 0xff;
 
-			return await this._write(this.characteristics.config, dataArray);
+			return await this._write(dataArray, 'config');
 		} catch (error) {
 			return new Error("Error when setting new temperature update interval: " + error);
     	}

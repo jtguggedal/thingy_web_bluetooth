@@ -12,29 +12,18 @@
 
 		const thingy = new Thingy({logEnabled: true});
 
-		/*
-		const myHandler = data => {
-			console.log("custom handler");
-
-			for (let d in data) {
-				console.log(`${d}: ${data[d]}`);
-			}
-		}*/
-
 		async function start(device) {
 			await device.connect()
 			.then(async () => {
 				await device.temperature.connect()
 				.then(async () => {
-					/*await device.temperature._notify(true)
+					await device.temperature._notify(true, 'config')
 					.then(() => {
 						setTimeout(async () => {
 							console.log("\n Stopping notifications");
 							await device.temperature._notify(false);
 						}, 10000)
-					})*/
-
-					let c = await device.temperature._notify(true, 'config');
+					})
 				});
 			});
 		}

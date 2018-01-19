@@ -2,13 +2,9 @@ class Sensor {
 	constructor(device, type, eventListeners) {
 		// check constructor
 
-		if (this.constructor.name == 'CustomSensor') {
-			// check for stuff, kanskje flytte til CustomSensor
-		}
-
 		this.device = device;
-		this.type = type;
-		this.listeners = eventListeners || [];		
+		this.type = type || this.constructor.name;
+		this.listeners = eventListeners;		
 
 		/*this.state = 'idle';
 		this.DOMHighResTimeStamp = ts; // If the script's global object is a Window, the time origin is determined as follows: If the current Document is the first one loaded in the Window, the time origin is the time at which the browser context was created.
@@ -97,8 +93,8 @@ class Sensor {
 		if (customHandler) {
 			return customHandler(data);
 		} else {
-			if (this.handlers[ch]) {
-				return this.handlers[ch](data);
+			if (this.characteristics[ch].handler) {
+				return this.characteristics[ch].handler(data);
 			} else {
 				let e = Error("You have not passed or created a handler for this");
 				this.notifyError(this, e);
@@ -123,13 +119,13 @@ class Sensor {
 		if (customHandler) {
 			handler = customHandler;
 		} else {
-			if (this.handlers[ch]) {
-				handler = this.handlers[ch];
+			if (this.characteristics[ch].handler) {
+				handler = this.characteristics[ch].handler;
 			} else {
 				let e = Error("You have not passed or created a handler for this characteristic");
 				this.notifyError(this, e);
 
-			return;
+				return;
 			}
 		}
 
@@ -140,10 +136,7 @@ class Sensor {
 		if (enable) {
 			try {
 				await characteristic.startNotifications();
-
-				if (this.logEnabled) {
-					console.log("Notifications enabled for " + characteristic.uuid);
-				}
+				console.log("Notifications enabled for " + characteristic.uuid);
 
 				characteristic.addEventListener("characteristicvaluechanged", h);
 			} catch (error) {
@@ -152,10 +145,7 @@ class Sensor {
 		} else {
 			try {
 				await characteristic.stopNotifications();
-
-				if (this.logEnabled) {
-					console.log("Notifications disabled for ", characteristic.uuid);
-				}
+				console.log("Notifications disabled for ", characteristic.uuid);
 
 				characteristic.removeEventListener("characteristicvaluechanged", h);
 			} catch (error) {
@@ -165,7 +155,7 @@ class Sensor {
 	}
 
 	getPermissions(characteristic) {
-		return characteristic.permissions;
+		return this.characteristics[ch].permissions;
 	}
 
 	unpackEventData(event) {
@@ -216,95 +206,3 @@ class Sensor {
 };
 
 export default Sensor;
-
-
-/*
-	
-	async start() {
-		let sensorState = this.state;
-
-		if (sensorState == 'activating' || sensorState == 'activated') {
-			return;
-		}
-
-		this.state = 'activating';
-
-		let connected = await this.connect();
-
-		if (!connected) {
-			let e = new Error(`The ${this.type} sensor is not readable at the moment.`);
-
-			await this.notifyError(this, e);
-		}
-
-		await this.device.activateSensor(this);
-	}
-
-	async stop() {
-		if (this.state == 'idle') {
-			return;
-		}
-
-		this.state = 'idle';
-
-		await this.device.deactivateSensor(this);
-		return;
-	}
-
-
-	onactivate() {
-		console.log(`${this.type} sensor is activated`);
-
-		this.characteristic.startNotifications();
-	}
-
-	onerror(error, sensorInstance) {
-		console.log(`Error occurred during operations on ${sensorInstance}: ${error}`);
-	}
-
-	onreading() {
-		console.log("I am read");
-	}
-
-	get activated() {
-		return this.state == 'activated' ? true : false;
-	}
-
-	get hasReading() {
-		let timestamp = this.getValueFromLatestReading(this, "timestamp");
-
-
-		if (timestamp != null) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	getValueFromLatestReading(sensor, value) {
-		if (this.state == 'activated') {
-			const numReadings = sensor.readings.length;
-
-			if (numReadings > 0) {
-				return sensor.readings[numReadings - 1][value];
-			} else {
-				return null;
-			}
-		} else {
-			return null;
-		}
-	}
-
-	get timestamp() {
-		return this.getValueFromLatestReading(this, "timestamp");
-	}
-
-	newSensorInstance(options) {
-
-	}
-
-	notifyError(sensorInstance, error) {
-		//this.device.... notify the device of a new error on a sensor instance
-	}
-
-	*/
