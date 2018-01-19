@@ -5,8 +5,13 @@ class CustomSensor extends Sensor {
 		super(device, type, eventListeners);
 
 		// gatt service and characteristic used to communicate with thingy's temperature sensor
+		// should follow setup from named sensor classes such as Temperature.js, but with the addition of an object this.characteristics.myChar.properties,
+		// consisting of the allowed BLE operations {read: true, notify: true}
+
 		this.service = service;
 		this.characteristics = characteristics;
+
+
 	}
 };
 
