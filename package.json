@@ -16,7 +16,7 @@
     "url": "git+https://github.com/jtguggedal/thingy_web_bluetooth.git"
   },
   "author": "Jan Tore Guggedal",
-  "license": "MIT",
+  "license": "BSD, see LICENSE file for details",
   "bugs": {
     "url": "https://github.com/jtguggedal/thingy_web_bluetooth/issues"
   },
