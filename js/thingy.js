@@ -1366,7 +1366,7 @@ export class Thingy {
     if (params.color < 1 || params.color > 7) {
       return Promise.reject(new RangeError("The color code must be in the range 1 - 7"));
     }
-    if (params.intensity < 1 || params.intensity > 7) {
+    if (params.intensity < 1 || params.intensity > 100) {
       return Promise.reject(new RangeError("The intensity must be in the range 0 - 100"));
     }
 
