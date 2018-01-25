@@ -1358,19 +1358,22 @@ export class Thingy {
    *
    */
   async ledOneShot(params) {
-    if (params.color === undefined || params.intensity === undefined) {
+    const colors = ["red", "green", "yellow", "blue", "purple", "cyan", "white"];
+    const colorCode = typeof params.color === "string" ? colors.indexOf(params.color) + 1 : params.color;
+
+    if (colorCode === undefined || params.intensity === undefined) {
       return Promise.reject(
         new TypeError("The options object for LED one-shot must have the properties 'color' and 'intensity.")
       );
     }
-    if (params.color < 1 || params.color > 7) {
+    if (colorCode < 1 || colorCode > 7) {
       return Promise.reject(new RangeError("The color code must be in the range 1 - 7"));
     }
     if (params.intensity < 1 || params.intensity > 100) {
       return Promise.reject(new RangeError("The intensity must be in the range 0 - 100"));
     }
 
-    return await this._ledSet(new Uint8Array([3, params.color, params.intensity]));
+    return await this._ledSet(new Uint8Array([3, colorCode, params.intensity]));
   }
 
   /**
