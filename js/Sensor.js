@@ -1,4 +1,4 @@
-import { EventTarget } from "./EventTarget";
+import EventTarget from "./EventTarget.js";
 
 // @ts-check
 
@@ -87,19 +87,29 @@ class Sensor extends EventTarget{
 			this.notifyError(e);
 
 			return false;
-		}
+    }
+    
+    let h = e => {
 
-		let h;
+    }
 
+		let onReading;
+    let characteristicvaluechanged;
+    /*
 		if (this.characteristics[ch].parser) {
-			h = e => {
-				this.logData(this.characteristics[ch].parser(this.unpackEventData(e)));
-			}
+      onReading = e => this.characteristics[ch].parser(this.unpackEventData(e));
+      characteristicvaluechanged = new CustomEvent('characteristicvaluechanged', onReading)
 		} else {
 			const e = Error("The characteristic you're trying to notify does not have a specified parser");
 			this.notifyError(e);
 			return false;
-		}
+    }*/
+    
+    if (!this.characteristics[ch].parser) {
+			const e = Error("The characteristic you're trying to notify does not have a specified parser");
+			this.notifyError(e);
+      return false;
+    }
 
 		const characteristic = this.characteristics[ch].characteristic;
 		
@@ -109,8 +119,8 @@ class Sensor extends EventTarget{
 					window.busyGatt = true;
 					await characteristic.startNotifications()
 					.then(char => {
-					  this.addEventListener("characteristicvaluechanged", h);
-					})
+					  char.addEventListener("characteristicvaluechanged", onReading);
+					}).bind(this);
 					window.busyGatt = false;
 					console.log(`Notifications enabled for the ${ch} characteristic of the ${this.type} sensor`);
 					
@@ -123,7 +133,9 @@ class Sensor extends EventTarget{
 					window.busyGatt = true;
 					await characteristic.stopNotifications()
 					.then(char => {
-						this.removeEventListener("characteristicvaluechanged", h);
+						char.addEventListener('characteristicvaluechanged', e => {
+              this.addEventListener('characteristicvaluechanged', )
+            }).bind(this);
 					})
 					window.busyGatt = false;
 					console.log("Notifications disabled for ", characteristic.uuid);
@@ -141,7 +153,11 @@ class Sensor extends EventTarget{
 
 	getPermissions(ch) {
 		return this.characteristics[ch].permissions;
-	}
+  }
+  
+  onReading(e) {
+    console.log(e.target.value);
+  }
 
 	unpackEventData(event) {
 		let data;

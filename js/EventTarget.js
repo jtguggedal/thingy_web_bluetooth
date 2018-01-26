@@ -1,4 +1,4 @@
-export const EventTargetMixin = (superclass, ...eventNames) => class extends superclass {
+const EventTargetMixin = (superclass, ...eventNames) => class extends superclass {
     constructor(...args) {
       super(args);
       const eventTarget = document.createDocumentFragment();
@@ -35,4 +35,4 @@ export const EventTargetMixin = (superclass, ...eventNames) => class extends sup
     }
   };
   
-  export class EventTarget extends EventTargetMixin(Object) {};
+  export default class EventTarget extends EventTargetMixin(Object) {};

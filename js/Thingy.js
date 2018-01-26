@@ -108,12 +108,18 @@ class Thingy extends EventTarget {
 	}
 
 	async disconnect() {
-    	try {
-      		await this.device.gatt.disconnect();
-    	} catch (error) {
-      		return error;
-    	}
-  	}
+    try {
+      await this.device.gatt.disconnect();
+    } catch (error) {
+      return error;
+    }
+	}
+	
+	logData(data) {
+    for (let d in data) {
+      console.log(`${d}: ${data[d]}`);
+    }
+	}
 }
 
 export default Thingy;
