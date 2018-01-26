@@ -1,8 +1,8 @@
 import Sensor from './Sensor.js';
 
 class Microphone extends Sensor {
-	constructor(device, eventListeners = []) {
-		super(device, 'microphone', eventListeners);
+	constructor(device) {
+		super(device, 'microphone');
 
 		// gatt service and characteristic used to communicate with thingy's temperature sensor
 		this.service = {
