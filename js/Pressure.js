@@ -66,7 +66,7 @@ class Pressure extends Sensor {
     }
   }
 
-  async setPressureInterval(interval) {
+  async setInterval(interval) {
     try {
       if (interval < 50 || interval > 60000) {
         return Promise.reject(new RangeError("The pressure sensor update interval must be in the range 100 ms - 60 000 ms"));
