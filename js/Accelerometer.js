@@ -1,5 +1,3 @@
-// @ts-check
-
 import Sensor from './Sensor.js';
 
 class Microphone extends Sensor {

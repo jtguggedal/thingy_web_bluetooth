@@ -1,3 +1,5 @@
+// @ts-check
+
 import Sensor from './Sensor.js';
 
 class CustomSensor extends Sensor {
@@ -10,8 +12,6 @@ class CustomSensor extends Sensor {
 
 		this.service = service;
 		this.characteristics = characteristics;
-
-
 	}
 };
 

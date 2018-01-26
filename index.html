@@ -12,14 +12,17 @@
 
 		const thingy = new Thingy({logEnabled: true});
 
+		let d = document.getElementById('microphone');
+
+
 		async function start(device) {
-			await device.connect()
-			.then(async () => {
-				await device.microphone.connect()
-				.then(async () => {
-					await device.microphone._notify(true);
-				});
-			});
+			await device.connect();
+			await device.temperature.connect();
+			await device.temperature.setInterval(5000);
+			let c = await device.temperature._notify(true);
+			setTimeout(() => {
+				device.temperature._notify(false);
+			}, 20000);
 		}
       
       document.querySelector("#connectBtn").addEventListener("click", async () => {

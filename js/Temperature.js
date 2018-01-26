@@ -12,11 +12,11 @@ class Temperature extends Sensor {
 		this.characteristics = {
 			default: {
 				uuid: this.device.TES_TEMP_UUID,
-				handler: this.parseTemperatureData.bind(this)
+				parser: this.parseTemperatureData.bind(this)
 			},
 			config: {
 				uuid: this.device.TES_CONFIG_UUID,
-				handler: this.parseConfigData.bind(this)
+				parser: this.parseConfigData.bind(this)
 			}
 		}
 	}
@@ -27,12 +27,12 @@ class Temperature extends Sensor {
 		    const decimal = data.getUint8(1);
 		    const temperature = integer + decimal / 100;
 
-		    const feedback = {
+		    const formattedData = {
 		    	value: temperature,
 		    	unit: 'Celsius'
-		    }
-
-	   		this.emitData(feedback);
+			}
+			
+			return formattedData;
 	   	} catch (error) {
 	   		return new Error(`Error when getting temperature data: ${error}`);
 	   	}
@@ -50,7 +50,7 @@ class Temperature extends Sensor {
 			const colorSensorGreen = data.getUint8(10);
 			const colorSensorBlue = data.getUint8(11);
 
-			const feedback = {
+			const formattedData = {
 				tempInterval: tempInterval,
 				pressureInterval: pressureInterval,
 				humidityInterval: humidityInterval,
@@ -61,7 +61,7 @@ class Temperature extends Sensor {
 				colorSensorBlue: colorSensorBlue
 			};
 
-			this.emitData(feedback);
+			return formattedData;
 	    } catch (error) {
 	    	return new Error(`Error when getting environment sensors configurations: ${error}`);
 	    }

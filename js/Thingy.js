@@ -1,3 +1,6 @@
+// @ts-check
+
+import Temperature from './Temperature.js';
 import Microphone from './Microphone.js';
 
 class Thingy {
@@ -58,9 +61,13 @@ class Thingy {
 			this.TUIS_UUID,
 			this.TMS_UUID,
 			this.TSS_UUID,
-	    ];
+		];
+		
+		if (!window.busyGatt) {
+			window.busyGatt = false;
+		}
 
-	    this.microphone = new Microphone(this);
+	    this.temperature = new Temperature(this);
 	}
 	
 	async connect() {

@@ -1,27 +1,12 @@
-class Sensor {
-	constructor(device, type, eventListeners) {
-		// check constructor
+// @ts-check
 
+import { EventTarget } from './EventTargetMixin';
+
+class Sensor extends EventTarget{
+	constructor(device, type) {
+		super();
 		this.device = device;
-		this.type = type || this.constructor.name;
-		this.listeners = eventListeners;		
-
-		/*this.state = 'idle';
-		this.DOMHighResTimeStamp = ts; // If the script's global object is a Window, the time origin is determined as follows: If the current Document is the first one loaded in the Window, the time origin is the time at which the browser context was created.
-		this.frequency = fr;
-		this.device = device;
-		this.readings = [];
-		this.type = type;
-
-		this.lastEventFiredAt = null;
-		this.pendingReadingNotification = false;
-
-		this.addEventListener('activate', this.onActivate);
-		this.addEventListener('error', this.onError);
-		this.addEventListener('reading', this.onReading);
-
-		this.latestReading = new Map();
-		this.latestReading.set('timestamp', null);*/
+		this.type = type || this.constructor.name;		
 	}
 
 	async connect() {
@@ -31,7 +16,7 @@ class Sensor {
 			for (let ch in this.characteristics) {
 				this.characteristics[ch].characteristic = await this.service.service.getCharacteristic(this.characteristics[ch].uuid);
 
-				if (this.constructor.name != 'CustomSensor') {
+				if (this.constructor.name !== 'CustomSensor') {
 					this.characteristics[ch].properties = this.characteristics[ch].characteristic.properties;
 				}
 			}
@@ -39,122 +24,122 @@ class Sensor {
       		console.log(`Connected to the ${this.type} sensor`);
       		return Promise.resolve();
 		} catch (error) {
-			this.notifyError(this, error);
+			this.notifyError(error);
 			return Promise.reject();
 		}
 	}
 
-	notifyError(sensorInstance, error) {
-		console.log(`The ${sensorInstance.constructor.name} sensor has reported an error: ${error}`);
+	notifyError(error) {
+		console.log(`The ${this.type} sensor has reported an error: ${error}`);
 	}
 
 	async _read(ch = 'default') {
 		if (!this.characteristics[ch].properties.read) {
-			let e = Error("This characteristic does not have the necessary read property");
-			this.notifyError(this, e);
+			const e = Error("This characteristic does not have the necessary read property");
+			this.notifyError(e);
 
 			return false;
 		}
 
-		try {
-			const dataArray = await this.characteristics[ch].characteristic.readValue();
-			return dataArray;
-		} catch (error) {
-			this.notifyError(this, error);
-			return;
+		if (!window.busyGatt) {
+			try {
+				window.busyGatt = true;
+				const dataArray = await this.characteristics[ch].characteristic.readValue();
+				window.busyGatt = false;
+				return this.characteristics[ch].parser(dataArray);
+			} catch (error) {
+				this.notifyError(error);
+				return;
+			}
+		} else {
+			const e = Error(`Could not read  ${this.type} sensor, Thingy only allows one concurrent BLE operation`);
+			this.notifyError(e);
 		}
   	}
 
   	async _write(dataArray, ch = 'default') {
   		if (!this.characteristics[ch].properties.write) {
-			let e = Error("This characteristic does not have the necessary write property");
-			this.notifyError(this, e);
+			const e = Error("This characteristic does not have the necessary write property");
+			this.notifyError(e);
 
 			return false;
 		}
 
-		try {
-			await this.characteristics[ch].characteristic.writeValue(dataArray);
+		if (!window.busyGatt) {
+			try {
+				window.busyGatt = true;
+				await this.characteristics[ch].characteristic.writeValue(dataArray);
+				window.busyGatt = false;
 			return;
-		} catch (error) {
-			this.notifyError(this, error);
-			return;
-		}
-	}
-
-	
-	async _parse(ch = 'default', customHandler = undefined) {
-		let data = await this._read(ch);
-
-		if (data === false) {
-			return;
-		}
-
-		if (customHandler) {
-			return customHandler(data);
-		} else {
-			if (this.characteristics[ch].handler) {
-				return this.characteristics[ch].handler(data);
-			} else {
-				let e = Error("You have not passed or created a handler for this");
-				this.notifyError(this, e);
-
-			return;
+			} catch (error) {
+				this.notifyError(error);
+				return;
 			}
-			
+		} else {
+			const e = Error(`Could not write to  ${this.type} sensor, Thingy only allows one concurrent BLE operation`);
+			this.notifyError(e);
 		}
 	}
 
-	async _notify(enable, ch = 'default', customHandler = undefined) {
+	async _notify(enable, ch = 'default') {
 		if (!this.characteristics[ch].properties.notify) {
-			let e = Error("This characteristic does not have the necessary notify property");
-			this.notifyError(this, e);
+			const e = Error("This characteristic does not have the necessary notify property");
+			this.notifyError(e);
 
+			return false;
+		}
+
+		let h;
+
+		if (this.characteristics[ch].parser) {
+			h = e => {
+				this.characteristics[ch].parser(this.unpackEventData(e));
+			}
+		} else {
+			const e = Error("The characteristic you're trying to notify does not have a specified parser");
+			this.notifyError(e);
 			return false;
 		}
 
 		const characteristic = this.characteristics[ch].characteristic;
-		let handler;
-
-		if (customHandler) {
-			handler = customHandler;
-		} else {
-			if (this.characteristics[ch].handler) {
-				handler = this.characteristics[ch].handler;
+		
+		if (!window.busyGatt) {
+			if (enable) {
+				try {
+					window.busyGatt = true;
+					await characteristic.startNotifications()
+					.then(char => {
+						this.addEventListener("characteristicvaluechanged", h);
+					})
+					window.busyGatt = false;
+					console.log(`Notifications enabled for the ${ch} characteristic of the ${this.type} sensor`);
+					
+					
+				} catch (error) {
+					return error;
+				}
 			} else {
-				let e = Error("You have not passed or created a handler for this characteristic");
-				this.notifyError(this, e);
-
-				return;
+				try {
+					window.busyGatt = true;
+					await characteristic.stopNotifications()
+					.then(char => {
+						this.removeEventListener("characteristicvaluechanged", h);
+					})
+					window.busyGatt = false;
+					console.log("Notifications disabled for ", characteristic.uuid);
+				} catch (error) {
+					return error;
+				}
 			}
-		}
 
-		let h = e => {
-			handler(this.unpackEventData(e));
-		}
-
-		if (enable) {
-			try {
-				await characteristic.startNotifications();
-				console.log("Notifications enabled for " + characteristic.uuid);
-
-				characteristic.addEventListener("characteristicvaluechanged", h);
-			} catch (error) {
-				return error;
-			}
+			window.busyGatt = false;
 		} else {
-			try {
-				await characteristic.stopNotifications();
-				console.log("Notifications disabled for ", characteristic.uuid);
-
-				characteristic.removeEventListener("characteristicvaluechanged", h);
-			} catch (error) {
-				return error;
-			}
+			const e = Error(`Could not write to  ${this.type} sensor, Thingy only allows one concurrent BLE operation`);
+			this.notifyError(e);
 		}
 	}
 
-	getPermissions(characteristic) {
+	getPermissions(ch) {
 		return this.characteristics[ch].permissions;
 	}
 
@@ -170,38 +155,12 @@ class Sensor {
 		return data;
 	}
 
-	emitData(data) {
-		if (this.listeners.length > 0) {
-			for (let listener of this.listeners) {
-				listener(data);
-			}
-		} else {
-			this.logData(data);
-		}
-	}
-
 	logData(data) {
 		console.log(`\nNew reading from the ${this.type} sensor`);
 
 		for (let d in data) {
 			console.log(`${d}: ${data[d]}`);
 		}
-	}
-
-	addListener(listener) {
-		const index = this.listeners.indexOf(listener);
-
-		if (!(index > -1)) {
-			this.listeners.push(listener);
-		};
-	}
-
-	removeListener(listener) {
-		const index = this.listeners.indexOf(listener);
-
-		if (index > -1) {
-			this.listeners.splice(index, 1);
-		};
 	}
 };
 
