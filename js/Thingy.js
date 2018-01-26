@@ -1,10 +1,13 @@
 // @ts-check
 
+import { EventTarget } from './EventTarget';
 import Temperature from './Temperature.js';
 import Microphone from './Microphone.js';
 
-class Thingy {
+
+class Thingy extends EventTarget {
 	constructor(options = {logEnabled: true}) {
+		super();
     	console.log("I am alive!");
 
     	this.logEnabled = options.logEnabled;
@@ -66,6 +69,10 @@ class Thingy {
 		if (!window.busyGatt) {
 			window.busyGatt = false;
 		}
+
+		this.logData = this.logData.bind(this);
+
+		this.addEventListener('characteristicvaluechanged', this.logData);
 
 	    this.temperature = new Temperature(this);
 	}

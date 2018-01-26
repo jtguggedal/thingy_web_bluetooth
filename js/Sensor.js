@@ -1,10 +1,10 @@
-// @ts-check
+import { EventTarget } from "./EventTarget";
 
-import { EventTarget } from './EventTargetMixin';
+// @ts-check
 
 class Sensor extends EventTarget{
 	constructor(device, type) {
-		super();
+    super();
 		this.device = device;
 		this.type = type || this.constructor.name;		
 	}
@@ -109,7 +109,7 @@ class Sensor extends EventTarget{
 					window.busyGatt = true;
 					await characteristic.startNotifications()
 					.then(char => {
-						this.addEventListener("characteristicvaluechanged", h);
+					  this.addEventListener("characteristicvaluechanged", h);
 					})
 					window.busyGatt = false;
 					console.log(`Notifications enabled for the ${ch} characteristic of the ${this.type} sensor`);
@@ -153,14 +153,6 @@ class Sensor extends EventTarget{
 		}
 
 		return data;
-	}
-
-	logData(data) {
-		console.log(`\nNew reading from the ${this.type} sensor`);
-
-		for (let d in data) {
-			console.log(`${d}: ${data[d]}`);
-		}
 	}
 };
 

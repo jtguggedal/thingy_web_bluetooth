@@ -18,7 +18,7 @@
 		async function start(device) {
 			await device.connect();
 			await device.temperature.connect();
-			await device.temperature.setInterval(5000);
+			// await device.temperature.setInterval(5000);
 			let c = await device.temperature._notify(true);
 			setTimeout(() => {
 				device.temperature._notify(false);
