@@ -1,0 +1,211 @@
+<!doctype html>
+<html>
+  <head>
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <style>
+      body {
+        font-family: "Roboto";
+      }
+     
+      h1 {
+
+      }
+
+      #page-wrapper {
+        margin: 20px;
+      }
+
+      .wrapper {
+        margin: 20px 0;
+      }
+
+      .color-chooser {
+        width: 100px;
+        height: 100px;
+        display: inline-block;
+      }
+
+      .row {
+        height: 40px;
+      }
+
+      .label {
+        display: inline-block;
+        width: 140px;
+        margin-right: 10px;
+      }
+
+      .bold {
+        font-weight: bold;
+      }
+
+      .red {
+        background: rgb(255%, 0%, 0%);
+      }
+
+      .blue {
+        background: rgb(9, 68, 237);
+      }
+
+      .green {
+        background: rgb(13, 155, 51);
+      }
+
+      .yellow {
+        background: rgb(255, 255, 0);
+      }
+
+      .purple {
+        background: rgb(204, 0, 255);
+      }
+
+      .cyan {
+        background: rgb(0, 226, 255);
+      }
+
+      .white {
+        background: white;
+      }
+    </style>
+
+    <title>Thingy:52 Web Bluetooth</title>
+  </head>
+  <body>
+    <div id="page-wrapper">
+      <div id="inner-wrapper">
+          <h1>Thingy:52</h1>
+          <button id="connect-btn">Connect</button>
+          <div id="sensors-wrapper" class="wrapper">
+            <div class="row"><span class="label">Device name</span><span id="name" class="bold"></span></div>
+            <div class="row"><span class="label">Battery level</span><span id="battery-data" class="bold"></span></div>
+            <div class="row"><span class="label">Temperature</span><span id="temperature-data" class="bold"></span></div>
+            <div class="row"><span class="label">Pressure</span><span id="pressure-data" class="bold"></span></div>
+          </div>
+          <div id="color-chooser-wrapper" class="wrapper">
+            <div class="color-chooser red" color="red"></div>
+            <div class="color-chooser blue" color="blue"></div>
+            <div class="color-chooser green" color="green"></div>
+            <div class="color-chooser yellow" color="yellow"></div>
+            <div class="color-chooser purple" color="purple"></div>
+            <div class="color-chooser cyan" color="cyan"></div>
+            <div class="color-chooser white" color="white"></div>
+          </div>
+          <div id="led-mode-wrapper">
+            <div class="row">
+              <span class="label">Breathe</span>
+              <input type="radio" name="led-mode" value="breathe" id="led-mode-breathe" class="led-mode" checked>
+            </div>
+            <div class="row">
+              <span class="label">Constant</span>
+              <input type="radio" name="led-mode" value="constant" id="led-mode-constant" class="led-mode">
+            </div>
+            <div class="row">
+              <span class="label">One shot</span>
+              <input type="radio" name="led-mode" value="one-shot" id="led-mode-one-shot" class="led-mode">
+            </div>
+          </div>
+          <div class="row">
+            <span class="label">Intensity</span>
+            <input type="range" id="led-intensity" min="1" max="100" value="30">
+            <span id="led-intensity-value">30 %</span>
+          </div>
+          <div class="row">
+            <span class="label">Delay</span>
+            <input type="range" id="led-delay" min="50" max="10000" value="1500">
+            <span id="led-delay-value">1500 ms</span>
+          </div>
+        </div>
+    </div>
+    <script type="module">
+      
+      import {Thingy} from "../js/thingy.js?y";
+      
+      const thingy = new Thingy({logEnabled: true});
+
+      let ledColor = "green";
+      let ledMode = "breathe";
+      let ledIntensity = 30;
+      let ledDelay = 1500;
+
+      async function start() {
+        try {
+          await thingy.connect();
+          const name = await thingy.getName();
+          updateName(name);
+          const batteryLevel = await thingy.getBatteryLevel();
+          onBatteryUpdate(batteryLevel);
+          await thingy.batteryLevelEnable(onBatteryUpdate, true);
+          await thingy.temperatureEnable(onTemperatureUpdate, true);
+          await thingy.pressureEnable(onPressureUpdate, true);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      function updateName(name) {
+        document.querySelector("#name").innerHTML = name;
+      }
+
+      async function setColor() {
+        try {
+          if (ledMode == "breathe") {
+            await thingy.ledBreathe({color: ledColor, intensity: ledIntensity, delay: ledDelay});
+          } else if (ledMode == "constant") {
+            await thingy.ledConstant({red: 120, green: 0, blue: 30});
+          } else if (ledMode == "one-shot") {
+            await thingy.ledOneShot({color: ledColor, intensity: ledIntensity});
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      function onBatteryUpdate(data) {
+        document.querySelector("#battery-data").innerHTML = `${data.value.toFixed(1)} ${data.unit}`;
+      }
+
+      function onTemperatureUpdate(data) {
+        document.querySelector("#temperature-data").innerHTML = `${data.value.toFixed(1)}°C`;
+      }
+
+      function onPressureUpdate(data) {
+        document.querySelector("#pressure-data").innerHTML = `${data.value.toFixed(1)} ${data.unit}`;
+      }
+
+
+      document.querySelector("#connect-btn").addEventListener("click", async (e) => {
+          await start();
+      })
+
+      // Add event listeners to color chooser boxes
+      const colorChoosers = document.getElementsByClassName("color-chooser");
+      Array.from(colorChoosers, el => el.addEventListener("click", async (e) => {
+          ledColor = e.target.attributes.color.value;
+          await setColor();
+        })
+      );
+
+      // Add event listeners to color mode buttons
+      const colorModeButtons = document.getElementsByClassName("led-mode");
+      Array.from(colorModeButtons, el => el.addEventListener("click", async (e) => {
+          ledMode = e.target.value;
+          await setColor();
+        })
+      );
+
+      document.querySelector("#led-intensity").addEventListener("change", async (e) => {
+        ledIntensity = e.target.value;
+        document.querySelector("#led-intensity-value").innerHTML = `${ledIntensity} %`;
+        await setColor();
+      });
+
+      document.querySelector("#led-delay").addEventListener("change", async (e) => {
+        ledDelay = e.target.value;
+        document.querySelector("#led-delay-value").innerHTML = `${ledDelay} ms`;
+        await setColor();
+      });
+
+    </script>
+  </body>
+</html>
+
