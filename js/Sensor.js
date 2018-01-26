@@ -93,7 +93,7 @@ class Sensor extends EventTarget{
 
 		if (this.characteristics[ch].parser) {
 			h = e => {
-				this.characteristics[ch].parser(this.unpackEventData(e));
+				this.logData(this.characteristics[ch].parser(this.unpackEventData(e)));
 			}
 		} else {
 			const e = Error("The characteristic you're trying to notify does not have a specified parser");
