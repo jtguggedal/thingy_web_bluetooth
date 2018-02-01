@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Thingy:52 Web Bluetooth</title>
+  </head>
+  <body>
+    <h1>Thingy:52 microphone example</h1>
+    <button id="connectBtn">Connect</button>
+    <button id="enableBtn">Enable microphone</button>
+    <button id="disableBtn">Disable microphone</button>
+    <script type="module">
+      import {Thingy} from "../js/thingy.js";
+      
+      const thingy = new Thingy({logEnabled: true});
+
+      async function start() {
+        await thingy.connect();
+        console.log(`Connected to "${await thingy.getName()}"`);
+        await thingy.setMtu({mtuSize: 276});
+      }
+      document.querySelector("#connectBtn").addEventListener("click", async () => {
+        start();
+      })
+
+      document.querySelector("#enableBtn").addEventListener("click", async () => {
+        await thingy.microphoneEnable(true);
+      })
+
+      document.querySelector("#disableBtn").addEventListener("click", async () => {
+        await thingy.microphoneEnable(false);
+      })
+
+    </script>
+  </body>
+</html>
+
