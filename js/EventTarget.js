@@ -1,3 +1,12 @@
+function defineProperties(target, descriptions) {
+  for (const property in descriptions) {
+    Object.defineProperty(target, property, {
+      configurable: true,
+      value: descriptions[property]
+    });
+  }
+}
+
 const EventTargetMixin = (superclass, ...eventNames) => class extends superclass {
     constructor(...args) {
       super(args);

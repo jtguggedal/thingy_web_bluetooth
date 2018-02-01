@@ -46,7 +46,7 @@ class Sensor extends EventTarget{
 				window.busyGatt = true;
 				const dataArray = await this.characteristics[ch].characteristic.readValue();
 				window.busyGatt = false;
-				return this.characteristics[ch].parser(dataArray);
+				return this.characteristics[ch].decoder(dataArray);
 			} catch (error) {
 				this.notifyError(error);
 				return;
@@ -55,18 +55,19 @@ class Sensor extends EventTarget{
 			const e = Error(`Could not read  ${this.type} sensor, Thingy only allows one concurrent BLE operation`);
 			this.notifyError(e);
 		}
-  	}
+  }
 
-  	async _write(dataArray, ch = 'default') {
-  		if (!this.characteristics[ch].properties.write) {
-			const e = Error("This characteristic does not have the necessary write property");
-			this.notifyError(e);
+  async _write(dataArray, ch = 'default') {
+    if (!this.characteristics[ch].properties.write) {
+      const e = Error("This characteristic does not have the necessary write property");
+      this.notifyError(e);
 
-			return false;
-		}
+      return false;
+    }
 
 		if (!window.busyGatt) {
 			try {
+        console.log("doing");
 				window.busyGatt = true;
 				await this.characteristics[ch].characteristic.writeValue(dataArray);
 				window.busyGatt = false;
@@ -93,20 +94,27 @@ class Sensor extends EventTarget{
 
     }
 
-		let onReading;
+		let onReading = e => {
+      let d = this.unpackEventData(e);
+      let fd = this.characteristics[ch].decoder(d);
+
+      let ce = new CustomEvent('characteristicvaluechanged', {detail: fd});
+
+      this.device.dispatchEvent(ce);
+    }
     let characteristicvaluechanged;
     /*
-		if (this.characteristics[ch].parser) {
-      onReading = e => this.characteristics[ch].parser(this.unpackEventData(e));
+		if (this.characteristics[ch].decoder) {
+      onReading = e => this.characteristics[ch].decoder(this.unpackEventData(e));
       characteristicvaluechanged = new CustomEvent('characteristicvaluechanged', onReading)
 		} else {
-			const e = Error("The characteristic you're trying to notify does not have a specified parser");
+			const e = Error("The characteristic you're trying to notify does not have a specified decoder");
 			this.notifyError(e);
 			return false;
     }*/
     
-    if (!this.characteristics[ch].parser) {
-			const e = Error("The characteristic you're trying to notify does not have a specified parser");
+    if (!this.characteristics[ch].decoder) {
+			const e = Error("The characteristic you're trying to notify does not have a specified decoder");
 			this.notifyError(e);
       return false;
     }
@@ -169,7 +177,56 @@ class Sensor extends EventTarget{
 		}
 
 		return data;
-	}
+  }
+  
+  async get(ch = 'default') {
+    try {
+      // have to do this here as well as in ._read in case people want to read properties that aren't readable
+      if (!this.characteristics[ch].properties.read) {
+        const e = Error("This characteristic does not have the necessary read property");
+        this.notifyError(e);
+  
+        return false;
+      }
+
+      let g = await this._read(ch);
+      return g;
+    } catch (error) {
+      // error it
+    }
+  }
+
+  async set(value, ch = 'default') {
+    try {
+      // have to do this here as well as in ._write in case people want to read properties that aren't readable
+      if (!this.characteristics[ch].properties.write) {
+        const e = Error("This characteristic does not have the necessary read property");
+        this.notifyError(e);
+  
+        return false;
+      }
+
+      if (!this.characteristics[ch].encoder) {
+        const e = Error("The characteristic you're trying to set does not have a specified setter");
+        this.notifyError(e);
+        return false;
+      }
+
+      const encodedValue = this.characteristics[ch].encoder(value);
+
+      if (encodedValue === false) {
+        return false;
+      }
+
+      const result = await this._write(encodedValue);
+
+      if (result === false) {
+        return false;
+      }
+    } catch (error) {
+      // error it
+    }
+  }
 };
 
 export default Sensor;
