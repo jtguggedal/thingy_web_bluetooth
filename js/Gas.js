@@ -71,6 +71,13 @@ class Gas extends Sensor {
     }
   }
 
+  /**
+   *  Sets the gas sensor sampling interval.
+   *
+   *  @param {Number} interval - The gas sensor update interval in seconds. Allowed values are 1, 10, and 60 seconds.
+   *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
+   *
+   */
   async setInterval(interval) {
     try {
       let mode;
@@ -86,7 +93,7 @@ class Gas extends Sensor {
       }
 
       // Preserve values for those settings that are not being changed
-      const receivedData = await this._readData(this.environmentConfigCharacteristic);
+      const receivedData = await this._read("config");
       const dataArray = new Uint8Array(12);
 
       for (let i = 0; i < dataArray.length; i++) {
@@ -95,7 +102,7 @@ class Gas extends Sensor {
 
       dataArray[8] = mode;
 
-      return await this._writeData(this.environmentConfigCharacteristic, dataArray);
+      return await this._writeData(dataArray, "config");
     } catch (error) {
       return new Error("Error when setting new gas sensor interval: " + error);
     }

@@ -1,9 +1,10 @@
 import EventTarget from "./EventTarget.js";
 
+
 // @ts-check
 
-class Sensor extends EventTarget{
-	constructor(device, type) {
+class Sensor extends EventTarget {
+  constructor(device, type) {
     super();
 		this.device = device;
 		this.type = type || this.constructor.name;		
@@ -52,6 +53,7 @@ class Sensor extends EventTarget{
 				return;
 			}
 		} else {
+      window.busyGatt = false;
 			const e = Error(`Could not read  ${this.type} sensor, Thingy only allows one concurrent BLE operation`);
 			this.notifyError(e);
 		}
@@ -77,6 +79,7 @@ class Sensor extends EventTarget{
 				return;
 			}
 		} else {
+      window.busyGatt = false;
 			const e = Error(`Could not write to  ${this.type} sensor, Thingy only allows one concurrent BLE operation`);
 			this.notifyError(e);
 		}
@@ -88,10 +91,6 @@ class Sensor extends EventTarget{
 			this.notifyError(e);
 
 			return false;
-    }
-    
-    let h = e => {
-
     }
 
 		let onReading = e => {
@@ -134,6 +133,7 @@ class Sensor extends EventTarget{
 					
 					
 				} catch (error) {
+          window.busyGatt = false;
 					return error;
 				}
 			} else {
@@ -154,6 +154,7 @@ class Sensor extends EventTarget{
 
 			window.busyGatt = false;
 		} else {
+      window.busyGatt = false;
 			const e = Error(`Could not write to  ${this.type} sensor, Thingy only allows one concurrent BLE operation`);
 			this.notifyError(e);
 		}
@@ -161,10 +162,6 @@ class Sensor extends EventTarget{
 
 	getPermissions(ch) {
 		return this.characteristics[ch].permissions;
-  }
-  
-  onReading(e) {
-    console.log(e.target.value);
   }
 
 	unpackEventData(event) {

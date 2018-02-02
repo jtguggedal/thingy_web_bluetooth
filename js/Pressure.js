@@ -66,14 +66,14 @@ class Pressure extends Sensor {
     }
   }
 
-  async setPressureInterval(interval) {
+  async setInterval(interval) {
     try {
       if (interval < 50 || interval > 60000) {
         return Promise.reject(new RangeError("The pressure sensor update interval must be in the range 100 ms - 60 000 ms"));
       }
 
       // Preserve values for those settings that are not being changed
-      const receivedData = await this._readData(this.environmentConfigCharacteristic);
+      const receivedData = await this._read("config");
       const dataArray = new Uint8Array(12);
 
       for (let i = 0; i < dataArray.length; i++) {
@@ -83,7 +83,7 @@ class Pressure extends Sensor {
       dataArray[2] = interval & 0xff;
       dataArray[3] = (interval >> 8) & 0xff;
 
-      return await this._writeData(this.environmentConfigCharacteristic, dataArray);
+      return await this._write(dataArray, "config");
     } catch (error) {
       return new Error("Error when setting new pressure update interval: " + error);
     }

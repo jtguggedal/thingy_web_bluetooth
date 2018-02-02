@@ -1,5 +1,6 @@
 // @ts-check
 
+<<<<<<< HEAD
 import Temperature from './Temperature.js';
 import Microphone from './Microphone.js';
 import Name from './Name.js';
@@ -7,6 +8,13 @@ import EventTarget from "./EventTarget.js";
 
 class Thingy extends EventTarget {
 	constructor(options = {logEnabled: true}) {
+=======
+import {EventTarget} from "./EventTarget";
+import Temperature from "./Temperature.js";
+
+class Thingy extends EventTarget {
+  constructor(options = {logEnabled: true}) {
+>>>>>>> f186f3306e451fa839248c5538256797eb99e7da
     super();
     console.log("I am alive!");
 
@@ -64,6 +72,7 @@ class Thingy extends EventTarget {
       this.TUIS_UUID,
       this.TMS_UUID,
       this.TSS_UUID,
+<<<<<<< HEAD
 		];
 		
 		if (!window.busyGatt) {
@@ -121,6 +130,57 @@ class Thingy extends EventTarget {
       console.log(`${d}: ${dd[d]}`);
     }
 	}
+=======
+    ];
+
+    if (!window.busyGatt) {
+      window.busyGatt = false;
+    }
+
+    this.logData = this.logData.bind(this);
+
+    this.addEventListener("characteristicvaluechanged", this.logData);
+
+    this.temperature = new Temperature(this);
+  }
+
+  async connect() {
+    try {
+      // Scan for Thingys
+      if (this.logEnabled) {
+        console.log(`Scanning for devices with service UUID equal to ${this.TCS_UUID}`);
+      }
+
+      this.device = await navigator.bluetooth.requestDevice({
+        filters: [{
+          services: [this.TCS_UUID],
+        }],
+        optionalServices: this.serviceUUIDs,
+      });
+
+      if (this.logEnabled) {
+        console.log(`Found Thingy named "${this.device.name}", trying to connect`);
+      }
+
+      // Connect to GATT server
+      this.server = await this.device.gatt.connect();
+
+      if (this.logEnabled) {
+        console.log(`Connected to "${this.device.name}"`);
+      }
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async disconnect() {
+    try {
+      await this.device.gatt.disconnect();
+    } catch (error) {
+      return error;
+    }
+  }
+>>>>>>> f186f3306e451fa839248c5538256797eb99e7da
 }
 
 export default Thingy;
