@@ -101,16 +101,6 @@ class Sensor extends EventTarget {
 
       this.device.dispatchEvent(ce);
     }
-    let characteristicvaluechanged;
-    /*
-		if (this.characteristics[ch].decoder) {
-      onReading = e => this.characteristics[ch].decoder(this.unpackEventData(e));
-      characteristicvaluechanged = new CustomEvent('characteristicvaluechanged', onReading)
-		} else {
-			const e = Error("The characteristic you're trying to notify does not have a specified decoder");
-			this.notifyError(e);
-			return false;
-    }*/
     
     if (!this.characteristics[ch].decoder) {
 			const e = Error("The characteristic you're trying to notify does not have a specified decoder");
@@ -151,10 +141,7 @@ class Sensor extends EventTarget {
 					return error;
 				}
 			}
-
-			window.busyGatt = false;
 		} else {
-      window.busyGatt = false;
 			const e = Error(`Could not write to  ${this.type} sensor, Thingy only allows one concurrent BLE operation`);
 			this.notifyError(e);
 		}
