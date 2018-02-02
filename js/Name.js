@@ -12,37 +12,38 @@ class Name extends Sensor {
     this.characteristics = {
       default: {
         uuid: this.device.TCS_NAME_UUID,
-        decoder: this.decodeNameData.bind(this),
-        encoder: this.encodeNameData.bind(this)
+        decoder: this.decodeName.bind(this),
+        encoder: this.encodeName.bind(this)
       }
     };
   }
 
-  decodeNameData(data) {
+  decodeName(name) {
     try {
       const decoder = new TextDecoder("utf-8");
-      const name = decoder.decode(data);
-      const formattedData = {
+      const decodedName = decoder.decode(name);
+      const decodedData = {
         name: {
-          value: name,
+          value: decodedName,
         }
       };
-      return formattedData;
+      return decodedData;
     } catch (error) {
       return new Error(`Error when decoding name data: ${error}`);
     }
   }
 
-  encodeNameData(data) {
+  encodeName(name) {
     try {
-      if (data.length > 10) {
+      if (name.length > 10) {
         return Promise.reject(new TypeError("The name can't be more than 10 characters long."));
       }
-      const byteArray = new Uint8Array(data.length);
+      const encodedName = new Uint8Array(name.length);
 
-      for (let i = 0; i < data.length; i += 1) {
-        byteArray[i] = data.charCodeAt(i);
+      for (let i = 0; i < name.length; i += 1) {
+        encodedName[i] = name.charCodeAt(i);
       }
+      return encodedName;
     } catch (error) {
       return Promise.reject(new Error(`Error when encoding name data: ${error}`));
     }
