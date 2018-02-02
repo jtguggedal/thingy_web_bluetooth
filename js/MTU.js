@@ -14,7 +14,7 @@ class Mtu extends Sensor {
         uuid: this.device.TCS_MTU_REQUEST_UUID,
         decoder: this.decodeMtu.bind(this),
         encoder: this.encodeMtu.bind(this),
-      }
+      },
     };
   }
 

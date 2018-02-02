@@ -1,12 +1,11 @@
 // @ts-check
 
-import Temperature from './Temperature.js';
-import Microphone from './Microphone.js';
-import Name from './Name.js';
+import Microphone from "./Microphone.js";
+import Mtu from "./Mtu.js";
 import EventTarget from "./EventTarget.js";
 
 class Thingy extends EventTarget {
-	constructor(options = {logEnabled: true}) {
+  constructor(options = {logEnabled: true}) {
     super();
     console.log("I am alive!");
 
@@ -64,67 +63,67 @@ class Thingy extends EventTarget {
       this.TUIS_UUID,
       this.TMS_UUID,
       this.TSS_UUID,
-		];
-		
-		if (!window.busyGatt) {
-			window.busyGatt = false;
-		}
-    
-		this.logData = this.logData.bind(this);
+    ];
 
-		this.addEventListener('characteristicvaluechanged', this.receiveReading);
+    if (!window.busyGatt) {
+      window.busyGatt = false;
+    }
 
-	    this.name = new Name(this);
-	}
-	
-	async connect() {
-    	try {
-	      	// Scan for Thingys
-	      	if (this.logEnabled) {
-        		console.log(`Scanning for devices with service UUID equal to ${this.TCS_UUID}`);
-      		}
+    this.logData = this.logData.bind(this);
 
-      		this.device = await navigator.bluetooth.requestDevice({
-        		filters: [{
-        			services: [this.TCS_UUID],
-            	}],
-        		optionalServices: this.serviceUUIDs,
-      		});
+    this.addEventListener("characteristicvaluechanged", this.receiveReading);
 
-		    if (this.logEnabled) {
-		    	console.log(`Found Thingy named "${this.device.name}", trying to connect`);
-		    }
-
-			// Connect to GATT server
-			this.server = await this.device.gatt.connect();
-
-			if (this.logEnabled) {
-				console.log(`Connected to "${this.device.name}"`);
-			}
-
-		} catch (error) {
-			return error;
-		}
+    this.mic = new Microphone(this);
+    this.mtu = new Mtu(this);
   }
-  
+
+  async connect() {
+    try {
+      // Scan for Thingys
+      if (this.logEnabled) {
+        console.log(`Scanning for devices with service UUID equal to ${this.TCS_UUID}`);
+      }
+
+      this.device = await navigator.bluetooth.requestDevice({
+        filters: [{
+          services: [this.TCS_UUID],
+        }],
+        optionalServices: this.serviceUUIDs,
+      });
+
+      if (this.logEnabled) {
+        console.log(`Found Thingy named "${this.device.name}", trying to connect`);
+      }
+
+      // Connect to GATT server
+      this.server = await this.device.gatt.connect();
+
+      if (this.logEnabled) {
+        console.log(`Connected to "${this.device.name}"`);
+      }
+    } catch (error) {
+      return error;
+    }
+  }
+
   receiveReading(reading) {
     console.log(reading);
   }
 
-	async disconnect() {
+  async disconnect() {
     try {
       await this.device.gatt.disconnect();
     } catch (error) {
       return error;
     }
-	}
-	
-	logData(data) {
-    let dd = data.detail;
-    for (let d in dd) {
+  }
+
+  logData(data) {
+    const dd = data.detail;
+    for (const d in dd) {
       console.log(`${d}: ${dd[d]}`);
     }
-	}
+  }
 }
 
 export default Thingy;

@@ -13,8 +13,8 @@ class Name extends Sensor {
       default: {
         uuid: this.device.TCS_NAME_UUID,
         decoder: this.decodeName.bind(this),
-        encoder: this.encodeName.bind(this)
-      }
+        encoder: this.encodeName.bind(this),
+      },
     };
   }
 
@@ -25,7 +25,7 @@ class Name extends Sensor {
       const decodedName = {
         name: {
           value: name,
-        }
+        },
       };
       return decodedName;
     } catch (error) {
