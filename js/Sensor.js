@@ -20,6 +20,8 @@ class Sensor extends EventTarget {
 				if (this.constructor.name !== 'CustomSensor') {
 					this.characteristics[ch].properties = this.characteristics[ch].characteristic.properties;
 				}
+
+				console.log(this.characteristics[ch].properties);
 			}
 
       		console.log(`Connected to the ${this.type} sensor`);
@@ -35,10 +37,16 @@ class Sensor extends EventTarget {
 	}
 
 	async _read(ch = 'default') {
-		if (!this.characteristics[ch].properties.read) {
+		if (!this.hasProperty('read', ch)) {
 			const e = Error("This characteristic does not have the necessary read property");
 			this.notifyError(e);
 
+			return false;
+		}
+
+		if (!this.characteristics[ch].decoder) {
+			const e = Error("The characteristic you're trying to write does not have a specified decoder");
+			this.notifyError(e);
 			return false;
 		}
 
@@ -60,18 +68,23 @@ class Sensor extends EventTarget {
   }
 
   async _write(dataArray, ch = 'default') {
-    if (!this.characteristics[ch].properties.write) {
+    if (!this.hasProperty('write', ch)) {
       const e = Error("This characteristic does not have the necessary write property");
       this.notifyError(e);
 
       return false;
-    }
+		}
+		
+		if (!this.characteristics[ch].encoder) {
+			const e = Error("The characteristic you're trying to write does not have a specified encoder");
+			this.notifyError(e);
+			return false;
+		}
 
 		if (!window.busyGatt) {
 			try {
-        console.log("doing");
 				window.busyGatt = true;
-				await this.characteristics[ch].characteristic.writeValue(dataArray);
+				await this.characteristics[ch].characteristic.writeValue(this.characteristics[ch].encoder(dataArray));
 				window.busyGatt = false;
 			return;
 			} catch (error) {
@@ -86,7 +99,7 @@ class Sensor extends EventTarget {
 	}
 
 	async _notify(enable, ch = 'default') {
-		if (!this.characteristics[ch].properties.notify) {
+		if (!this.hasProperty('notify', ch)) {
 			const e = Error("This characteristic does not have the necessary notify property");
 			this.notifyError(e);
 
@@ -147,9 +160,13 @@ class Sensor extends EventTarget {
 		}
 	}
 
-	getPermissions(ch) {
-		return this.characteristics[ch].permissions;
-  }
+	getProperties(ch = 'default') {
+		return this.characteristics[ch].properties;
+	}
+	
+	hasProperty(property, ch = 'default') {
+		return (this.characteristics[ch].properties.hasOwnProperty(property) &&  this.characteristics[ch].properties[property] === true)  ? true : false;
+	}
 
 	unpackEventData(event) {
 		let data;
@@ -162,18 +179,18 @@ class Sensor extends EventTarget {
 
 		return data;
   }
-  
+  /*
   async get(ch = 'default') {
     try {
       // have to do this here as well as in ._read in case people want to read properties that aren't readable
-      if (!this.characteristics[ch].properties.read) {
+      if (!this.hasProperty('read', ch)) {) {
         const e = Error("This characteristic does not have the necessary read property");
         this.notifyError(e);
   
         return false;
       }
 
-      let g = await this._read(ch);
+			const g = await this._read(ch);
       return g;
     } catch (error) {
       // error it
@@ -183,7 +200,7 @@ class Sensor extends EventTarget {
   async set(value, ch = 'default') {
     try {
       // have to do this here as well as in ._write in case people want to read properties that aren't readable
-      if (!this.characteristics[ch].properties.write) {
+      if (!this.hasProperty('write', ch)) {
         const e = Error("This characteristic does not have the necessary read property");
         this.notifyError(e);
   
@@ -210,7 +227,7 @@ class Sensor extends EventTarget {
     } catch (error) {
       // error it
     }
-  }
+  }*/
 };
 
 export default Sensor;

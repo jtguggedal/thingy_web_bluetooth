@@ -18,30 +18,30 @@ class Name extends Sensor {
     };
   }
 
-  decodeName(name) {
+  decodeName(data) {
     try {
       const decoder = new TextDecoder("utf-8");
-      const decodedName = decoder.decode(name);
-      const decodedData = {
+      const name = decoder.decode(data);
+      const decodedName = {
         name: {
-          value: decodedName,
+          value: name,
         }
       };
-      return decodedData;
+      return decodedName;
     } catch (error) {
       return new Error(`Error when decoding name data: ${error}`);
     }
   }
 
-  encodeName(name) {
+  encodeName(data) {
     try {
-      if (name.length > 10) {
+      if (data.length > 10) {
         return Promise.reject(new TypeError("The name can't be more than 10 characters long."));
       }
-      const encodedName = new Uint8Array(name.length);
+      const encodedName = new Uint8Array(data.length);
 
-      for (let i = 0; i < name.length; i += 1) {
-        encodedName[i] = name.charCodeAt(i);
+      for (let i = 0; i < data.length; i += 1) {
+        encodedName[i] = data.charCodeAt(i);
       }
       return encodedName;
     } catch (error) {

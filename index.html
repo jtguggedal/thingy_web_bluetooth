@@ -18,9 +18,9 @@
 		async function start(device) {
 			await device.connect();
       await device.name.connect();
-      await device.name.set("BestThing");
+      await device.name._write("Bffs4Life");
 
-      const n = await device.name.get();
+      const n = await device.name._read();
       console.log(n);
 
 		}

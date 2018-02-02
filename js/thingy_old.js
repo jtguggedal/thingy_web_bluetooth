@@ -300,8 +300,7 @@ export class Thingy {
   async getName() {
     try {
       const data = await this._readData(this.nameCharacteristic);
-      const decoder = new TextDecoder("utf-8");
-      const name = decoder.decode(data);
+      
       if (this.logEnabled) {
         console.log("Received device name: " + name);
       }
