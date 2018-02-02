@@ -72,7 +72,7 @@ class Thingy extends EventTarget {
     
 		this.logData = this.logData.bind(this);
 
-		this.addEventListener('characteristicvaluechanged', this.logData);
+		this.addEventListener('characteristicvaluechanged', this.receiveReading);
 
 	    this.name = new Name(this);
 	}
@@ -105,7 +105,11 @@ class Thingy extends EventTarget {
 		} catch (error) {
 			return error;
 		}
-	}
+  }
+  
+  receiveReading(reading) {
+    console.log(reading);
+  }
 
 	async disconnect() {
     try {

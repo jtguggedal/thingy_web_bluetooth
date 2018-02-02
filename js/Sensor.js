@@ -1,6 +1,5 @@
 import EventTarget from "./EventTarget.js";
 
-
 // @ts-check
 
 class Sensor extends EventTarget {
@@ -24,8 +23,8 @@ class Sensor extends EventTarget {
 				console.log(this.characteristics[ch].properties);
 			}
 
-      		console.log(`Connected to the ${this.type} sensor`);
-      		return Promise.resolve();
+      console.log(`Connected to the ${this.type} sensor`);
+      return Promise.resolve();
 		} catch (error) {
 			this.notifyError(error);
 			return Promise.reject();
@@ -110,14 +109,14 @@ class Sensor extends EventTarget {
       let d = this.unpackEventData(e);
       let fd = this.characteristics[ch].decoder(d);
 
-      let ce = new CustomEvent('characteristicvaluechanged', {detail: fd});
+      let ce = new CustomEvent('characteristicvaluechanged', {detail: {sensor: this.type, data: fd}});
 
       this.device.dispatchEvent(ce);
     }
     
     if (!this.characteristics[ch].decoder) {
 			const e = Error("The characteristic you're trying to notify does not have a specified decoder");
-			this.notifyError(e);
+			this.notifyError(e);|
       return false;
     }
 
