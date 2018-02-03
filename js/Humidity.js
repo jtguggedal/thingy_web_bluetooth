@@ -12,11 +12,11 @@ class Humidity extends Sensor {
     this.characteristics = {
       default: {
         uuid: this.device.TES_HUMIDITY_UUID,
-        decoder: this.parseHumidityData.bind(this),
+        decoder: this.decodeHumidityData.bind(this),
       },
       config: {
         uuid: this.device.TES_CONFIG_UUID,
-        decoder: this.parseConfigData.bind(this),
+        decoder: this.decodeConfigData.bind(this),
       },
     };
   }
