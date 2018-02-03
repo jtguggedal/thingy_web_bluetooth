@@ -162,7 +162,7 @@ class Sensor extends EventTarget {
   }
 
   hasProperty(property, ch = "default") {
-    return (this.characteristics[ch].properties.hasOwnProperty(property) && this.characteristics[ch].properties[property] === true) ? true : false;
+    return (this.characteristics[ch].properties[property] === true ? true : false);
   }
 
   unpackEventData(event) {

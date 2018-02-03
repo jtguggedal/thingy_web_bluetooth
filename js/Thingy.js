@@ -2,6 +2,7 @@
 
 import Microphone from "./Microphone.js";
 import Mtu from "./Mtu.js";
+import Name from "./Name.js";
 import EventTarget from "./EventTarget.js";
 
 class Thingy extends EventTarget {
@@ -75,6 +76,7 @@ class Thingy extends EventTarget {
 
     this.mic = new Microphone(this);
     this.mtu = new Mtu(this);
+    this.name = new Name(this);
   }
 
   async connect() {
