@@ -12,16 +12,16 @@ class Color extends Sensor {
     this.characteristics = {
       default: {
         uuid: this.device.TES_COLOR_UUID,
-        parser: this.parseColorData.bind(this),
+        decoder: this.decodeColorData.bind(this),
       },
       config: {
         uuid: this.device.TES_CONFIG_UUID,
-        parser: this.parseConfigData.bind(this),
+        decoder: this.decodeConfigData.bind(this),
       },
     };
   }
 
-  parseColorData(data) {
+  decodeColorData(data) {
     try {
       const littleEndian = true;
       const r = data.getUint16(0, littleEndian);
@@ -68,7 +68,7 @@ class Color extends Sensor {
     }
   }
 
-  parseConfigData(data) {
+  decodeConfigData(data) {
     try {
       const littleEndian = true;
       const tempInterval = data.getUint16(0, littleEndian);

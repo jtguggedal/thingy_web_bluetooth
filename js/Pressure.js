@@ -12,16 +12,16 @@ class Pressure extends Sensor {
     this.characteristics = {
       default: {
         uuid: this.device.TES_PRESSURE_UUID,
-        parser: this.parsePressureData.bind(this),
+        decoder: this.decodePressureData.bind(this),
       },
       config: {
         uuid: this.device.TES_CONFIG_UUID,
-        parser: this.parseConfigData.bind(this),
+        decoder: this.decodeConfigData.bind(this),
       },
     };
   }
 
-  parsePressureData(data) {
+  decodePressureData(data) {
     try {
       const littleEndian = true;
       const integer = data.getUint32(0, littleEndian);
@@ -37,7 +37,7 @@ class Pressure extends Sensor {
     }
   }
 
-  parseConfigData(data) {
+  decodeConfigData(data) {
     try {
       const littleEndian = true;
       const tempInterval = data.getUint16(0, littleEndian);

@@ -1,7 +1,7 @@
 import Sensor from "./Sensor.js";
 
 class Gas extends Sensor {
-  constructor(device, eventListeners = []) {
+  constructor(device) {
     super(device, "air quality");
 
     // gatt service and characteristic used to communicate with thingy's gas sensor
@@ -12,16 +12,16 @@ class Gas extends Sensor {
     this.characteristics = {
       default: {
         uuid: this.device.TES_GAS_UUID,
-        parser: this.parseGasData.bind(this),
+        decoder: this.decodeGasData.bind(this),
       },
       config: {
         uuid: this.device.TES_CONFIG_UUID,
-        parser: this.parseConfigData.bind(this),
+        decoder: this.decodeConfigData.bind(this),
       },
     };
   }
 
-  parseGasData(data) {
+  decodeGasData(data) {
     try {
       const littleEndian = true;
       const eco2 = data.getUint16(0, littleEndian);
@@ -42,7 +42,7 @@ class Gas extends Sensor {
     }
   }
 
-  parseConfigData(data) {
+  decodeConfigData(data) {
     try {
       const littleEndian = true;
       const tempInterval = data.getUint16(0, littleEndian);
