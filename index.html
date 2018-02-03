@@ -17,12 +17,8 @@
 
 		async function start(device) {
 			await device.connect();
-      await device.name.connect();
-      await device.name._write("Bffs4Life");
-
-      const n = await device.name._read();
-      console.log(n);
-
+      await device.pressure.connect();
+      await device.pressure._notify(true);
 		}
       
       document.querySelector("#connectBtn").addEventListener("click", async () => {

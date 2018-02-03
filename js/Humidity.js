@@ -12,16 +12,16 @@ class Humidity extends Sensor {
     this.characteristics = {
       default: {
         uuid: this.device.TES_HUMIDITY_UUID,
-        parser: this.parseHumidityData.bind(this),
+        decoder: this.parseHumidityData.bind(this),
       },
       config: {
         uuid: this.device.TES_CONFIG_UUID,
-        parser: this.parseConfigData.bind(this),
+        decoder: this.parseConfigData.bind(this),
       },
     };
   }
 
-  parseHumidityData(data) {
+  decodeHumidityData(data) {
     try {
       const humidity = data.getUint8(0);
 
@@ -36,7 +36,7 @@ class Humidity extends Sensor {
     }
   }
 
-  parseConfigData(data) {
+  decodeConfigData(data) {
     try {
       const littleEndian = true;
       const tempInterval = data.getUint16(0, littleEndian);
@@ -90,7 +90,8 @@ class Humidity extends Sensor {
       dataArray[4] = interval & 0xff;
       dataArray[5] = (interval >> 8) & 0xff;
 
-      return await this._write(dataArray, "config");
+      await this._write(dataArray, "config");
+      return;
     } catch (error) {
       return new Error("Error when setting new humidity update interval: " + error);
     }

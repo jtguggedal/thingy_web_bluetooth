@@ -1,7 +1,7 @@
 import Sensor from "./Sensor.js";
 
 class Pressure extends Sensor {
-  constructor(device, eventListeners = []) {
+  constructor(device) {
     super(device, "pressure");
 
     // gatt service and characteristic used to communicate with thingy's pressure sensor

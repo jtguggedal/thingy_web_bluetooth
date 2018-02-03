@@ -19,7 +19,6 @@ class Sensor extends EventTarget {
           if (this.constructor.name !== "CustomSensor") {
             this.characteristics[ch].properties = this.characteristics[ch].characteristic.properties;
           }
-          console.log(this.characteristics[ch].properties);
         }
       }
 
@@ -67,6 +66,13 @@ class Sensor extends EventTarget {
   }
 
   async _write(dataArray, ch = "default") {
+    if (dataArray === undefined) {
+      const e = Error("You have to write a non-empty body");
+      this.notifyError(e);
+
+      return false;
+    }
+
     if (!this.hasProperty("write", ch)) {
       const e = Error("This characteristic does not have the necessary write property");
       this.notifyError(e);
@@ -98,6 +104,13 @@ class Sensor extends EventTarget {
   }
 
   async _notify(enable, ch = "default") {
+    if (enable === undefined) {
+      const e = Error("You have to specify the enable parameter (true/false)");
+      this.notifyError(e);
+
+      return false;
+    }
+    
     if (!this.hasProperty("notify", ch)) {
       const e = Error("This characteristic does not have the necessary notify property");
       this.notifyError(e);
@@ -128,6 +141,7 @@ class Sensor extends EventTarget {
           window.busyGatt = true;
           await characteristic.startNotifications()
             .then((char) => {
+              console.log("did it");
               char.addEventListener("characteristicvaluechanged", onReading);
             }).bind(this);
           window.busyGatt = false;
