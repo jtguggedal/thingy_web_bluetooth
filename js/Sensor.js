@@ -119,10 +119,10 @@ class Sensor extends EventTarget {
     }
 
     const onReading = (e) => {
-      const d = this.unpackEventData(e);
-      const fd = this.characteristics[ch].decoder(d);
+      const eventData = e.target.value;
+      const unpackedData = this.characteristics[ch].decoder(eventData);
 
-      const ce = new CustomEvent("characteristicvaluechanged", {detail: {sensor: this.type, data: fd}});
+      const ce = new CustomEvent("characteristicvaluechanged", {detail: {sensor: this.type, data: unpackedData}});
 
       this.device.dispatchEvent(ce);
     };
@@ -141,7 +141,6 @@ class Sensor extends EventTarget {
           window.busyGatt = true;
           await characteristic.startNotifications()
             .then((char) => {
-              console.log("did it");
               char.addEventListener("characteristicvaluechanged", onReading);
             }).bind(this);
           window.busyGatt = false;
@@ -190,55 +189,6 @@ class Sensor extends EventTarget {
 
     return data;
   }
-  /*
-  async get(ch = 'default') {
-    try {
-      // have to do this here as well as in ._read in case people want to read properties that aren't readable
-      if (!this.hasProperty('read', ch)) {) {
-        const e = Error("This characteristic does not have the necessary read property");
-        this.notifyError(e);
-
-        return false;
-      }
-
-      const g = await this._read(ch);
-      return g;
-    } catch (error) {
-      // error it
-    }
-  }
-
-  async set(value, ch = 'default') {
-    try {
-      // have to do this here as well as in ._write in case people want to read properties that aren't readable
-      if (!this.hasProperty('write', ch)) {
-        const e = Error("This characteristic does not have the necessary read property");
-        this.notifyError(e);
-
-        return false;
-      }
-
-      if (!this.characteristics[ch].encoder) {
-        const e = Error("The characteristic you're trying to set does not have a specified setter");
-        this.notifyError(e);
-        return false;
-      }
-
-      const encodedValue = this.characteristics[ch].encoder(value);
-
-      if (encodedValue === false) {
-        return false;
-      }
-
-      const result = await this._write(encodedValue);
-
-      if (result === false) {
-        return false;
-      }
-    } catch (error) {
-      // error it
-    }
-  }*/
 }
 
 export default Sensor;

@@ -73,7 +73,7 @@ class Thingy extends EventTarget {
       window.busyGatt = false;
     }
 
-    this.logData = this.logData.bind(this);
+    this.receiveReading = this.receiveReading.bind(this);
 
     this.addEventListener("characteristicvaluechanged", this.receiveReading);
 
@@ -114,7 +114,13 @@ class Thingy extends EventTarget {
   }
 
   receiveReading(reading) {
-    console.log(reading);
+    const source = reading.detail.sensor;
+    const data = reading.detail.data;
+
+    console.log(`\nReceived new reading from the ${source} sensor:`);
+    for (const dp in data) {
+      console.log(`${dp}: ${data[dp]}`);
+    }
   }
 
   async disconnect() {
@@ -122,13 +128,6 @@ class Thingy extends EventTarget {
       await this.device.gatt.disconnect();
     } catch (error) {
       return error;
-    }
-  }
-
-  logData(data) {
-    const dd = data.detail;
-    for (const d in dd) {
-      console.log(`${d}: ${dd[d]}`);
     }
   }
 }

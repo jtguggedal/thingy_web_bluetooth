@@ -33,11 +33,12 @@ class Pressure extends Sensor {
       };
       return formattedData;
     } catch (error) {
-      return new Error(`Error when getting temperature data: ${error}`);
+      return new Error(`Error when getting pressure data: ${error}`);
     }
   }
 
   decodeConfigData(data) {
+    console.log(data);
     try {
       const littleEndian = true;
       const tempInterval = data.getUint16(0, littleEndian);
@@ -74,8 +75,10 @@ class Pressure extends Sensor {
 
       // Preserve values for those settings that are not being changed
       const receivedData = await this._read("config");
+      console.log(receivedData);
       const dataArray = new Uint8Array(12);
 
+      /*
       for (let i = 0; i < dataArray.length; i++) {
         dataArray[i] = receivedData.getUint8(i);
       }
@@ -83,7 +86,7 @@ class Pressure extends Sensor {
       dataArray[2] = interval & 0xff;
       dataArray[3] = (interval >> 8) & 0xff;
 
-      return await this._write(dataArray, "config");
+      return await this._write(dataArray, "config");*/
     } catch (error) {
       return new Error("Error when setting new pressure update interval: " + error);
     }
