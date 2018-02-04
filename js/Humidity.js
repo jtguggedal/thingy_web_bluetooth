@@ -4,7 +4,7 @@ class Humidity extends Sensor {
   constructor(device) {
     super(device, "humidity");
 
-    // gatt service and characteristic used to communicate with thingy's temperature sensor
+    // gatt service and characteristic used to communicate with thingy's humidity sensor
     this.service = {
       uuid: this.device.TES_UUID,
     };

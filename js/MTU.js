@@ -1,10 +1,12 @@
+// @ts-check
+
 import Sensor from "./Sensor.js";
 
 class Mtu extends Sensor {
-  constructor(device, eventListeners = []) {
+  constructor(device) {
     super(device, "mtu");
 
-    // gatt service and characteristic used to communicate with thingy's gas sensor
+    // gatt service and characteristic used to communicate with thingy's mtu
     this.service = {
       uuid: this.device.TCS_UUID,
     };
@@ -25,7 +27,7 @@ class Mtu extends Sensor {
 
       return mtu;
     } catch (error) {
-      return new Error(`Error when decoding name data: ${error}`);
+      return new Error(`Error when decoding mtu data: ${error}`);
     }
   }
 
@@ -42,7 +44,7 @@ class Mtu extends Sensor {
 
       return dataArray;
     } catch (error) {
-      return Promise.reject(new Error(`Error when encoding name data: ${error}`));
+      return Promise.reject(new Error(`Error when encoding mtu data: ${error}`));
     }
   }
 }

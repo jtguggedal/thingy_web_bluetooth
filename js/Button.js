@@ -1,10 +1,12 @@
+// @ts-check
+
 import Sensor from "./Sensor.js";
 
 class Button extends Sensor {
   constructor(device) {
     super(device, "button");
 
-    // gatt service and characteristic used to communicate with thingy's temperature sensor
+    // gatt service and characteristic used to communicate with thingy's button state
     this.service = {
       uuid: this.device.TUIS_UUID,
     };
@@ -22,7 +24,7 @@ class Button extends Sensor {
       const state = data.getUint8(0);
       return state;
     } catch (error) {
-      return new Error(`Error when getting temperature data: ${error}`);
+      return new Error(`Error when getting button state data: ${error}`);
     }
   }
 }

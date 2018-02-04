@@ -1,8 +1,10 @@
+// @ts-check
+
 import Sensor from "./Sensor.js";
 
 class Gas extends Sensor {
   constructor(device) {
-    super(device, "air quality");
+    super(device, "gas");
 
     // gatt service and characteristic used to communicate with thingy's gas sensor
     this.service = {
@@ -38,7 +40,7 @@ class Gas extends Sensor {
       };
       return formattedData;
     } catch (error) {
-      return new Error(`Error when getting temperature data: ${error}`);
+      return new Error(`Error when getting gas data: ${error}`);
     }
   }
 

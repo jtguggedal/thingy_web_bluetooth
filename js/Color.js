@@ -1,10 +1,12 @@
+// @ts-check
+
 import Sensor from "./Sensor.js";
 
 class Color extends Sensor {
   constructor(device) {
     super(device, "color");
 
-    // gatt service and characteristic used to communicate with thingy's temperature sensor
+    // gatt service and characteristic used to communicate with thingy's color sensor
     this.service = {
       uuid: this.device.TES_UUID,
     };
@@ -64,7 +66,7 @@ class Color extends Sensor {
 
       return formattedData;
     } catch (error) {
-      return new Error(`Error when getting temperature data: ${error}`);
+      return new Error(`Error when getting color sensor data: ${error}`);
     }
   }
 
@@ -93,7 +95,7 @@ class Color extends Sensor {
 
       return formattedData;
     } catch (error) {
-      return new Error(`Error when getting environment sensors configurations: ${error}`);
+      return new Error(`Error when getting environment sensor configurations: ${error}`);
     }
   }
 

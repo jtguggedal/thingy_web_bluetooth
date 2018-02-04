@@ -1,3 +1,5 @@
+// @ts-check
+
 import Sensor from "./Sensor.js";
 
 class Pressure extends Sensor {

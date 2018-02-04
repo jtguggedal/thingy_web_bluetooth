@@ -1,10 +1,12 @@
+// @ts-check
+
 import Sensor from "./Sensor.js";
 
 class Name extends Sensor {
-  constructor(device, eventListeners = []) {
+  constructor(device) {
     super(device, "name");
 
-    // gatt service and characteristic used to communicate with thingy's gas sensor
+    // gatt service and characteristic used to communicate with thingy's name configuration
     this.service = {
       uuid: this.device.TCS_UUID,
     };
