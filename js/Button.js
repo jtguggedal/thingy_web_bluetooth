@@ -22,7 +22,10 @@ class Button extends Sensor {
   decodeButtonData(data) {
     try {
       const state = data.getUint8(0);
-      return state;
+      const decodedButton = {
+        value: state,
+      };
+      return decodedButton;
     } catch (error) {
       return new Error(`Error when getting button state data: ${error}`);
     }
