@@ -66,7 +66,9 @@ class Color extends Sensor {
 
       return formattedData;
     } catch (error) {
-      return new Error(`Error when getting color sensor data: ${error}`);
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 
@@ -95,7 +97,9 @@ class Color extends Sensor {
 
       return formattedData;
     } catch (error) {
-      return new Error(`Error when getting environment sensor configurations: ${error}`);
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 
@@ -124,9 +128,11 @@ class Color extends Sensor {
       dataArray[6] = interval & 0xff;
       dataArray[7] = (interval >> 8) & 0xff;
 
-      return await this._write(dataArray, "config");
+      await this._write(dataArray, "config");
     } catch (error) {
-      return new Error("Error when setting new color sensor update interval: " + error);
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 
@@ -140,10 +146,18 @@ class Color extends Sensor {
    *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
    *
    */
-  async colorSensorCalibrate(red, green, blue) {
+  async calibrate(red, green, blue) {
     try {
+      for (let arg of arguments) {
+        if (arg < 0 || arg > 255) {
+          const e = new Error("The calibration values must be in the interval 0 - 255");
+          this.notifyError(e);
+          throw e;
+        }
+      }
+
       // Preserve values for those settings that are not being changed
-      const receivedData = await this._readData(this.environmentConfigCharacteristic);
+      const receivedData = await this._read('config');
       const dataArray = new Uint8Array(12);
 
       for (let i = 0; i < dataArray.length; i++) {
@@ -154,9 +168,11 @@ class Color extends Sensor {
       dataArray[10] = green;
       dataArray[11] = blue;
 
-      return await this._writeData(this.environmentConfigCharacteristic, dataArray);
+      await this._write(dataArray, 'config');
     } catch (error) {
-      return new Error("Error when setting new color sensor parameters: " + error);
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 }

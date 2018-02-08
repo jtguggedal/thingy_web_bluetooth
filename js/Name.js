@@ -31,7 +31,9 @@ class Name extends Sensor {
       };
       return decodedName;
     } catch (error) {
-      return new Error(`Error when decoding name data: ${error}`);
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 
@@ -47,7 +49,9 @@ class Name extends Sensor {
       }
       return encodedName;
     } catch (error) {
-      return Promise.reject(new Error(`Error when encoding name data: ${error}`));
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 }

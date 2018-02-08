@@ -40,7 +40,9 @@ class Gas extends Sensor {
       };
       return formattedData;
     } catch (error) {
-      return new Error(`Error when getting gas data: ${error}`);
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 
@@ -69,7 +71,9 @@ class Gas extends Sensor {
 
       return formattedData;
     } catch (error) {
-      return new Error(`Error when getting environment sensors configurations: ${error}`);
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 
@@ -104,9 +108,11 @@ class Gas extends Sensor {
 
       dataArray[8] = mode;
 
-      return await this._writeData(dataArray, "config");
+      await this._writeData(dataArray, "config");
     } catch (error) {
-      return new Error("Error when setting new gas sensor interval: " + error);
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 }

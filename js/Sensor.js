@@ -52,9 +52,9 @@ class Sensor extends EventTarget {
     if (!window.busyGatt) {
       try {
         window.busyGatt = true;
-        const dataArray = await this.characteristics[ch].characteristic.readValue();
+        const prop = await this.characteristics[ch].characteristic.readValue();
         window.busyGatt = false;
-        return Promise.resolve(this.characteristics[ch].decoder(dataArray));
+        return Promise.resolve(this.characteristics[ch].decoder(prop));
       } catch (error) {
 				const e = new Error(error);
 			  this.notifyError(e);
@@ -68,8 +68,8 @@ class Sensor extends EventTarget {
     }
   }
 
-  async _write(dataArray, ch = "default") {
-    if (dataArray === undefined) {
+  async _write(prop, ch = "default") {
+    if (prop === undefined) {
       const e = new Error("You have to write a non-empty body");
 			this.notifyError(e);
       throw e;
@@ -90,7 +90,7 @@ class Sensor extends EventTarget {
     if (!window.busyGatt) {
       try {
         window.busyGatt = true;
-        await this.characteristics[ch].characteristic.writeValue(this.characteristics[ch].encoder(dataArray));
+        await this.characteristics[ch].characteristic.writeValue(this.characteristics[ch].encoder(prop));
         window.busyGatt = false;
         return;
       } catch (error) {
@@ -121,9 +121,9 @@ class Sensor extends EventTarget {
 
     const onReading = (e) => {
       const eventData = e.target.value;
-      const unpackedData = this.characteristics[ch].decoder(eventData);
+      const decodedData = this.characteristics[ch].decoder(eventData);
 
-      const ce = new CustomEvent("characteristicvaluechanged", {detail: {sensor: this.type, data: unpackedData}});
+      const ce = new CustomEvent("characteristicvaluechanged", {detail: {sensor: this.type, data: decodedData}});
 
       this.device.dispatchEvent(ce);
     };

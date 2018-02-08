@@ -27,7 +27,9 @@ class Button extends Sensor {
       };
       return decodedButton;
     } catch (error) {
-      return new Error(`Error when getting button state data: ${error}`);
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 }

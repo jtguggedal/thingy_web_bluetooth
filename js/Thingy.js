@@ -2,7 +2,7 @@
 
 import EventTarget from "./EventTarget.js";
 import Microphone from "./Microphone.js";
-import Mtu from "./MTU.js";
+import MTU from "./MTU.js";
 import Name from "./Name.js";
 import Temperature from "./Temperature.js";
 import Pressure from "./Pressure.js";
@@ -78,7 +78,7 @@ class Thingy extends EventTarget {
     this.addEventListener("characteristicvaluechanged", this.receiveReading);
 
     this.mic = new Microphone(this);
-    this.mtu = new Mtu(this);
+    this.mtu = new MTU(this);
     this.name = new Name(this);
     this.temperature = new Temperature(this);
     this.pressure = new Pressure(this);

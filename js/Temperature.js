@@ -36,7 +36,9 @@ class Temperature extends Sensor {
 
       return decodedTemperature;
     } catch (error) {
-      return new Error(`Error when getting temperature data: ${error}`);
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 
@@ -65,7 +67,9 @@ class Temperature extends Sensor {
 
       return decodedConfig;
     } catch (error) {
-      return new Error(`Error when getting environment sensors configurations: ${error}`);
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 
@@ -79,8 +83,6 @@ class Temperature extends Sensor {
       const receivedData = await this._read("config");
       const dataArray = new Uint8Array(12);
 
-
-      // SJEKK: er dette rett mtp. at noen av verdiene er uint16?
       for (let i = 0; i < dataArray.length; i++) {
         dataArray[i] = receivedData.getUint8(i);
       }
@@ -89,9 +91,10 @@ class Temperature extends Sensor {
       dataArray[1] = (interval >> 8) & 0xff;
 
       await this._write(dataArray, "config");
-      return;
     } catch (error) {
-      return new Error("Error when setting new temperature update interval: " + error);
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 }

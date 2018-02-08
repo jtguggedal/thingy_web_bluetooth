@@ -32,7 +32,9 @@ class Humidity extends Sensor {
 
       return formattedData;
     } catch (error) {
-      return new Error(`Error when getting humidity data: ${error}`);
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 
@@ -61,7 +63,9 @@ class Humidity extends Sensor {
 
       return formattedData;
     } catch (error) {
-      return new Error(`Error when getting environment sensors configurations: ${error}`);
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 
@@ -91,9 +95,10 @@ class Humidity extends Sensor {
       dataArray[5] = (interval >> 8) & 0xff;
 
       await this._write(dataArray, "config");
-      return;
     } catch (error) {
-      return new Error("Error when setting new humidity update interval: " + error);
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 }

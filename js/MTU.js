@@ -2,7 +2,7 @@
 
 import Sensor from "./Sensor.js";
 
-class Mtu extends Sensor {
+class MTU extends Sensor {
   constructor(device) {
     super(device, "mtu");
 
@@ -27,26 +27,32 @@ class Mtu extends Sensor {
 
       return mtu;
     } catch (error) {
-      return new Error(`Error when decoding mtu data: ${error}`);
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 
-  encodeMtu(mtuSize, peripheralRequest = false) {
+  encodeMtu(mtuSize) {
     try {
       if (mtuSize < 23 || mtuSize > 276) {
-        return Promise.reject(new Error("MTU size must be in range 23 - 276 bytes"));
+        const e = new Error("MTU size must be in range 23 - 276 bytes");
+        this.notifyError(e);
+        throw e;
       }
 
       const dataArray = new Uint8Array(3);
-      dataArray[0] = peripheralRequest ? 1 : 0;
+      dataArray[0] = 0;
       dataArray[1] = mtuSize & 0xff;
       dataArray[2] = (mtuSize >> 8) & 0xff;
 
       return dataArray;
     } catch (error) {
-      return Promise.reject(new Error(`Error when encoding mtu data: ${error}`));
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 }
 
-export default Mtu;
+export default MTU;
