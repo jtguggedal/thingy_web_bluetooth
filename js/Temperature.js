@@ -18,7 +18,8 @@ class Temperature extends Sensor {
       },
       config: {
         uuid: this.device.TES_CONFIG_UUID,
-        decoder: this.decodeConfig.bind(this),
+        decoder: this.decodeConfigData.bind(this),
+        encoder: this.encodeConfigData.bind(this),
       },
     };
   }
@@ -42,30 +43,19 @@ class Temperature extends Sensor {
     }
   }
 
-  decodeConfig(data) {
+  decodeConfigData(data) {
     try {
-      const littleEndian = true;
-      const tempInterval = data.getUint16(0, littleEndian);
-      const pressureInterval = data.getUint16(2, littleEndian);
-      const humidityInterval = data.getUint16(4, littleEndian);
-      const colorInterval = data.getUint16(6, littleEndian);
-      const gasMode = data.getUint8(8);
-      const colorSensorRed = data.getUint8(9);
-      const colorSensorGreen = data.getUint8(10);
-      const colorSensorBlue = data.getUint8(11);
+      return data;
+    } catch (error) {
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
+    }
+  }
 
-      const decodedConfig = {
-        tempInterval: tempInterval,
-        pressureInterval: pressureInterval,
-        humidityInterval: humidityInterval,
-        colorInterval: colorInterval,
-        gasMode: gasMode,
-        colorSensorRed: colorSensorRed,
-        colorSensorGreen: colorSensorGreen,
-        colorSensorBlue: colorSensorBlue,
-      };
-
-      return decodedConfig;
+  encodeConfigData(data) {
+    try {
+      return data;
     } catch (error) {
       const e = new Error(error);
       this.notifyError(e);
@@ -75,7 +65,7 @@ class Temperature extends Sensor {
 
   async setInterval(interval) {
     try {
-      if (interval < 50 || interval > 60000) {
+      if (interval < 100 || interval > 60000) {
         return Promise.reject(new RangeError("The temperature sensor update interval must be in the range 100 ms - 60 000 ms"));
       }
 

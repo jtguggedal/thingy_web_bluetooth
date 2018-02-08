@@ -19,6 +19,7 @@ class Gas extends Sensor {
       config: {
         uuid: this.device.TES_CONFIG_UUID,
         decoder: this.decodeConfigData.bind(this),
+        encoder: this.encodeConfigData.bind(this),
       },
     };
   }
@@ -48,28 +49,7 @@ class Gas extends Sensor {
 
   decodeConfigData(data) {
     try {
-      const littleEndian = true;
-      const tempInterval = data.getUint16(0, littleEndian);
-      const pressureInterval = data.getUint16(2, littleEndian);
-      const humidityInterval = data.getUint16(4, littleEndian);
-      const colorInterval = data.getUint16(6, littleEndian);
-      const gasMode = data.getUint8(8);
-      const colorSensorRed = data.getUint8(9);
-      const colorSensorGreen = data.getUint8(10);
-      const colorSensorBlue = data.getUint8(11);
-
-      const formattedData = {
-        tempInterval: tempInterval,
-        pressureInterval: pressureInterval,
-        humidityInterval: humidityInterval,
-        colorInterval: colorInterval,
-        gasMode: gasMode,
-        colorSensorRed: colorSensorRed,
-        colorSensorGreen: colorSensorGreen,
-        colorSensorBlue: colorSensorBlue,
-      };
-
-      return formattedData;
+      return data;
     } catch (error) {
       const e = new Error(error);
       this.notifyError(e);
@@ -77,13 +57,16 @@ class Gas extends Sensor {
     }
   }
 
-  /**
-   *  Sets the gas sensor sampling interval.
-   *
-   *  @param {Number} interval - The gas sensor update interval in seconds. Allowed values are 1, 10, and 60 seconds.
-   *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
-   *
-   */
+  encodeConfigData(data) {
+    try {
+      return data;
+    } catch (error) {
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
+    }
+  }
+
   async setInterval(interval) {
     try {
       let mode;
@@ -95,7 +78,9 @@ class Gas extends Sensor {
       } else if (interval === 60) {
         mode = 3;
       } else {
-        return Promise.reject(new RangeError("The gas sensor interval has to be 1, 10 or 60 seconds."));
+        const e = new RangeError("The gas sensor interval has to be 1, 10 or 60 seconds.");
+        this.notifyError(e);
+        throw e;
       }
 
       // Preserve values for those settings that are not being changed
@@ -108,7 +93,7 @@ class Gas extends Sensor {
 
       dataArray[8] = mode;
 
-      await this._writeData(dataArray, "config");
+      await this._write(dataArray, "config");
     } catch (error) {
       const e = new Error(error);
       this.notifyError(e);

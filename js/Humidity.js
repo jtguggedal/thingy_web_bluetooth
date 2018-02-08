@@ -1,3 +1,5 @@
+// @ts-check
+
 import Sensor from "./Sensor.js";
 
 class Humidity extends Sensor {
@@ -17,6 +19,7 @@ class Humidity extends Sensor {
       config: {
         uuid: this.device.TES_CONFIG_UUID,
         decoder: this.decodeConfigData.bind(this),
+        encoder: this.encodeConfigData.bind(this),
       },
     };
   }
@@ -40,28 +43,7 @@ class Humidity extends Sensor {
 
   decodeConfigData(data) {
     try {
-      const littleEndian = true;
-      const tempInterval = data.getUint16(0, littleEndian);
-      const pressureInterval = data.getUint16(2, littleEndian);
-      const humidityInterval = data.getUint16(4, littleEndian);
-      const colorInterval = data.getUint16(6, littleEndian);
-      const gasMode = data.getUint8(8);
-      const colorSensorRed = data.getUint8(9);
-      const colorSensorGreen = data.getUint8(10);
-      const colorSensorBlue = data.getUint8(11);
-
-      const formattedData = {
-        tempInterval: tempInterval,
-        pressureInterval: pressureInterval,
-        humidityInterval: humidityInterval,
-        colorInterval: colorInterval,
-        gasMode: gasMode,
-        colorSensorRed: colorSensorRed,
-        colorSensorGreen: colorSensorGreen,
-        colorSensorBlue: colorSensorBlue,
-      };
-
-      return formattedData;
+      return data;
     } catch (error) {
       const e = new Error(error);
       this.notifyError(e);
@@ -69,18 +51,22 @@ class Humidity extends Sensor {
     }
   }
 
-  /**
-   *  Sets the humidity measurement update interval.
-   *
-   *  @async
-   *  @param {Number} interval - Humidity sensor interval in milliseconds. Must be in the range 100 ms to 60 000 ms.
-   *  @return {Promise<Error>} Returns a promise when resolved or a promise with an error on rejection.
-   *
-   */
+  encodeConfigData(data) {
+    try {
+      return data;
+    } catch (error) {
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
+    }
+  }
+
   async setInterval(interval) {
     try {
       if (interval < 100 || interval > 60000) {
-        return Promise.reject(new RangeError("The humidity sensor sampling interval must be in the range 100 ms - 60 000 ms"));
+        const e = new RangeError("The humidity sensor sampling interval must be in the range 100 ms - 60 000 ms");
+        this.notifyError(e);
+        throw e;
       }
 
       // Preserve values for those settings that are not being changed
