@@ -2,6 +2,7 @@
 
 import EventTarget from "./EventTarget.js";
 import Microphone from "./Microphone.js";
+import Mtu from "./MTU.js";
 import Name from "./Name.js";
 import Temperature from "./Temperature.js";
 import Pressure from "./Pressure.js";
