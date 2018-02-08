@@ -6,6 +6,7 @@ import MTU from "./MTU.js";
 import Name from "./Name.js";
 import Temperature from "./Temperature.js";
 import Pressure from "./Pressure.js";
+import LED from "./LED.js";
 
 
 class Thingy extends EventTarget {
@@ -82,6 +83,7 @@ class Thingy extends EventTarget {
     this.name = new Name(this);
     this.temperature = new Temperature(this);
     this.pressure = new Pressure(this);
+    this.led = new LED(this);
   }
 
   async connect() {
