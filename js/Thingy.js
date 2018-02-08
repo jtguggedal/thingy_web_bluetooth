@@ -109,7 +109,8 @@ class Thingy extends EventTarget {
         console.log(`Connected to "${this.device.name}"`);
       }
     } catch (error) {
-      return error;
+      const e = new Error(error);
+      throw e;
     }
   }
 
@@ -117,17 +118,16 @@ class Thingy extends EventTarget {
     const source = reading.detail.sensor;
     const data = reading.detail.data;
 
-    console.log(`\nReceived new reading from the ${source} sensor:`);
-    for (const dp in data) {
-      console.log(`${dp}: ${data[dp]}`);
-    }
+    const ce = new CustomEvent(`${source}Notification`, {detail: data})
+    this.dispatchEvent(ce);
   }
 
   async disconnect() {
     try {
       await this.device.gatt.disconnect();
     } catch (error) {
-      return error;
+      const e = new Error(error);
+      throw e;
     }
   }
 }

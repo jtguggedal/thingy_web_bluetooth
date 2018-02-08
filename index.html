@@ -18,7 +18,7 @@
 		async function start(device) {
 			await device.connect();
       await device.pressure.connect();
-      await device.pressure._notify(true);
+      await device.pressure.setInterval(200);
 		}
       
       document.querySelector("#connectBtn").addEventListener("click", async () => {

@@ -25,27 +25,28 @@ class Sensor extends EventTarget {
       console.log(`Connected to the ${this.type} sensor`);
       return Promise.resolve();
     } catch (error) {
-      this.notifyError(error);
-      return Promise.reject(error);
+			const e = new Error(error);
+      this.notifyError(e);
+			throw e;
     }
   }
 
   notifyError(error) {
-    console.log(`The ${this.type} sensor has reported an error: ${error}`);
+		console.log(`The ${this.type} sensor has reported an error: ${error}`);
+
   }
 
   async _read(ch = "default") {
     if (!this.hasProperty("read", ch)) {
-      const e = Error("This characteristic does not have the necessary read property");
+			const e = new Error("This characteristic does not have the necessary read property");
       this.notifyError(e);
-
-      return false;
+      throw e;
     }
 
     if (!this.characteristics[ch].decoder) {
-      const e = Error("The characteristic you're trying to write does not have a specified decoder");
-      this.notifyError(e);
-      return false;
+      const e = new Error("The characteristic you're trying to write does not have a specified decoder");
+			this.notifyError(e);
+      throw e;
     }
 
     if (!window.busyGatt) {
@@ -53,37 +54,37 @@ class Sensor extends EventTarget {
         window.busyGatt = true;
         const dataArray = await this.characteristics[ch].characteristic.readValue();
         window.busyGatt = false;
-        return this.characteristics[ch].decoder(dataArray);
+        return Promise.resolve(this.characteristics[ch].decoder(dataArray));
       } catch (error) {
-        this.notifyError(error);
-        return;
+				const e = new Error(error);
+			  this.notifyError(e);
+        throw e;
       }
     } else {
       window.busyGatt = false;
-      const e = Error(`Could not read  ${this.type} sensor, Thingy only allows one concurrent BLE operation`);
-      this.notifyError(e);
+      const e = new Error(`Could not read  ${this.type} sensor, Thingy only allows one concurrent BLE operation`);
+			this.notifyError(e);
+      throw e;
     }
   }
 
   async _write(dataArray, ch = "default") {
     if (dataArray === undefined) {
-      const e = Error("You have to write a non-empty body");
-      this.notifyError(e);
-
-      return false;
+      const e = new Error("You have to write a non-empty body");
+			this.notifyError(e);
+      throw e;
     }
 
     if (!this.hasProperty("write", ch)) {
-      const e = Error("This characteristic does not have the necessary write property");
-      this.notifyError(e);
-
-      return false;
+      const e = new Error("This characteristic does not have the necessary write property");
+			this.notifyError(e);
+      throw e;
     }
 
     if (!this.characteristics[ch].encoder) {
-      const e = Error("The characteristic you're trying to write does not have a specified encoder");
-      this.notifyError(e);
-      return false;
+      const e = new Error("The characteristic you're trying to write does not have a specified encoder");
+			this.notifyError(e);
+      throw e;
     }
 
     if (!window.busyGatt) {
@@ -93,29 +94,29 @@ class Sensor extends EventTarget {
         window.busyGatt = false;
         return;
       } catch (error) {
-        this.notifyError(error);
-        return;
+				const e = new Error(error);
+				this.notifyError(e);
+				throw e;
       }
     } else {
       window.busyGatt = false;
-      const e = Error(`Could not write to  ${this.type} sensor, Thingy only allows one concurrent BLE operation`);
-      this.notifyError(e);
+      const e = new Error(`Could not write to  ${this.type} sensor, Thingy only allows one concurrent BLE operation`);
+			this.notifyError(e);
+      throw e;
     }
   }
 
   async _notify(enable, ch = "default") {
-    if (enable === undefined) {
-      const e = Error("You have to specify the enable parameter (true/false)");
-      this.notifyError(e);
-
-      return false;
+    if (!(enable === true || enable === false)) {
+      const e = new Error("You have to specify the enable parameter (true/false)");
+			this.notifyError(e);
+      throw e;
     }
     
     if (!this.hasProperty("notify", ch)) {
-      const e = Error("This characteristic does not have the necessary notify property");
+      const e = new Error("This characteristic does not have the necessary notify property");
       this.notifyError(e);
-
-      return false;
+      throw e;
     }
 
     const onReading = (e) => {
@@ -128,9 +129,9 @@ class Sensor extends EventTarget {
     };
 
     if (!this.characteristics[ch].decoder) {
-      const e = Error("The characteristic you're trying to notify does not have a specified decoder");
+      const e = new Error("The characteristic you're trying to notify does not have a specified decoder");
       this.notifyError(e);
-      return false;
+      throw e;
     }
 
     const characteristic = this.characteristics[ch].characteristic;
@@ -139,29 +140,28 @@ class Sensor extends EventTarget {
       if (enable) {
         try {
           window.busyGatt = true;
-          await characteristic.startNotifications()
-            .then((char) => {
-              char.addEventListener("characteristicvaluechanged", onReading);
-            }).bind(this);
+          const csn = await characteristic.startNotifications()
+          csn.addEventListener("characteristicvaluechanged", onReading.bind(this));
           window.busyGatt = false;
-          console.log(`Notifications enabled for the ${ch} characteristic of the ${this.type} sensor`);
+          console.log(`\nNotifications enabled for the ${ch} characteristic of the ${this.type} sensor`);
         } catch (error) {
           window.busyGatt = false;
-          return error;
+          const e = new Error(error);
+     		  this.notifyError(e);
+          throw e;
         }
       } else {
         try {
           window.busyGatt = true;
-          await characteristic.stopNotifications()
-            .then((char) => {
-              char.addEventListener("characteristicvaluechanged", (e) => {
-                this.addEventListener("characteristicvaluechanged", );
-              }).bind(this);
-            });
+          const csn = await characteristic.stopNotifications()
+					csn.removeEventListener("characteristicvaluechanged", onReading.bind(this));
           window.busyGatt = false;
-          console.log("Notifications disabled for ", characteristic.uuid);
+          console.log(`\nNotifications disabled for the ${ch} characteristic of the ${this.type} sensor`);
         } catch (error) {
-          return error;
+					window.busyGatt = false;
+          const e = new Error(error);
+          this.notifyError(e);
+          throw e;
         }
       }
     } else {
@@ -170,24 +170,8 @@ class Sensor extends EventTarget {
     }
   }
 
-  getProperties(ch = "default") {
-    return this.characteristics[ch].properties;
-  }
-
   hasProperty(property, ch = "default") {
     return (this.characteristics[ch].properties[property] === true ? true : false);
-  }
-
-  unpackEventData(event) {
-    let data;
-
-    if (event.hasOwnProperty("target") && event.target.hasOwnProperty("value")) {
-      data = event.target.value;
-    } else {
-      data = event;
-    }
-
-    return data;
   }
 }
 
