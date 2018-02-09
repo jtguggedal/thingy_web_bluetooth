@@ -45,7 +45,6 @@ class MTU extends Sensor {
       dataArray[0] = peripheralRequest? 1 : 0;
       dataArray[1] = mtuSize & 0xff;
       dataArray[2] = (mtuSize >> 8) & 0xff;
-      console.log(dataArray)
       return dataArray;
     } catch (error) {
       const e = new Error(error);
