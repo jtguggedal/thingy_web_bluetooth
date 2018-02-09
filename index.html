@@ -17,10 +17,7 @@
 
 		async function start(device) {
 			await device.connect();
-      await device.temperature.start();
-      /*await device.pressure.start();
-      const name = await device.name.get();
-      console.log(name);*/
+      
 		}
       
       document.querySelector("#connectBtn").addEventListener("click", async () => {
