@@ -33,7 +33,7 @@ class MTU extends Sensor {
     }
   }
 
-  encodeMtu(mtuSize) {
+  encodeMtu(mtuSize, peripheralRequest = true) {
     try {
       if (mtuSize < 23 || mtuSize > 276) {
         const e = new Error("MTU size must be in range 23 - 276 bytes");
@@ -42,10 +42,10 @@ class MTU extends Sensor {
       }
 
       const dataArray = new Uint8Array(3);
-      dataArray[0] = 0;
+      dataArray[0] = peripheralRequest? 1 : 0;
       dataArray[1] = mtuSize & 0xff;
       dataArray[2] = (mtuSize >> 8) & 0xff;
-
+      console.log(dataArray)
       return dataArray;
     } catch (error) {
       const e = new Error(error);
