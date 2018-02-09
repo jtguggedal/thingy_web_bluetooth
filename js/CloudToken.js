@@ -6,7 +6,7 @@ class CloudToken extends Sensor {
   constructor(device) {
     super(device, "cloud token");
 
-    // gatt service and characteristic used to communicate with thingy's advertising parameters configuration
+    // gatt service and characteristic used to communicate with thingy's cloud configuration
     this.service = {
       uuid: this.device.TCS_UUID,
     };

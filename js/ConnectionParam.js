@@ -6,7 +6,7 @@ class ConnectionParam extends Sensor {
   constructor(device) {
     super(device, "connection parameters");
 
-    // gatt service and characteristic used to communicate with thingy's advertising parameters configuration
+    // gatt service and characteristic used to communicate with thingy's connection parameters configuration
     this.service = {
       uuid: this.device.TCS_UUID,
     };
