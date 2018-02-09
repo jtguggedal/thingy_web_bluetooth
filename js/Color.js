@@ -16,11 +16,6 @@ class Color extends Sensor {
         uuid: this.device.TES_COLOR_UUID,
         decoder: this.decodeColorData.bind(this),
       },
-      config: {
-        uuid: this.device.TES_CONFIG_UUID,
-        decoder: this.decodeConfigData.bind(this),
-        encoder: this.encodeConfigData.bind(this),
-      },
     };
   }
 
@@ -44,17 +39,16 @@ class Color extends Sensor {
       }
 
       let red = rRatio * 255.0 * 3 * clearNormalized;
-
       if (red > 255) {
         red = 255;
       }
-      let green = gRatio * 255.0 * 3 * clearNormalized;
 
+      let green = gRatio * 255.0 * 3 * clearNormalized;
       if (green > 255) {
         green = 255;
       }
-      let blue = bRatio * 255.0 * 3 * clearNormalized;
 
+      let blue = bRatio * 255.0 * 3 * clearNormalized;
       if (blue > 255) {
         blue = 255;
       }
@@ -66,96 +60,6 @@ class Color extends Sensor {
       };
 
       return formattedData;
-    } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
-    }
-  }
-
-  decodeConfigData(data) {
-    try {
-      const littleEndian = true;
-      const tempInterval = data.getUint16(0, littleEndian);
-      const pressureInterval = data.getUint16(2, littleEndian);
-      const humidityInterval = data.getUint16(4, littleEndian);
-      const colorInterval = data.getUint16(6, littleEndian);
-      const gasMode = data.getUint8(8);
-      const colorSensorRed = data.getUint8(9);
-      const colorSensorGreen = data.getUint8(10);
-      const colorSensorBlue = data.getUint8(11);
-
-      const formattedData = {
-        tempInterval: tempInterval,
-        pressureInterval: pressureInterval,
-        humidityInterval: humidityInterval,
-        colorInterval: colorInterval,
-        gasMode: gasMode,
-        colorSensorRed: colorSensorRed,
-        colorSensorGreen: colorSensorGreen,
-        colorSensorBlue: colorSensorBlue,
-      };
-
-      return formattedData;
-    } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
-    }
-  }
-
-  encodeConfigData(data) {
-    try {
-      return data;
-    } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
-    }
-  }
-
-  async setInterval(interval) {
-    try {
-      if (interval < 200 || interval > 60000) {
-        const e = new RangeError("The color sensor sampling interval must be in the range 200 ms - 60 000 ms");
-        this.notifyError(e);
-        throw e;
-      }
-
-      // Preserve values for those settings that are not being changed
-      const receivedData = await this._read("config", true);
-      const dataArray = new Uint8Array(12);
-
-      for (let i = 0; i < dataArray.length; i++) {
-        dataArray[i] = receivedData.getUint8(i);
-      }
-
-      dataArray[6] = interval & 0xff;
-      dataArray[7] = (interval >> 8) & 0xff;
-
-      await this._write(dataArray, "config");
-    } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
-    }
-  }
-
-  async calibrate(red, green, blue) {
-    try {
-      // Preserve values for those settings that are not being changed
-      const receivedData = await this._read("config", true);
-      const dataArray = new Uint8Array(12);
-
-      for (let i = 0; i < dataArray.length; i++) {
-        dataArray[i] = receivedData.getUint8(i);
-      }
-
-      dataArray[9] = red;
-      dataArray[10] = green;
-      dataArray[11] = blue;
-
-      await this._write(dataArray, "config");
     } catch (error) {
       const e = new Error(error);
       this.notifyError(e);

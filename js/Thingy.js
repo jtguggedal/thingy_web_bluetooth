@@ -24,6 +24,7 @@ import Euler from "./Euler.js";
 import RotationMatrix from "./RotationMatrix.js";
 import Heading from "./Heading.js";
 import Eddystone from "./Eddystone.js";
+import EnvironmentConfiguration from "./EnvironmentConfiguration.js";
 
 
 class Thingy extends EventTarget {
@@ -114,12 +115,13 @@ class Thingy extends EventTarget {
     this.firmware = new Firmware(this);
     this.gas = new Gas(this);
     this.gravityvector = new GravityVector(this);
-    this.Humidity = new Humidity(this);
+    this.humidity = new Humidity(this);
     this.step = new Step(this);
     this.rawdata = new RawData(this);
     this.euler = new Euler(this);
     this.rotation = new RotationMatrix(this);
     this.heading = new Heading(this);
+    this.environmentConfiguration = new EnvironmentConfiguration(this);
   }
 
   async connect() {
@@ -156,7 +158,7 @@ class Thingy extends EventTarget {
     const source = reading.detail.sensor;
     const data = reading.detail.data;
 
-    const ce = new CustomEvent(`${source}Notification`, {detail: data})
+    const ce = new CustomEvent(`${source}`, {detail: data});
     this.dispatchEvent(ce);
   }
 
