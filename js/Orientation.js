@@ -2,31 +2,29 @@
 
 import Sensor from "./Sensor.js";
 
-class Tap extends Sensor {
+class Orientation extends Sensor {
   constructor(device) {
-    super(device, "tap");
+    super(device, "orientation");
 
-    // gatt service and characteristic used to communicate with thingy's tap sensor
+    // gatt service and characteristic used to communicate with thingy's orientation sensor
     this.service = {
       uuid: this.device.TMS_UUID,
     };
 
     this.characteristics = {
       default: {
-        uuid: this.device.TMS_TAP_UUID,
-        decoder: this.decodeTapData.bind(this),
+        uuid: this.device.TMS_ORIENTATION_UUID,
+        decoder: this.decodeOrientationData.bind(this),
       }
     };
   }
 
-  decodeTapData(data) {
+  decodeOrientationData(data) {
     try {
-        const direction = data.getUint8(0);
-        const count = data.getUint8(1);
+      const orientation = data.getUint8(0);
 
       const formattedData = {
-        direction,
-        count
+        orientation
       };
       
       return formattedData;
@@ -38,4 +36,4 @@ class Tap extends Sensor {
   }
 }
 
-export default Tap;
+export default Orientation;
