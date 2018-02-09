@@ -75,8 +75,11 @@ class Thingy extends EventTarget {
     }
 
     this.receiveReading = this.receiveReading.bind(this);
+    this.logData = this.logData.bind(this);
 
     this.addEventListener("characteristicvaluechanged", this.receiveReading);
+    //this.addEventListener("pressureNotification", this.logData);
+    //this.addEventListener("temperatureNotification", this.logData);
 
     this.mic = new Microphone(this);
     this.mtu = new MTU(this);
@@ -120,8 +123,19 @@ class Thingy extends EventTarget {
     const source = reading.detail.sensor;
     const data = reading.detail.data;
 
-    const ce = new CustomEvent(`${source}Notification`, {detail: data})
-    this.dispatchEvent(ce);
+    this.logData({detail: data});
+
+    //const ce = new CustomEvent(`${source}Notification`, {detail: data})
+    //this.dispatchEvent(ce);
+  }
+
+  logData(data) {
+    if (data.detail) {
+      console.log("\n");
+      for (const d in data.detail) {
+        console.log(`${d}: ${data.detail[d]}`);
+      }
+    }
   }
 
   async disconnect() {
