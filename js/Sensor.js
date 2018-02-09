@@ -47,7 +47,7 @@ class Sensor extends EventTarget {
     console.log(`The ${this.type} sensor has reported a warning: ${warning}`);
   }
 
-  async _read(ch = "default") {
+  async _read(ch = "default", returnRaw = false) {
     if (!this.characteristics[ch].characteristic) {
       await this.connect();
     }
@@ -67,9 +67,15 @@ class Sensor extends EventTarget {
     if (!window.busyGatt) {
       try {
         window.busyGatt = true;
-        const prop = await this.characteristics[ch].characteristic.readValue();
-        window.busyGatt = false;
-        return Promise.resolve(this.characteristics[ch].decoder(prop));
+        if (returnRaw === true) {
+          const rawProp = await this.characteristics[ch].characteristic.readValue();
+          window.busyGatt = false;
+          return Promise.resolve(rawProp);
+        } else {
+          const prop = await this.characteristics[ch].characteristic.readValue();
+          window.busyGatt = false;
+          return Promise.resolve(this.characteristics[ch].decoder(prop));
+        }
       } catch (error) {
         window.busyGatt = false;
         const e = new Error(error);
@@ -108,8 +114,9 @@ class Sensor extends EventTarget {
 
     if (!window.busyGatt) {
       try {
+        const encodedValue = await this.characteristics[ch].encoder(prop);
         window.busyGatt = true;
-        await this.characteristics[ch].characteristic.writeValue(this.characteristics[ch].encoder(prop));
+        await this.characteristics[ch].characteristic.writeValue(encodedValue);
         window.busyGatt = false;
         return;
       } catch (error) {
