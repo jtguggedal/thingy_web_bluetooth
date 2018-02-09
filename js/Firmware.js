@@ -2,11 +2,11 @@
 
 import Sensor from "./Sensor.js";
 
-class FirmwareVersion extends Sensor {
+class Firmware extends Sensor {
   constructor(device) {
-    super(device, "firmware version");
+    super(device, "firmware");
 
-    // gatt service and characteristic used to communicate with thingy's firmware version configuration
+    // gatt service and characteristic used to communicate with Thingy's firmware version configuration
     this.service = {
       uuid: this.device.TCS_UUID,
     };
@@ -41,4 +41,4 @@ class FirmwareVersion extends Sensor {
   }
 }
 
-export default FirmwareVersion;
+export default Firmware;

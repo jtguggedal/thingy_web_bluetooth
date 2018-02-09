@@ -6,7 +6,7 @@ class Step extends Sensor {
   constructor(device) {
     super(device, "step");
 
-    // gatt service and characteristic used to communicate with thingy's step counter sensor
+    // gatt service and characteristic used to communicate with Thingy's step counter sensor
     this.service = {
       uuid: this.device.TMS_UUID,
     };

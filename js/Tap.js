@@ -6,7 +6,7 @@ class Tap extends Sensor {
   constructor(device) {
     super(device, "tap");
 
-    // gatt service and characteristic used to communicate with thingy's tap sensor
+    // gatt service and characteristic used to communicate with Thingy's tap sensor
     this.service = {
       uuid: this.device.TMS_UUID,
     };

@@ -6,7 +6,7 @@ class MTU extends Sensor {
   constructor(device) {
     super(device, "mtu");
 
-    // gatt service and characteristic used to communicate with thingy's mtu
+    // gatt service and characteristic used to communicate with Thingy's MTU
     this.service = {
       uuid: this.device.TCS_UUID,
     };

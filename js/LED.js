@@ -4,7 +4,7 @@ class LED extends Sensor {
   constructor(device) {
     super(device, "led");
 
-    // gatt service and characteristic used to communicate with thingy's humidity sensor
+    // gatt service and characteristic used to communicate with Thingy's LED
     this.service = {
       uuid: this.device.TUIS_UUID,
     };

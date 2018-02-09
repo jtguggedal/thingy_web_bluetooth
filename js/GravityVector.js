@@ -4,9 +4,9 @@ import Sensor from "./Sensor.js";
 
 class GravityVector extends Sensor {
   constructor(device) {
-    super(device, "gravity vector");
+    super(device, "gravityvector");
 
-    // gatt service and characteristic used to communicate with thingy's gravity vector sensor
+    // gatt service and characteristic used to communicate with Thingy's gravity vector sensor
     this.service = {
       uuid: this.device.TMS_UUID,
     };

@@ -4,9 +4,9 @@ import Sensor from "./Sensor.js";
 
 class CloudToken extends Sensor {
   constructor(device) {
-    super(device, "cloud token");
+    super(device, "cloudtoken");
 
-    // gatt service and characteristic used to communicate with thingy's cloud configuration
+    // gatt service and characteristic used to communicate with Thingy's cloud configuration
     this.service = {
       uuid: this.device.TCS_UUID,
     };

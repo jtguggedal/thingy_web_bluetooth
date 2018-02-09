@@ -4,9 +4,9 @@ import Sensor from "./Sensor.js";
 
 class RotationMatrix extends Sensor {
   constructor(device) {
-    super(device, "euler");
+    super(device, "rotation");
 
-    // gatt service and characteristic used to communicate with thingy's rotation matrix sensor
+    // gatt service and characteristic used to communicate with Thingy's rotation matrix sensor
     this.service = {
       uuid: this.device.TMS_UUID,
     };

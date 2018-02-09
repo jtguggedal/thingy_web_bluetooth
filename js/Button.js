@@ -6,7 +6,7 @@ class Button extends Sensor {
   constructor(device) {
     super(device, "button");
 
-    // gatt service and characteristic used to communicate with thingy's button state
+    // gatt service and characteristic used to communicate with Thingy's button state
     this.service = {
       uuid: this.device.TUIS_UUID,
     };

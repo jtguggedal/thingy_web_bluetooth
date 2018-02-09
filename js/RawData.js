@@ -6,7 +6,7 @@ class RawData extends Sensor {
   constructor(device) {
     super(device, "rawdata");
 
-    // gatt service and characteristic used to communicate with thingy's raw data sensor
+    // gatt service and characteristic used to communicate with Thingy's raw data sensor
     this.service = {
       uuid: this.device.TMS_UUID,
     };

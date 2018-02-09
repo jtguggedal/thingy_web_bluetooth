@@ -6,7 +6,7 @@ class Euler extends Sensor {
   constructor(device) {
     super(device, "euler");
 
-    // gatt service and characteristic used to communicate with thingy's euler sensor
+    // gatt service and characteristic used to communicate with Thingy's euler sensor
     this.service = {
       uuid: this.device.TMS_UUID,
     };

@@ -6,7 +6,7 @@ class Name extends Sensor {
   constructor(device) {
     super(device, "name");
 
-    // gatt service and characteristic used to communicate with thingy's name configuration
+    // gatt service and characteristic used to communicate with Thingy's name configuration
     this.service = {
       uuid: this.device.TCS_UUID,
     };

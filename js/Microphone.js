@@ -6,7 +6,7 @@ class Microphone extends Sensor {
   constructor(device, eventListeners = []) {
     super(device, "microphone");
 
-    // gatt service and characteristic used to communicate with thingy's microphone
+    // gatt service and characteristic used to communicate with Thingy's microphone
     this.service = {
       uuid: this.device.TSS_UUID,
     };

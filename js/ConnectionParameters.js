@@ -2,11 +2,11 @@
 
 import Sensor from "./Sensor.js";
 
-class ConnectionParam extends Sensor {
+class ConnectionParameters extends Sensor {
   constructor(device) {
-    super(device, "connection parameters");
+    super(device, "connectionparameters");
 
-    // gatt service and characteristic used to communicate with thingy's connection parameters configuration
+    // gatt service and characteristic used to communicate with Thingy's connection parameters configuration
     this.service = {
       uuid: this.device.TCS_UUID,
     };
@@ -103,4 +103,4 @@ class ConnectionParam extends Sensor {
   }
 }
 
-export default ConnectionParam;
+export default ConnectionParameters;

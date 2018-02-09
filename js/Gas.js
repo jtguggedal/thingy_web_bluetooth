@@ -6,7 +6,7 @@ class Gas extends Sensor {
   constructor(device) {
     super(device, "gas");
 
-    // gatt service and characteristic used to communicate with thingy's gas sensor
+    // gatt service and characteristic used to communicate with Thingy's gas sensor
     this.service = {
       uuid: this.device.TES_UUID,
     };

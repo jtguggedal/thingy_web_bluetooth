@@ -6,7 +6,7 @@ class Pressure extends Sensor {
   constructor(device) {
     super(device, "pressure");
 
-    // gatt service and characteristic used to communicate with thingy's pressure sensor
+    // gatt service and characteristic used to communicate with Thingy's pressure sensor
     this.service = {
       uuid: this.device.TES_UUID,
     };

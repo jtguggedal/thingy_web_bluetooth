@@ -6,7 +6,7 @@ class Temperature extends Sensor {
   constructor(device) {
     super(device, "temperature");
 
-    // gatt service and characteristic used to communicate with thingy's temperature sensor
+    // gatt service and characteristic used to communicate with Thingy's temperature sensor
     this.service = {
       uuid: this.device.TES_UUID,
     };

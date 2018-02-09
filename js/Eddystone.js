@@ -4,7 +4,7 @@ class Eddystone extends Sensor {
   constructor(device) {
     super(device, "eddystone");
 
-    // gatt service and characteristic used to communicate with thingy's humidity sensor
+    // gatt service and characteristic used to communicate with Thingy's Eddystone url
     this.service = {
       uuid: this.device.TCS_UUID,
     };

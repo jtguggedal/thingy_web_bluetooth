@@ -6,7 +6,7 @@ class Quaternion extends Sensor {
   constructor(device) {
     super(device, "quaternion");
 
-    // gatt service and characteristic used to communicate with thingy's quaternion sensor
+    // gatt service and characteristic used to communicate with Thingy's quaternion sensor
     this.service = {
       uuid: this.device.TMS_UUID,
     };

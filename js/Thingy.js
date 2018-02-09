@@ -7,6 +7,23 @@ import Name from "./Name.js";
 import Temperature from "./Temperature.js";
 import Pressure from "./Pressure.js";
 import LED from "./LED.js";
+import Tap from "./Tap.js";
+import Orientation from "./Orientation.js";
+import Quaternion from "./Quaternion.js";
+import Button from "./Button.js";
+import CloudToken from "./CloudToken.js";
+import Color from "./Color.js";
+import ConnectionParameters from "./ConnectionParameters.js";
+import Firmware from "./Firmware.js";
+import Gas from "./Gas.js";
+import GravityVector from "./GravityVector.js";
+import Humidity from "./Humidity.js";
+import Step from "./Step.js";
+import RawData from "./RawData.js";
+import Euler from "./Euler.js";
+import RotationMatrix from "./RotationMatrix.js";
+import Heading from "./Heading.js";
+import Eddystone from "./Eddystone.js";
 
 
 class Thingy extends EventTarget {
@@ -79,12 +96,30 @@ class Thingy extends EventTarget {
 
     this.addEventListener("characteristicvaluechanged", this.receiveReading);
 
-    this.mic = new Microphone(this);
+    this.microphone = new Microphone(this);
     this.mtu = new MTU(this);
     this.name = new Name(this);
     this.temperature = new Temperature(this);
     this.pressure = new Pressure(this);
     this.led = new LED(this);
+    this.tap = new Tap(this);
+    this.orientation = new Orientation(this);
+    this.quaternion = new Quaternion(this);
+    this.button = new Button(this);
+    this.cloudtoken = new CloudToken(this);
+    this.color = new Color(this);
+    this.connectionparameters = new ConnectionParameters(this);
+    this.eddystone = new Eddystone(this);
+    this.connectionparameters = new ConnectionParameters(this);
+    this.firmware = new Firmware(this);
+    this.gas = new Gas(this);
+    this.gravityvector = new GravityVector(this);
+    this.Humidity = new Humidity(this);
+    this.step = new Step(this);
+    this.rawdata = new RawData(this);
+    this.euler = new Euler(this);
+    this.rotation = new RotationMatrix(this);
+    this.heading = new Heading(this);
   }
 
   async connect() {

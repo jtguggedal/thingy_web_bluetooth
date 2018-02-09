@@ -16,8 +16,8 @@
 
 
 		async function start(device) {
-			await device.connect();
-      
+      await device.connect();
+      await device.heading.start();
 		}
       
       document.querySelector("#connectBtn").addEventListener("click", async () => {
