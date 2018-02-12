@@ -10,37 +10,35 @@
     <div id="temperature_1"></div>
     <div id="temperature_2"></div>
     <script type="module">
-      import {Thingy} from "../js/thingy.js";
+      import Thingy from "./js/Thingy.js";
       
       const thingy_1 = new Thingy({logEnabled: true});
       const thingy_2 = new Thingy({logEnabled: true});
-      let first = true;
 
-      async function start(thingy, eventHandler) {
-        await thingy.connect();
-        console.log(`Connected to "${await thingy.getName()}"`);
-        thingy.temperatureEnable(eventHandler, true);
+      async function start(device, eventHandler) {
+        await device.connect();
+        await device.temperature.start();
+        await device.addEventListener("temperature", eventHandler);
       }
 
       function onTemperatureUpdate_1(data) {
         const el = document.querySelector("#temperature_1");
-        el.innerHTML = `Temperature 1: ${data.value.toFixed(1)} ${data.unit}`;
+        el.innerHTML = `Temperature 1: ${data.detail.value} ${data.detail.unit}`;
       }
 
       function onTemperatureUpdate_2(data) {
         const el = document.querySelector("#temperature_2");
-        el.innerHTML = `Temperature 2: ${data.value.toFixed(1)} ${data.unit}`;
+        el.innerHTML = `Temperature 2: ${data.detail.value} ${data.detail.unit}`;
       }
-
+      
       document.querySelector("#connectBtn_1").addEventListener("click", async () => {
-        start(thingy_1, onTemperatureUpdate_1);
-      })
+          start(thingy_1, onTemperatureUpdate_1);
+      });
 
       document.querySelector("#connectBtn_2").addEventListener("click", async () => {
         start(thingy_2, onTemperatureUpdate_2);
-      })
+      });
 
     </script>
   </body>
 </html>
-

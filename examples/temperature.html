@@ -9,25 +9,24 @@
     <div id="temperature"></div>
     <script type="module">
       
-      import {Thingy} from "../js/thingy.js";
-      
+      import Thingy from "./js/Thingy.js";
+
       const thingy = new Thingy({logEnabled: true});
 
       async function start(device) {
         await device.connect();
-        await device.temperatureEnable(onTemperatureUpdate, true);
+        await device.temperature.start();
+        await device.addEventListener("temperature", logData);
       }
 
-      function onTemperatureUpdate(data) {
+      function logData(data) {
         const el = document.querySelector("#temperature");
-        el.innerHTML = `Temperature: ${data.value.toFixed(1)} ${data.unit}`;
+        el.innerHTML = `Temperature: ${data.detail.value} ${data.detail.unit}`;
       }
-
+      
       document.querySelector("#connectBtn").addEventListener("click", async () => {
-          await start(thingy);
-      })
-
+          start(thingy);
+      });
     </script>
   </body>
 </html>
-
