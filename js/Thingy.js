@@ -56,7 +56,7 @@ import RotationMatrixOrientationSensor from "./RotationMatrixOrientationSensor.j
 import HeadingSensor from "./HeadingSensor.js";
 import EddystoneUrlService from "./EddystoneUrlService.js";
 import EnvironmentConfigurationService from "./EnvironmentConfigurationService.js";
-
+import MotionConfigurationService from "./MotionConfigurationService.js";
 
 class Thingy extends EventTarget {
   constructor(options = {logEnabled: true}) {
@@ -155,6 +155,7 @@ class Thingy extends EventTarget {
     this.rotation = new RotationMatrixOrientationSensor(this);
     this.heading = new HeadingSensor(this);
     this.environmentconfiguration = new EnvironmentConfigurationService(this);
+    this.motionConfigurationService = new MotionConfigurationService(this);
   }
 
   async connect() {
