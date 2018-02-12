@@ -214,7 +214,9 @@ class MotionConfiguration extends Sensor {
 
       return await this._write(dataArray, "default");
     } catch (error) {
-      return new Error("Error when setting new magnetometer compensation interval:" + error);
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 }
