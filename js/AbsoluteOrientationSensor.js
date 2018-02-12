@@ -1,5 +1,3 @@
-<<<<<<< Updated upstream
-=======
 /*
   Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
   All rights reserved.
@@ -31,7 +29,6 @@
   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
->>>>>>> Stashed changes
 // @ts-check
 
 import FeatureOperations from "./FeatureOperations.js";
