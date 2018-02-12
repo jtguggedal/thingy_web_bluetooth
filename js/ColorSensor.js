@@ -1,8 +1,6 @@
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class Color extends Sensor {
+class ColorSensor extends FeatureOperations {
   constructor(device) {
     super(device, "color");
 
@@ -68,4 +66,4 @@ class Color extends Sensor {
   }
 }
 
-export default Color;
+export default ColorSensor;

@@ -12,12 +12,18 @@
 
 		const thingy = new Thingy({logEnabled: true});
 
-		let d = document.getElementById('microphone');
+    let d = document.getElementById('microphone');
+    
+    const myFunc = data => {
+      console.log(data.detail);
+    }
 
 
 		async function start(device) {
       await device.connect();
-      await device.heading.start();
+      await device.temperature.start();
+      await device.humidity.start();
+      await device.orientation.start();
 		}
       
       document.querySelector("#connectBtn").addEventListener("click", async () => {

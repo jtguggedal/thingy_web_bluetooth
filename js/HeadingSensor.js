@@ -1,8 +1,6 @@
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class Heading extends Sensor {
+class HeadingSensor extends FeatureOperations {
   constructor(device) {
     super(device, "heading");
 
@@ -37,4 +35,4 @@ class Heading extends Sensor {
   }
 }
 
-export default Heading;
+export default HeadingSensor;

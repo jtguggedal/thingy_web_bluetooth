@@ -1,8 +1,6 @@
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class ConnectionParameters extends Sensor {
+class ConnectionParametersService extends FeatureOperations {
   constructor(device) {
     super(device, "connectionparameters");
 
@@ -103,4 +101,4 @@ class ConnectionParameters extends Sensor {
   }
 }
 
-export default ConnectionParameters;
+export default ConnectionParametersService;

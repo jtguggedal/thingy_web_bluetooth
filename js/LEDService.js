@@ -1,6 +1,6 @@
-import Sensor from "./Sensor.js";
+import FeatureOperations from "./FeatureOperations.js";
 
-class LED extends Sensor {
+class LEDService extends FeatureOperations {
   constructor(device) {
     super(device, "led");
 
@@ -18,7 +18,15 @@ class LED extends Sensor {
     };
   }
 
-  decodeLedData(data) {
+/**
+ * 
+ * 
+ * @param {any} data 
+ * @returns 
+ * @memberof LED
+ */
+
+decodeLedData(data) {
     try {
       const mode = data.getUint8(0);
       const littleEndian = true;
@@ -60,9 +68,23 @@ class LED extends Sensor {
     }
   }
 
-  encodeLedData(data) {
+/**
+ * 
+ * 
+ * @param {any} data 
+ * @returns 
+ * @memberof LED
+ */
+
+encodeLedData(data) {
     try {
       let dataArray;
+
+      if (!data.mode) {
+        const e = new Error("You must specify a LED mode");
+        this.notifyError(e);
+        throw e;
+      }
 
       switch (data.mode) {
         case 'constant': {
@@ -154,11 +176,12 @@ class LED extends Sensor {
         }
 
         default: {
+          this.notifyWarning("An invalid LED mode has been registered. Default LED values applied.")
           dataArray = new Uint8Array([2, 6, 20, 3500]);
           break;
         }
       }
-      console.log(dataArray);
+
       return dataArray;
     } catch (error) {
       const e = new Error(error);
@@ -168,4 +191,4 @@ class LED extends Sensor {
   }
 }
 
-export default LED;
+export default LEDService;

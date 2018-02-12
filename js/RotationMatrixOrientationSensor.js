@@ -1,8 +1,6 @@
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class RotationMatrix extends Sensor {
+class RotationMatrixOrientationSensor extends FeatureOperations {
   constructor(device) {
     super(device, "rotation");
 
@@ -47,4 +45,4 @@ class RotationMatrix extends Sensor {
   }
 }
 
-export default RotationMatrix;
+export default RotationMatrixOrientationSensor;

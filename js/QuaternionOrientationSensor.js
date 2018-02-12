@@ -1,8 +1,6 @@
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class Quaternion extends Sensor {
+class QuaternionOrientationSensor extends FeatureOperations {
   constructor(device) {
     super(device, "quaternion");
 
@@ -51,4 +49,4 @@ class Quaternion extends Sensor {
   }
 }
 
-export default Quaternion;
+export default QuaternionOrientationSensor;

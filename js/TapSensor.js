@@ -1,8 +1,6 @@
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class Tap extends Sensor {
+class TapSensor extends FeatureOperations {
   constructor(device) {
     super(device, "tap");
 
@@ -38,4 +36,4 @@ class Tap extends Sensor {
   }
 }
 
-export default Tap;
+export default TapSensor;

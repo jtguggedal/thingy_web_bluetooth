@@ -1,6 +1,6 @@
-import Sensor from "./Sensor.js";
+import FeatureOperations from "./FeatureOperations.js";
 
-class Eddystone extends Sensor {
+class EddystoneUrlService extends FeatureOperations {
   constructor(device) {
     super(device, "eddystone");
 
@@ -57,4 +57,4 @@ class Eddystone extends Sensor {
   }
 }
 
-export default Eddystone;
+export default EddystoneUrlService;

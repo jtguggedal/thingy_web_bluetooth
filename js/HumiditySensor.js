@@ -1,8 +1,6 @@
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class Humidity extends Sensor {
+class HumiditySensor extends FeatureOperations {
   constructor(device) {
     super(device, "humidity");
 
@@ -37,4 +35,4 @@ class Humidity extends Sensor {
   }
 }
 
-export default Humidity;
+export default HumiditySensor;

@@ -1,8 +1,6 @@
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class Microphone extends Sensor {
+class Microphone extends FeatureOperations {
   constructor(device, eventListeners = []) {
     super(device, "microphone");
 

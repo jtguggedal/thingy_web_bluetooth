@@ -1,8 +1,6 @@
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class Euler extends Sensor {
+class EulerOrientationSensor extends FeatureOperations {
   constructor(device) {
     super(device, "euler");
 
@@ -42,4 +40,4 @@ class Euler extends Sensor {
   }
 }
 
-export default Euler;
+export default EulerOrientationSensor;

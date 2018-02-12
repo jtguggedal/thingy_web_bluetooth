@@ -1,8 +1,6 @@
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class RawData extends Sensor {
+class RawDataSensor extends FeatureOperations {
   constructor(device) {
     super(device, "rawdata");
 
@@ -66,4 +64,4 @@ class RawData extends Sensor {
   }
 }
 
-export default RawData;
+export default RawDataSensor;

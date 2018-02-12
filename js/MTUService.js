@@ -1,8 +1,6 @@
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class MTU extends Sensor {
+class MTUService extends FeatureOperations {
   constructor(device) {
     super(device, "mtu");
 
@@ -54,4 +52,4 @@ class MTU extends Sensor {
   }
 }
 
-export default MTU;
+export default MTUService;

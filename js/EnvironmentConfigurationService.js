@@ -1,8 +1,6 @@
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class EnvironmentConfiguration extends Sensor {
+class EnvironmentConfigurationService extends FeatureOperations {
   constructor(device) {
     super(device, "environmentconfiguration");
 
@@ -226,4 +224,4 @@ class EnvironmentConfiguration extends Sensor {
   }
 }
 
-export default EnvironmentConfiguration;
+export default EnvironmentConfigurationService;

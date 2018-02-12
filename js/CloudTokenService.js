@@ -1,8 +1,6 @@
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class CloudToken extends Sensor {
+class CloudTokenService extends FeatureOperations {
   constructor(device) {
     super(device, "cloudtoken");
 
@@ -57,4 +55,4 @@ class CloudToken extends Sensor {
   }
 }
 
-export default CloudToken;
+export default CloudTokenService;

@@ -1,8 +1,6 @@
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class Firmware extends Sensor {
+class FirmwareService extends FeatureOperations {
   constructor(device) {
     super(device, "firmware");
 
@@ -41,4 +39,4 @@ class Firmware extends Sensor {
   }
 }
 
-export default Firmware;
+export default FirmwareService;

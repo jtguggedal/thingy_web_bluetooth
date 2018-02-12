@@ -1,36 +1,37 @@
-// @ts-check
-
 import EventTarget from "./EventTarget.js";
-import Microphone from "./Microphone.js";
-import MTU from "./MTU.js";
-import Name from "./Name.js";
-import Temperature from "./Temperature.js";
-import Pressure from "./Pressure.js";
-import LED from "./LED.js";
-import Tap from "./Tap.js";
-import Orientation from "./Orientation.js";
-import Quaternion from "./Quaternion.js";
-import Button from "./Button.js";
-import CloudToken from "./CloudToken.js";
-import Color from "./Color.js";
-import ConnectionParameters from "./ConnectionParameters.js";
-import Firmware from "./Firmware.js";
-import Gas from "./Gas.js";
-import GravityVector from "./GravityVector.js";
-import Humidity from "./Humidity.js";
-import Step from "./Step.js";
-import RawData from "./RawData.js";
-import Euler from "./Euler.js";
-import RotationMatrix from "./RotationMatrix.js";
-import Heading from "./Heading.js";
-import Eddystone from "./Eddystone.js";
-import EnvironmentConfiguration from "./EnvironmentConfiguration.js";
+import MicrophoneSensor from "./MicrophoneSensor.js";
+import MTUService from "./MTUService.js";
+import NameService from "./NameService.js";
+import TemperatureSensor from "./TemperatureSensor.js";
+import PressureSensor from "./PressureSensor.js";
+import LEDService from "./LEDService.js";
+import TapSensor from "./TapSensor.js";
+import AbsoluteOrientationSensor from "./AbsoluteOrientationSensor.js";
+import QuaternionOrientationSensor from "./QuaternionOrientationSensor.js";
+import ButtonSensor from "./ButtonSensor.js";
+import CloudTokenService from "./CloudTokenService.js";
+import ColorSensor from "./ColorSensor.js";
+import ConnectionParametersService from "./ConnectionParametersService.js";
+import FirmwareService from "./FirmwareService.js";
+import GasSensor from "./GasSensor.js";
+import GravityVectorSensor from "./GravityVectorSensor.js";
+import HumiditySensor from "./HumiditySensor.js";
+import StepCounterSensor from "./StepCounterSensor.js";
+import RawDataSensor from "./RawDataSensor.js";
+import EulerOrientationSensor from "./EulerOrientationSensor.js";
+import RotationMatrixOrientationSensor from "./RotationMatrixOrientationSensor.js";
+import HeadingSensor from "./HeadingSensor.js";
+import EddystoneUrlService from "./EddystoneUrlService.js";
+import EnvironmentConfigurationService from "./EnvironmentConfigurationService.js";
 
 
 class Thingy extends EventTarget {
   constructor(options = {logEnabled: true}) {
     super();
-    console.log("I am alive!");
+
+    if (this.logEnabled) {
+      console.log("I am alive!");
+    }
 
     this.logEnabled = options.logEnabled;
 
@@ -97,31 +98,30 @@ class Thingy extends EventTarget {
 
     this.addEventListener("characteristicvaluechanged", this.receiveReading);
 
-    this.microphone = new Microphone(this);
-    this.mtu = new MTU(this);
-    this.name = new Name(this);
-    this.temperature = new Temperature(this);
-    this.pressure = new Pressure(this);
-    this.led = new LED(this);
-    this.tap = new Tap(this);
-    this.orientation = new Orientation(this);
-    this.quaternion = new Quaternion(this);
-    this.button = new Button(this);
-    this.cloudtoken = new CloudToken(this);
-    this.color = new Color(this);
-    this.connectionparameters = new ConnectionParameters(this);
-    this.eddystone = new Eddystone(this);
-    this.connectionparameters = new ConnectionParameters(this);
-    this.firmware = new Firmware(this);
-    this.gas = new Gas(this);
-    this.gravityvector = new GravityVector(this);
-    this.humidity = new Humidity(this);
-    this.step = new Step(this);
-    this.rawdata = new RawData(this);
-    this.euler = new Euler(this);
-    this.rotation = new RotationMatrix(this);
-    this.heading = new Heading(this);
-    this.environmentConfiguration = new EnvironmentConfiguration(this);
+    this.microphone = new MicrophoneSensor(this);
+    this.mtu = new MTUService(this);
+    this.name = new NameService(this);
+    this.temperature = new TemperatureSensor(this);
+    this.pressure = new PressureSensor(this);
+    this.led = new LEDService(this);
+    this.tap = new TapSensor(this);
+    this.orientation = new AbsoluteOrientationSensor(this);
+    this.quaternion = new QuaternionOrientationSensor(this);
+    this.button = new ButtonSensor(this);
+    this.cloudtoken = new CloudTokenService(this);
+    this.color = new ColorSensor(this);
+    this.connectionparameters = new ConnectionParametersService(this);
+    this.eddystone = new EddystoneUrlService(this);
+    this.firmware = new FirmwareService(this);
+    this.gas = new GasSensor(this);
+    this.gravityvector = new GravityVectorSensor(this);
+    this.humidity = new HumiditySensor(this);
+    this.step = new StepCounterSensor(this);
+    this.rawdata = new RawDataSensor(this);
+    this.euler = new EulerOrientationSensor(this);
+    this.rotation = new RotationMatrixOrientationSensor(this);
+    this.heading = new HeadingSensor(this);
+    this.environmentconfiguration = new EnvironmentConfigurationService(this);
   }
 
   async connect() {
@@ -155,11 +155,12 @@ class Thingy extends EventTarget {
   }
 
   receiveReading(reading) {
-    const source = reading.detail.sensor;
+    const sourceFeature = reading.detail.feature;
     const data = reading.detail.data;
 
-    const ce = new CustomEvent(`${source}`, {detail: data});
-    this.dispatchEvent(ce);
+    const featureSpecificEvent = new CustomEvent(`${sourceFeature}`, {detail: data});
+
+    this.dispatchEvent(featureSpecificEvent);
   }
 
   logData(data) {

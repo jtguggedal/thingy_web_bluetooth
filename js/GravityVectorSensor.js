@@ -1,8 +1,6 @@
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class GravityVector extends Sensor {
+class GravityVectorSensor extends FeatureOperations {
   constructor(device) {
     super(device, "gravityvector");
 
@@ -63,4 +61,4 @@ class GravityVector extends Sensor {
   }
 }
 
-export default GravityVector;
+export default GravityVectorSensor;

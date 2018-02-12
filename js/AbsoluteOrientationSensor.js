@@ -1,8 +1,6 @@
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class Orientation extends Sensor {
+class AbsoluteOrientationSensor extends FeatureOperations {
   constructor(device) {
     super(device, "orientation");
 
@@ -36,4 +34,4 @@ class Orientation extends Sensor {
   }
 }
 
-export default Orientation;
+export default AbsoluteOrientationSensor;

@@ -1,10 +1,8 @@
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class AdvertisingParam extends Sensor {
+class AdvertisingParametersService extends FeatureOperations {
   constructor(device) {
-    super(device, "advertising parameters");
+    super(device, "advertisingparameters");
 
     // gatt service and characteristic used to communicate with thingy's advertising parameters configuration
     this.service = {
@@ -82,4 +80,4 @@ class AdvertisingParam extends Sensor {
   }
 }
 
-export default AdvertisingParam;
+export default AdvertisingParametersService;

@@ -1,8 +1,6 @@
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class Button extends Sensor {
+class ButtonSensor extends FeatureOperations {
   constructor(device) {
     super(device, "button");
 
@@ -34,4 +32,4 @@ class Button extends Sensor {
   }
 }
 
-export default Button;
+export default ButtonSensor;

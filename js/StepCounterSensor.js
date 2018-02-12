@@ -1,8 +1,6 @@
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class Step extends Sensor {
+class StepCounterSensor extends FeatureOperations {
   constructor(device) {
     super(device, "step");
 
@@ -42,4 +40,4 @@ class Step extends Sensor {
   }
 }
 
-export default Step;
+export default StepCounterSensor;

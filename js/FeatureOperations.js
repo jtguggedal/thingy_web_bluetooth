@@ -2,7 +2,7 @@ import EventTarget from "./EventTarget.js";
 
 // @ts-check
 
-class Sensor extends EventTarget {
+class FeatureOperations extends EventTarget {
   constructor(device, type) {
     super();
     this.device = device;
@@ -25,7 +25,7 @@ class Sensor extends EventTarget {
         }
 
         window.busyGatt = false;
-        console.log(`Connected to the ${this.type} sensor`);
+        console.log(`Connected to the ${this.type} feature`);
       } catch (error) {
         window.busyGatt = false;
         const e = new Error(error);
@@ -33,18 +33,18 @@ class Sensor extends EventTarget {
         throw e;
       }
     } else {
-      const e = new Error(`Could not connect to the ${this.type} sensor at this moment, as Thingy only allows one concurrent BLE operation`);
+      const e = new Error(`Could not connect to the ${this.type} feature at this moment, as Thingy only allows one concurrent BLE operation`);
       this.notifyError(e);
       throw e;
     }
   }
 
   notifyError(error) {
-    console.log(`The ${this.type} sensor has reported an error: ${error}`);
+    console.log(`The ${this.type} feature has reported an error: ${error}`);
   }
 
   notifyWarning(warning) {
-    console.log(`The ${this.type} sensor has reported a warning: ${warning}`);
+    console.log(`The ${this.type} feature has reported a warning: ${warning}`);
   }
 
   async _read(ch = "default", returnRaw = false) {
@@ -269,4 +269,4 @@ class Sensor extends EventTarget {
   }
 }
 
-export default Sensor;
+export default FeatureOperations;
