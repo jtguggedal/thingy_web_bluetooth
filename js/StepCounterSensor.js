@@ -27,7 +27,7 @@ class StepCounterSensor extends FeatureOperations {
         count,
         time: {
           value: time,
-          unit: 'ms'
+          unit: "ms"
         }
       }
       console.log(formattedData);

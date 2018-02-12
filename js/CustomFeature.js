@@ -1,6 +1,6 @@
 import FeatureOperations from "./FeatureOperations.js";
 
-class CustomSensor extends FeatureOperations {
+class CustomFeature extends FeatureOperations {
 	constructor(device, service, characteristics, type = 'CustomFeature') {
 		super(device, type);
 
@@ -14,4 +14,4 @@ class CustomSensor extends FeatureOperations {
 	}
 };
 
-export default CustomSensor;
+export default CustomFeature;

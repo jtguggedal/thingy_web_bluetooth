@@ -1,3 +1,5 @@
+// @ts-check
+
 import FeatureOperations from "./FeatureOperations.js";
 
 class AbsoluteOrientationSensor extends FeatureOperations {
@@ -13,7 +15,7 @@ class AbsoluteOrientationSensor extends FeatureOperations {
       default: {
         uuid: this.device.TMS_ORIENTATION_UUID,
         decoder: this.decodeOrientationData.bind(this),
-      }
+      },
     };
   }
 
@@ -22,9 +24,9 @@ class AbsoluteOrientationSensor extends FeatureOperations {
       const orientation = data.getUint8(0);
 
       const formattedData = {
-        orientation
+        orientation,
       };
-      
+
       return formattedData;
     } catch (error) {
       const e = new Error(error);

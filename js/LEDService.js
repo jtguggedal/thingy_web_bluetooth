@@ -18,15 +18,7 @@ class LEDService extends FeatureOperations {
     };
   }
 
-/**
- * 
- * 
- * @param {any} data 
- * @returns 
- * @memberof LED
- */
-
-decodeLedData(data) {
+  decodeLedData(data) {
     try {
       const mode = data.getUint8(0);
       const littleEndian = true;
@@ -67,16 +59,8 @@ decodeLedData(data) {
       throw e;
     }
   }
-
-/**
- * 
- * 
- * @param {any} data 
- * @returns 
- * @memberof LED
- */
-
-encodeLedData(data) {
+  
+  encodeLedData(data) {
     try {
       let dataArray;
 

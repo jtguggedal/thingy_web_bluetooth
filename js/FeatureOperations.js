@@ -83,7 +83,7 @@ class FeatureOperations extends EventTarget {
         throw e;
       }
     } else {
-      const e = new Error(`Could not read the ${this.type} sensor at this moment, as Thingy only allows one concurrent BLE operation`);
+      const e = new Error(`Could not read the ${this.type} feature at this moment, as Thingy only allows one concurrent BLE operation`);
       this.notifyError(e);
       throw e;
     }
@@ -126,7 +126,7 @@ class FeatureOperations extends EventTarget {
       }
     } else {
       window.busyGatt = false;
-      const e = new Error(`Could not write to  ${this.type} sensor, Thingy only allows one concurrent BLE operation`);
+      const e = new Error(`Could not write to  ${this.type} feature, Thingy only allows one concurrent BLE operation`);
       this.notifyError(e);
       throw e;
     }
@@ -149,7 +149,7 @@ class FeatureOperations extends EventTarget {
       const eventData = e.target.value;
       const decodedData = this.characteristics[ch].decoder(eventData);
 
-      const ce = new CustomEvent("characteristicvaluechanged", {detail: {sensor: this.type, data: decodedData}});
+      const ce = new CustomEvent("characteristicvaluechanged", {detail: {feature: this.type, data: decodedData}});
 
       this.device.dispatchEvent(ce);
     };
@@ -169,7 +169,7 @@ class FeatureOperations extends EventTarget {
           const csn = await characteristic.startNotifications();
           csn.addEventListener("characteristicvaluechanged", onReading.bind(this));
           window.busyGatt = false;
-          console.log(`\nNotifications enabled for the ${ch} characteristic of the ${this.type} sensor`);
+          console.log(`\nNotifications enabled for the ${ch} characteristic of the ${this.type} feature`);
         } catch (error) {
           window.busyGatt = false;
           const e = new Error(error);
@@ -182,7 +182,7 @@ class FeatureOperations extends EventTarget {
           const csn = await characteristic.stopNotifications();
           csn.removeEventListener("characteristicvaluechanged", onReading.bind(this));
           window.busyGatt = false;
-          console.log(`\nNotifications disabled for the ${ch} characteristic of the ${this.type} sensor`);
+          console.log(`\nNotifications disabled for the ${ch} characteristic of the ${this.type} feature`);
         } catch (error) {
           window.busyGatt = false;
           const e = new Error(error);
@@ -191,7 +191,7 @@ class FeatureOperations extends EventTarget {
         }
       }
     } else {
-      const e = Error(`Could not write to  ${this.type} sensor, Thingy only allows one concurrent BLE operation`);
+      const e = Error(`Could not write to  ${this.type} feature, Thingy only allows one concurrent BLE operation`);
       this.notifyError(e);
       throw e;
     }
