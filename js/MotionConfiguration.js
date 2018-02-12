@@ -29,11 +29,9 @@
   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// @ts-check
+import FeatureOperations from "./FeatureOperations.js";
 
-import Sensor from "./Sensor.js";
-
-class MotionConfiguration extends Sensor {
+class MotionConfigurationService extends FeatureOperations {
   constructor(device) {
     super(device, "motionconfiguration");
 
@@ -221,4 +219,4 @@ class MotionConfiguration extends Sensor {
   }
 }
 
-export default MotionConfiguration;
+export default MotionConfigurationService;
