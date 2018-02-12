@@ -7,7 +7,7 @@ The Nordic Thingy:52™ is a compact, power-optimized, multi-sensor development 
 
 This repository is an attempt to make it easier to start developing applications for Thingy:52 using Web Bluetooth. Web Bluetooth is a JavaScript API that makes it possible to communicate with Bluetooth Low Energy devices in web browsers. The implementation status for different browsers and platforms can be seen [here](https://github.com/WebBluetoothCG/web-bluetooth/blob/gh-pages/implementation-status.md). 
 
-This is work in progress, and for now this repository will help you connect to a Thingy:52 and access all services and characteristics except sound and DFU (Device Firmware Upgrade):
+This is work in progress, and for now this repository will help you connect to a Thingy:52 and access all services and characteristics except for sound, microphone, MTU (Maximum Transmission Unit), and DFU (Device Firmware Upgrade):
 
 - Configuration
     - Name
@@ -56,7 +56,7 @@ This is work in progress, and for now this repository will help you connect to a
 - In the browser, it will also show the current temperature measured by the device in the HTML element below the connect button.
 
 ### Example
-The following example will first connect to a thingy:52, then read its name and configure the RGB LED to "breathe"  purple (color code 5, see [here](#ledsetbreathe)) pulses with 20% intensity and with 1500 ms delays between each pulse. It will also print the name of the device and the firmware version to the console.
+The following example will first connect to a thingy:52, then subscribe to and log the resulting data from the temperature feature. After that we will request the device's name, before setting it to "Thingy". In the end, we disconnect the device.
 
 ```javascript
 
@@ -64,12 +64,25 @@ import {Thingy} from "./js/thingy.js";
 
 const thingy = new Thingy({logEnabled: true});
 
+function myLoggingFunction(data) {
+    const temperatureData = data.detail.data;
+
+    console.log(temperatureData);
+}
+
 async function start(device) {
     try {
         await device.connect();
-        await device.ledBreathe({color: 5, intensity: 20, delay: 1500});
-        console.log(`Thingy name: ${await device.getName()}`);
-        console.log(`Current firmware: ${await device.getFirmwareVersion()}`);
+        
+        device.addEventListener("temperature", myLoggingFunction);
+        await device.temperature.start();
+
+        const deviceName = await device.name.get();
+        console.log(deviceName);
+
+        device.name.set("Thingy");
+
+        await device.disconnect();
     } catch (error) {
         console.error(error);
     }
@@ -80,62 +93,72 @@ start(thingy);
 **Note**: the Web Bluetooth API requires that a function trying to connect to a BLE device is initiated by a user action such as a mouse click.
 
 ### API documentation
-Documentation is also available in HTML format [here](https://jtguggedal.github.io/thingy_web_bluetooth/docs).
+Thingy offers several features, all of which rely on established BLE protocols for sending and receiving data. The BLE operations are abstracted away through the following operations:
+
+| Operation | Description |
+| --------- | ----------- |
+| start()/stop() | Subscribes to a feature and sends notifications to the device object upon receiving the specified data |
+| get() | Reads data from the specified feature on Thingy |
+| set() | Writes data to the specified feature on Thingy |
+
+# Supported operations
+
+| Feature | Start/stop | Get | Set |
+| ------- | ---------- | --- | --- |
+| microphone | Under development |
+| mtu | Under development |
+| name | No | Yes | Yes |
+| temperature | Yes | No | No |
+| pressure | Yes | No | No |
+| led | No | Yes | Yes |
+| tap | Yes | No | No |
+| orientation | Yes | No | No |
+| quaternion | Yes | No | No |
+| button | Yes | No | No |
+| cloudtoken | No | Yes | Yes |
+| color | Yes | No | No |
+| connectionparameters | No | Yes | Yes |
+| eddystone | No | Yes | Yes |
+| firmware | No | Yes | No |
+| gas | Yes | No | No |
+| gravityvector | Yes | No | No |
+| humidity | Yes | No | No |
+| step | Yes | No | No |
+| rawdata | Yes | No | No |
+| euler | Yes | No | No |
+| rotation | Yes | No | No |
+| heading | Yes | No | No |
+| environmentconfiguration | No | Yes | Yes |
+| motionconfiguration | No | Yes | Yes |
+
+Below you can find extended information on each feature Thingy supports, as well as information about the parameters required to interact with each feature
 
 -   [Thingy](#thingy)
-    -   [batteryLevelEnable](#batterylevelenable)
-    -   [buttonEnable](#buttonenable)
-    -   [colorEnable](#colorenable)
-    -   [colorSensorCalibrate](#colorsensorcalibrate)
-    -   [connect](#connect)
-    -   [disconnect](#disconnect)
-    -   [eulerEnable](#eulerenable)
-    -   [externalPinsStatus](#externalpinsstatus)
-    -   [gasEnable](#gasenable)
-    -   [getAdvParams](#getadvparams)
-    -   [getBatteryLevel](#getbatterylevel)
-    -   [getCloudToken](#getcloudtoken)
-    -   [getConnParams](#getconnparams)
-    -   [getEddystoneUrl](#geteddystoneurl)
-    -   [getEnvironmentConfig](#getenvironmentconfig)
-    -   [getFirmwareVersion](#getfirmwareversion)
-    -   [getLedStatus](#getledstatus)
-    -   [getMotionConfig](#getmotionconfig)
-    -   [getMtu](#getmtu)
-    -   [getName](#getname)
-    -   [gravityVectorEnable](#gravityvectorenable)
-    -   [headingEnable](#headingenable)
-    -   [humidityEnable](#humidityenable)
-    -   [ledBreathe](#ledbreathe)
-    -   [ledConstant](#ledconstant)
-    -   [ledOneShot](#ledoneshot)
-    -   [motionRawEnable](#motionrawenable)
-    -   [orientationEnable](#orientationenable)
-    -   [pressureEnable](#pressureenable)
-    -   [quaternionEnable](#quaternionenable)
-    -   [rotationMatrixEnable](#rotationmatrixenable)
-    -   [setAdvParams](#setadvparams)
-    -   [setCloudToken](#setcloudtoken)
-    -   [setColorInterval](#setcolorinterval)
-    -   [setConnInterval](#setconninterval)
-    -   [setConnSlaveLatency](#setconnslavelatency)
-    -   [setConnTimeout](#setconntimeout)
-    -   [setEddystoneUrl](#seteddystoneurl)
-    -   [setExternalPin](#setexternalpin)
-    -   [setGasInterval](#setgasinterval)
-    -   [setHumidityInterval](#sethumidityinterval)
-    -   [setMagnetCompInterval](#setmagnetcompinterval)
-    -   [setMotionProcessFrequency](#setmotionprocessfrequency)
-    -   [setMtu](#setmtu)
-    -   [setName](#setname)
-    -   [setPressureInterval](#setpressureinterval)
-    -   [setStepCounterInterval](#setstepcounterinterval)
-    -   [setTemperatureCompInterval](#settemperaturecompinterval)
-    -   [setTemperatureInterval](#settemperatureinterval)
-    -   [setWakeOnMotion](#setwakeonmotion)
-    -   [stepEnable](#stepenable)
-    -   [tapEnable](#tapenable)
-    -   [temperatureEnable](#temperatureenable)
+    -   [microphone](#microphone)
+    -   [mtu](#mtu)
+    -   [name](#name)
+    -   [temperature](#temperature)
+    -   [pressure](#pressure)
+    -   [led](led#)
+    -   [tap](#tap)
+    -   [orientation](#orientation)
+    -   [quaternion](#quaternion)
+    -   [button](#button)
+    -   [cloudtoken](#cloudtoken)
+    -   [color](#color)
+    -   [connectionparameters](#connectionparameters)
+    -   [eddystone](#eddystone)
+    -   [firmware](#firmware)
+    -   [gas](#gas)
+    -   [gravityvector](#gravityvector)
+    -   [humidity](#humidity)
+    -   [step](#step)
+    -   [rawdata](#rawdata)
+    -   [euler](#euler)
+    -   [rotation](#rotation)
+    -   [heading](#heading)
+    -   [environmentconfiguration](#environmentconfiguration)
+    -   [motionconfiguration](#motionconfiguration)
 
 ## Thingy
 

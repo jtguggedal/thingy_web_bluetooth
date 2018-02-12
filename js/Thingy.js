@@ -155,7 +155,7 @@ class Thingy extends EventTarget {
     this.rotation = new RotationMatrixOrientationSensor(this);
     this.heading = new HeadingSensor(this);
     this.environmentconfiguration = new EnvironmentConfigurationService(this);
-    this.motionConfigurationService = new MotionConfigurationService(this);
+    this.motionconfiguration = new MotionConfigurationService(this);
   }
 
   async connect() {
