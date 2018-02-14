@@ -178,12 +178,23 @@ Below you can find extended information on each feature Thingy supports, as well
 ### Microphone
 `thingy.microphone`
 
-Enables notifications containing microphone data from Thingy.
+Allows interaction with the connected device's microphone
 
 **Supported operations**
 
--   `start` - Starts sending microphone data from the device
--   `stop`  - Terminates sending microphone data from the device
+-   `start` - Starts sending microphone data from the connected device
+-   `stop`  - Terminates sending microphone data from the connected device
+
+
+### Name
+`thingy.name`
+
+Allows interaction with the connected device's name service
+
+**Supported operations**
+
+-   `get` - Gets the name of the connected device
+-   `set` - Sets the name of the connected device. Takes as parameter a string shorter or equal to 10 characters.
 
 ### colorEnable
 
