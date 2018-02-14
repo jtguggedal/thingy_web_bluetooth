@@ -226,10 +226,107 @@ Allows interaction with the connected device's connection parameters
 -   `set` - Sets the connection parameters of the connected device.
     - **Parameters**:
         - Object:
-            - Minimum connection interval (unit 1.25 ms): Number in the interval 6 - 3200 (7.5 ms - 4 s)
-            - Minimum connection interval (unit 1.25 ms): Number in the interval 6 - 3200 (7.5 ms - 4 s)
-            - Slave latency (number of connection events): Number in the interval 0 - 499
-            - Supervision timeout (unit 10 ms): Number in the interval 10 - 3200 (100 ms - 32 s) 
+            - minInterval (Minimum connection interval, unit 1.25ms): Number in the interval 6 - 3200 (7.5ms - 4s)
+            - maxInterval (Maximum connection interval (unit 1.25ms): Number in the interval 6 - 3200 (7.5ms - 4s)
+            - slaveLatency (Slave latency - number of connection events): Number in the interval 0 - 499
+            - supervisionTimeout (Supervision timeout, unit 10ms): Number in the interval 10 - 3200 (100ms - 32s)
+
+### Eddystone Url
+`thingy.eddystone`
+
+Allows interaction with the connected device's eddystone url service
+
+**Supported operations**
+
+-   `get` - Gets the connected device's eddystone url
+-   `set` - Sets the eddystone url of the connected device.
+    - **Parameters**:
+        - Eddystone url - String between 3 and 17 characters, according to **[this](https://github.com/google/eddystone/tree/master/eddystone-url)** format
+
+
+### Euler orientation
+`thingy.eulerorientation`
+
+Allows interaction with the connected device's euler orientation sensor
+
+**Supported operations**
+
+-   `start` - Starts sending euler orientation data from the connected device
+-   `stop`  - Terminates sending euler orientation data from the connected device
+
+### Firmware
+`thingy.firmware`
+
+Allows interaction with the connected device's firmware service
+
+**Supported operations**
+
+-   `get` - Gets the current firmware version deployed on the device
+
+
+### Gas
+`thingy.gas`
+
+Allows interaction with the connected device's gas sensor (co2 and tvoc)
+
+**Supported operations**
+
+-   `start` - Starts sending gas data from the connected device
+-   `stop`  - Terminates sending gas data from the connected device
+
+### Gravity vector
+`thingy.gravityvector`
+
+Allows interaction with the connected device's gravity vector sensor
+
+**Supported operations**
+
+-   `start` - Starts sending gravity vector data from the connected device
+-   `stop`  - Terminates sending gravity vector data from the connected device
+
+### Heading
+`thingy.heading`
+
+Allows interaction with the connected device's heading sensor
+
+**Supported operations**
+
+-   `start` - Starts sending heading data from the connected device
+-   `stop`  - Terminates sending heading data from the connected device
+
+### Humidity
+`thingy.humidity`
+
+Allows interaction with the connected device's humidity sensor
+
+**Supported operations**
+
+-   `start` - Starts sending humidity data from the connected device
+-   `stop`  - Terminates sending humidity data from the connected device
+
+### LED
+`thingy.led`
+
+Allows interaction with the connected device's LED
+
+**Supported operations**
+
+-   `get` - Gets the connected device's current LED configuration
+-   `set` - Sets the LED configuration of the connected device
+    - **Parameters**:
+        - Object:
+            - mode - Mode of LED. Can be one of the following: constant, breathe, oneshot, off.
+                - mode = constant:
+                    - red - Number in the interval 0 - 255
+                    - green - Number in the interval 0 - 255
+                    - blue - Number in the interval 0 - 255
+                - mode = breathe:
+                    - color - Either a recognized color (red, green, yellow, blue, purple, cyan, white), or a number in the interval 1 - 7
+                    - intensity - Number in the interval 0 - 100
+                    - delay - Delay between each breathe (unit ms), number in the interval 50 - 10 000
+                - mode = oneshot:
+                    - color - Number in the interval 1 - 7
+                    - intensity: Number in the interval 0 - 100
 
 ### Microphone
 `thingy.microphone`

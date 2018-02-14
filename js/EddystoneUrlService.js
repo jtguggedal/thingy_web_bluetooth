@@ -88,6 +88,73 @@ class EddystoneUrlService extends FeatureOperations {
       throw e;
     }
   }
+
+  encodeEddystoneData(data) {
+    try {
+      // Uses URL API to check for valid URL
+      const url = new URL(data);
+
+      // Eddystone URL specification defines codes for URL scheme prefixes and expansion codes in the URL.
+      // The array index corresponds to the defined code in the specification.
+      // Details here: https://github.com/google/eddystone/tree/master/eddystone-url
+      const prefixArray = ["http://www.", "https://www.", "http://", "https://"];
+      const expansionCodes = [
+        ".com/",
+        ".org/",
+        ".edu/",
+        ".net/",
+        ".info/",
+        ".biz/",
+        ".gov/",
+        ".com",
+        ".org",
+        ".edu",
+        ".net",
+        ".info",
+        ".biz",
+        ".gov",
+      ];
+
+      let prefixCode = null;
+      let expansionCode = null;
+      let eddystoneUrl = url.href;
+      let len = eddystoneUrl.length;
+
+      prefixArray.forEach((element, i) => {
+        if (url.href.indexOf(element) !== -1 && prefixCode === null) {
+          prefixCode = String.fromCharCode(i);
+          eddystoneUrl = eddystoneUrl.replace(element, prefixCode);
+          len -= element.length;
+        }
+      });
+
+      expansionCodes.forEach((element, i) => {
+        if (url.href.indexOf(element) !== -1 && expansionCode === null) {
+          expansionCode = String.fromCharCode(i);
+          eddystoneUrl = eddystoneUrl.replace(element, expansionCode);
+          len -= element.length;
+        }
+      });
+
+      if (len < 1 || len > 14) {
+        const e = new Error("The URL can't be longer than 14 characters, excluding URL scheme such as \"https://\" and \".com/\".");
+        this.notifyError(e);
+        throw e;
+      }
+
+      const byteArray = new Uint8Array(eddystoneUrl.length);
+
+      for (let i = 0; i < eddystoneUrl.length; i++) {
+        byteArray[i] = eddystoneUrl.charCodeAt(i);
+      }
+
+      return byteArray;
+    } catch (error) {
+        const e = new Error(error);
+        this.notifyError(e);
+        throw e;
+    }
+  }
 }
 
 export default EddystoneUrlService;
