@@ -35,7 +35,7 @@ import FeatureOperations from "./FeatureOperations.js";
 
 class EulerOrientationSensor extends FeatureOperations {
   constructor(device) {
-    super(device, "euler");
+    super(device, "eulerorientation");
 
     // gatt service and characteristic used to communicate with Thingy's euler sensor
     this.service = {

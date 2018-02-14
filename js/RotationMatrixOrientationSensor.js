@@ -35,7 +35,7 @@ import FeatureOperations from "./FeatureOperations.js";
 
 class RotationMatrixOrientationSensor extends FeatureOperations {
   constructor(device) {
-    super(device, "rotation");
+    super(device, "rotationmatrixorientation");
 
     // gatt service and characteristic used to communicate with Thingy's rotation matrix sensor
     this.service = {

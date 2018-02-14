@@ -103,62 +103,63 @@ Thingy offers several features, all of which rely on established BLE protocols f
 
 # Supported operations
 
-| Feature | Start/stop | Get | Set |
-| ------- | ---------- | --- | --- |
-| microphone | Under development |
-| mtu | Under development |
-| name | No | Yes | Yes |
-| temperature | Yes | No | No |
-| pressure | Yes | No | No |
-| led | No | Yes | Yes |
-| tap | Yes | No | No |
-| orientation | Yes | No | No |
-| quaternion | Yes | No | No |
-| button | Yes | No | No |
-| cloudtoken | No | Yes | Yes |
-| color | Yes | No | No |
-| connectionparameters | No | Yes | Yes |
-| eddystone | No | Yes | Yes |
-| firmware | No | Yes | No |
-| gas | Yes | No | No |
-| gravityvector | Yes | No | No |
-| humidity | Yes | No | No |
-| step | Yes | No | No |
-| rawdata | Yes | No | No |
-| euler | Yes | No | No |
-| rotation | Yes | No | No |
-| heading | Yes | No | No |
-| environmentconfiguration | No | Yes | Yes |
-| motionconfiguration | No | Yes | Yes |
+| Feature | Start/Stop | Get | Set |
+| :----: | :----: | :----: | :----: |
+| Microphone ( in development ) | - | - | - |
+| MTU ( in development ) | - | - | - |
+| Speaker ( in development ) | - | - | - |
+| Name | No | Yes | Yes |
+| Temperature | Yes | No | No |
+| Pressure | Yes | No | No |
+| LED | No | Yes | Yes |
+| Tap | Yes | No | No |
+| Absolute orientation | Yes | No | No |
+| Quaternion orientation | Yes | No | No |
+| Button | Yes | No | No |
+| Cloud token | No | Yes | Yes |
+| Color | Yes | No | No |
+| Connection parameters | No | Yes | Yes |
+| Eddystone url | No | Yes | Yes |
+| Firmware | No | Yes | No |
+| Gas | Yes | No | No |
+| Gravity vector | Yes | No | No |
+| Humidity | Yes | No | No |
+| Step counter | Yes | No | No |
+| Raw data | Yes | No | No |
+| Euler orientation  | Yes | No | No |
+| Rotation matrix orientation | Yes | No | No |
+| Heading | Yes | No | No |
+| Environment configuration | No | Yes | Yes |
+| Motion configuration | No | Yes | Yes |
 
 Below you can find extended information on each feature Thingy supports, as well as information about the parameters required to interact with each feature
 
 -   [Thingy](#thingy)
-    -   [microphone](#microphone)
-    -   [mtu](#mtu)
-    -   [name](#name)
-    -   [temperature](#temperature)
-    -   [pressure](#pressure)
-    -   [led](led#)
-    -   [tap](#tap)
-    -   [orientation](#orientation)
-    -   [quaternion](#quaternion)
-    -   [button](#button)
-    -   [cloudtoken](#cloudtoken)
-    -   [color](#color)
-    -   [connectionparameters](#connectionparameters)
-    -   [eddystone](#eddystone)
-    -   [firmware](#firmware)
-    -   [gas](#gas)
-    -   [gravityvector](#gravityvector)
-    -   [humidity](#humidity)
-    -   [step](#step)
-    -   [rawdata](#rawdata)
-    -   [euler](#euler)
-    -   [rotation](#rotation)
-    -   [heading](#heading)
-    -   [environmentconfiguration](#environmentconfiguration)
-    -   [motionconfiguration](#motionconfiguration)
+    -   [Microphone](#microphone)
+    -   [MTU](#mtu)
+    -   [Name](#name)
+    -   [Temperature](#temperature)
+    -   [Pressure](#pressure)
+    -   [LED](#led)
+    -   [Tap](#tap)
+    -   [Absolute orientation](#absoluteorientation)
+    -   [Quaternion orientation](#quaternionorientation)
+    -   [Button](#button)
+    -   [Cloud token](#cloudtoken)
+    -   [Color](#color)
+    -   [Connection parameters](#connectionparameters)
+    -   [Eddystone url](#eddystone)
+    -   [Firmware](#firmware)
+    -   [Gas](#gas)
+    -   [Gravity vector](#gravityvector)
+    -   [Humidity](#humidity)
+    -   [Step counter](#stepcounter)
+    -   [Raw data](#rawdata)
+    -   [Euler orientation](#eulerorientation)
+    -   [Rotation matrix orientation](#rotationmatrixorientation)
+    -   [Heading](#heading)
+    -   [Environment configuration](#environmentconfiguration)
+    -   [Motion configuration](#motionconfiguration)
 
 ## Thingy
 
@@ -166,27 +167,10 @@ Below you can find extended information on each feature Thingy supports, as well
 
 -   `options`   (optional, default `{logEnabled:false}`)
 
-### batteryLevelEnable
+### Microphone
+`thingy.microphone`
 
-Enables battery level notifications.
-
-**Parameters**
-
--   `eventHandler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** The callback function that is triggered on battery level change. Will receive a battery level object as argument.
--   `enable` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Enables notifications if true or disables them if set to false.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise when resolved or a promise with an error on rejection
-
-### buttonEnable
-
-Enables button notifications from Thingy. The assigned event handler will be called when the button on the Thingy is pushed or released.
-
-**Parameters**
-
--   `eventHandler` **[function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function)** The callback function that is triggered on notification. Will receive a button object as argument.
--   `enable` **[boolean](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean)** Enables notifications if true or disables them if set to false.
-
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)>** Returns a promise with button state when resolved or a promise with an error on rejection.
+Enables notifications containing microphone data from Thingy.
 
 ### colorEnable
 

@@ -138,8 +138,8 @@ class Thingy extends EventTarget {
     this.pressure = new PressureSensor(this);
     this.led = new LEDService(this);
     this.tap = new TapSensor(this);
-    this.orientation = new AbsoluteOrientationSensor(this);
-    this.quaternion = new QuaternionOrientationSensor(this);
+    this.absoluteorientation = new AbsoluteOrientationSensor(this);
+    this.quaternionorientation = new QuaternionOrientationSensor(this);
     this.button = new ButtonSensor(this);
     this.cloudtoken = new CloudTokenService(this);
     this.color = new ColorSensor(this);
@@ -151,8 +151,8 @@ class Thingy extends EventTarget {
     this.humidity = new HumiditySensor(this);
     this.step = new StepCounterSensor(this);
     this.rawdata = new RawDataSensor(this);
-    this.euler = new EulerOrientationSensor(this);
-    this.rotation = new RotationMatrixOrientationSensor(this);
+    this.eulerorientation = new EulerOrientationSensor(this);
+    this.rotationmatrixorientation = new RotationMatrixOrientationSensor(this);
     this.heading = new HeadingSensor(this);
     this.environmentconfiguration = new EnvironmentConfigurationService(this);
     this.motionconfiguration = new MotionConfigurationService(this);

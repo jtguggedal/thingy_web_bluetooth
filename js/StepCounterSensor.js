@@ -35,7 +35,7 @@ import FeatureOperations from "./FeatureOperations.js";
 
 class StepCounterSensor extends FeatureOperations {
   constructor(device) {
-    super(device, "step");
+    super(device, "stepcounter");
 
     // gatt service and characteristic used to communicate with Thingy's step counter sensor
     this.service = {

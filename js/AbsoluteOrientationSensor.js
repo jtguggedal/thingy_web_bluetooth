@@ -35,7 +35,7 @@ import FeatureOperations from "./FeatureOperations.js";
 
 class AbsoluteOrientationSensor extends FeatureOperations {
   constructor(device) {
-    super(device, "orientation");
+    super(device, "absoluteorientation");
 
     // gatt service and characteristic used to communicate with Thingy's orientation sensor
     this.service = {
