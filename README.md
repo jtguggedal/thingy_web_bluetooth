@@ -105,61 +105,69 @@ Thingy offers several features, all of which rely on established BLE protocols f
 
 | Feature | Start/Stop | Get | Set |
 | :----: | :----: | :----: | :----: |
-| Microphone ( in development ) | - | - | - |
-| MTU ( in development ) | - | - | - |
-| Speaker ( in development ) | - | - | - |
-| Name | No | Yes | Yes |
-| Temperature | Yes | No | No |
-| Pressure | Yes | No | No |
-| LED | No | Yes | Yes |
-| Tap | Yes | No | No |
 | Absolute orientation | Yes | No | No |
-| Quaternion orientation | Yes | No | No |
 | Button | Yes | No | No |
 | Cloud token | No | Yes | Yes |
 | Color | Yes | No | No |
 | Connection parameters | No | Yes | Yes |
 | Eddystone url | No | Yes | Yes |
+| Environment configuration | No | Yes | Yes |
+| Euler orientation  | Yes | No | No |
 | Firmware | No | Yes | No |
 | Gas | Yes | No | No |
 | Gravity vector | Yes | No | No |
-| Humidity | Yes | No | No |
-| Step counter | Yes | No | No |
-| Raw data | Yes | No | No |
-| Euler orientation  | Yes | No | No |
-| Rotation matrix orientation | Yes | No | No |
 | Heading | Yes | No | No |
-| Environment configuration | No | Yes | Yes |
+| Humidity | Yes | No | No |
+| LED | No | Yes | Yes |
 | Motion configuration | No | Yes | Yes |
+| Name | No | Yes | Yes |
+| Pressure | Yes | No | No |
+| Quaternion orientation | Yes | No | No |
+| Raw data | Yes | No | No |
+| Rotation matrix orientation | Yes | No | No |
+| Step counter | Yes | No | No |
+| Tap | Yes | No | No |
+| Temperature | Yes | No | No |
+
+
+| Microphone ( in development ) | - | - | - |
+| MTU ( in development ) | - | - | - |
+| Speaker ( in development ) | - | - | - |
 
 Below you can find extended information on each feature Thingy supports, as well as information about the parameters required to interact with each feature
 
 -   [Thingy](#thingy)
-    -   [Microphone](#microphone)
-    -   [MTU](#mtu)
-    -   [Name](#name)
-    -   [Temperature](#temperature)
-    -   [Pressure](#pressure)
-    -   [LED](#led)
-    -   [Tap](#tap)
     -   [Absolute orientation](#absoluteorientation)
-    -   [Quaternion orientation](#quaternionorientation)
     -   [Button](#button)
     -   [Cloud token](#cloudtoken)
     -   [Color](#color)
     -   [Connection parameters](#connectionparameters)
     -   [Eddystone url](#eddystone)
+    -   [Environment configuration](#environmentconfiguration)
+    -   [Euler orientation](#eulerorientation)
     -   [Firmware](#firmware)
     -   [Gas](#gas)
     -   [Gravity vector](#gravityvector)
-    -   [Humidity](#humidity)
-    -   [Step counter](#stepcounter)
-    -   [Raw data](#rawdata)
-    -   [Euler orientation](#eulerorientation)
-    -   [Rotation matrix orientation](#rotationmatrixorientation)
     -   [Heading](#heading)
-    -   [Environment configuration](#environmentconfiguration)
+    -   [Humidity](#humidity)
+    -   [LED](#led)
+    -   [Microphone](#microphone)
     -   [Motion configuration](#motionconfiguration)
+    -   [MTU](#mtu)
+    -   [Name](#name)
+    -   [Pressure](#pressure)
+    -   [Quaternion orientation](#quaternionorientation)
+    -   [Raw data](#rawdata)
+    -   [Rotation matrix orientation](#rotationmatrixorientation)
+    -   [Speaker](#speaker)
+    -   [Step counter](#stepcounter)
+    -   [Tap](#tap)
+    -   [Temperature](#temperature)
+
+
+
+
+
 
 ## Thingy
 
@@ -171,6 +179,11 @@ Below you can find extended information on each feature Thingy supports, as well
 `thingy.microphone`
 
 Enables notifications containing microphone data from Thingy.
+
+**Supported operations**
+
+-   `start` - Starts sending microphone data from the device
+-   `stop`  - Terminates sending microphone data from the device
 
 ### colorEnable
 
