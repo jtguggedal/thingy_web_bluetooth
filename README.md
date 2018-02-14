@@ -195,7 +195,8 @@ Allows interaction with the connected device's name service
 
 -   `get` - Gets the name of the connected device
 -   `set` - Sets the name of the connected device.
-     - Name: string shorter than or equal to 10 characters.
+    - **Parameters**:
+        - Name - String shorter or equal to 10 characters.
 
 
 ### colorEnable
