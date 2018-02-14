@@ -128,8 +128,6 @@ Thingy offers several features, all of which rely on established BLE protocols f
 | Step counter | Yes | No | No |
 | Tap | Yes | No | No |
 | Temperature | Yes | No | No |
-
-
 | Microphone ( in development ) | - | - | - |
 | MTU ( in development ) | - | - | - |
 | Speaker ( in development ) | - | - | - |
@@ -173,7 +171,65 @@ Below you can find extended information on each feature Thingy supports, as well
 
 **Parameters**
 
--   `options`   (optional, default `{logEnabled:false}`)
+-   `options`   (optional, default `{logEnabled:true}`)
+
+### Absolute orientation
+`thingy.absoluteorientation`
+
+Allows interaction with the connected device's absolute orientation sensor
+
+**Supported operations**
+
+-   `start` - Starts sending absolute orientation data from the connected device
+-   `stop`  - Terminates sending absolute orientation data from the connected device
+
+### Button
+`thingy.button`
+
+Allows interaction with the connected device's button
+
+**Supported operations**
+
+-   `start` - Starts sending button data from the connected device
+-   `stop`  - Terminates sending button data from the connected device
+
+### Cloud token
+`thingy.cloudtoken`
+
+Allows interaction with the connected device's cloud token service
+
+**Supported operations**
+
+-   `get` - Gets the cloud token currently written to the connected device
+-   `set` - Sets the cloud token of the connected device.
+    - **Parameters**:
+        - Cloud token - String shorter than or equal to 250 characters.
+
+### Color
+`thingy.color`
+
+Allows interaction with the connected device's color sensor (not LED)
+
+**Supported operations**
+
+-   `start` - Starts sending color data from the connected device
+-   `stop`  - Terminates sending color data from the connected device
+
+### Connection parameters
+`thingy.connectionparameters`
+
+Allows interaction with the connected device's connection parameters
+
+**Supported operations**
+
+-   `get` - Gets the connected device's connection parameters
+-   `set` - Sets the connection parameters of the connected device.
+    - **Parameters**:
+        - Object:
+            - Minimum connection interval (unit 1.25 ms): Number in the interval 6 - 3200 (7.5 ms - 4 s)
+            - Minimum connection interval (unit 1.25 ms): Number in the interval 6 - 3200 (7.5 ms - 4 s)
+            - Slave latency (number of connection events): Number in the interval 0 - 499
+            - Supervision timeout (unit 10 ms): Number in the interval 10 - 3200 (100 ms - 32 s) 
 
 ### Microphone
 `thingy.microphone`
@@ -196,7 +252,11 @@ Allows interaction with the connected device's name service
 -   `get` - Gets the name of the connected device
 -   `set` - Sets the name of the connected device.
     - **Parameters**:
-        - Name - String shorter or equal to 10 characters.
+        - Name - String shorter than or equal to 10 characters.
+
+
+
+
 
 
 ### colorEnable
