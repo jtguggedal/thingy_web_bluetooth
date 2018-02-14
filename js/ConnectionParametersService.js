@@ -90,7 +90,7 @@ class ConnectionParametersService extends FeatureOperations {
         return Promise.reject(new TypeError("The argument has to be an object."));
       }
 
-      if (params.timeout && undefined || params.slaveLatency && undefined || params.minInterval && undefined || params.maxInterval && undefined) {
+      if ((params.timeout === undefined) && (params.slaveLatency === undefined) && (params.minInterval === undefined) && (params.maxInterval === undefined)) {
         return Promise.reject(new TypeError("The argument has to be an object with at least one of the properties 'timeout', 'slaveLatency', 'minInterval' or 'maxInterval'."));
       }
 
