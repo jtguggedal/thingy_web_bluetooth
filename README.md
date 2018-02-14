@@ -7,42 +7,7 @@ The Nordic Thingy:52™ is a compact, power-optimized, multi-sensor development 
 
 This repository is an attempt to make it easier to start developing applications for Thingy:52 using Web Bluetooth. Web Bluetooth is a JavaScript API that makes it possible to communicate with Bluetooth Low Energy devices in web browsers. The implementation status for different browsers and platforms can be seen [here](https://github.com/WebBluetoothCG/web-bluetooth/blob/gh-pages/implementation-status.md). 
 
-This is work in progress, and for now this repository will help you connect to a Thingy:52 and access all services and characteristics except for sound, microphone, MTU (Maximum Transmission Unit), and DFU (Device Firmware Upgrade):
-
-- Configuration
-    - Name
-    - Advertising parameters
-    - Connection parameters
-    - Eddystone URL
-    - Cloud token
-    - Firmware version
-    - MTU request
-- Environment
-    - Configuration of sensors
-    - Temperature
-    - Pressure
-    - Humidity
-    - Gas sensor
-    - Color sensor
-
-- User interface
-    - RGB LED
-    - Button
-    - External pins
-
-- Motion
-    - Configuration
-    - Tap sensing
-    - Step counter
-    - Orientation
-    - Quaternions
-    - Euler angles
-    - Rotation matrix
-    - Heading
-    - Gravity vector
-    - Raw data
-    
-- Battery status
+This is work in progress, and for now this repository will help you connect to a Thingy:52 and access all services and characteristics except for speaker, microphone, MTU (Maximum Transmission Unit), and DFU (Device Firmware Upgrade):
 
 ### Get started
 
@@ -55,18 +20,17 @@ This is work in progress, and for now this repository will help you connect to a
 - When connected, the Thingy:52 will use the LED breathe feature and the LED will pulsate with RED light. 
 - In the browser, it will also show the current temperature measured by the device in the HTML element below the connect button.
 
-### Example
-The following example will first connect to a thingy:52, then subscribe to and log the resulting data from the temperature feature. After that we will request the device's name, before setting it to "Thingy". In the end, we disconnect the device.
+### Examples
+The following example will first connect to a thingy:52, then subscribe to and log all incoming data from the temperature sensor. After that we will request the device's name, before setting it to "Thingy". In the end, we set a timeout for 10 secounds before we disconnect from the device.
 
 ```javascript
 
-import {Thingy} from "./js/thingy.js";
+import Thingy from "./js/thingy.js";
 
 const thingy = new Thingy({logEnabled: true});
 
 function myLoggingFunction(data) {
-    const temperatureData = data.detail.data;
-
+    const temperatureData = data.detail;
     console.log(temperatureData);
 }
 
@@ -76,13 +40,18 @@ async function start(device) {
         
         device.addEventListener("temperature", myLoggingFunction);
         await device.temperature.start();
-
+        
+        
         const deviceName = await device.name.get();
         console.log(deviceName);
 
-        device.name.set("Thingy");
+        await device.name.set("Thingy");
 
+        setTimeout(async () => {
         await device.disconnect();
+        console.log("Disconnected from the device");
+        }, 10000);
+        
     } catch (error) {
         console.error(error);
     }
@@ -90,6 +59,38 @@ async function start(device) {
 
 start(thingy);
 ```
+
+The following example will first connect to a thingy:52, and then read the current LED configuration. In the end we will set the LED to breathe mode, with an intensity of 50% and a delay of 1 second
+
+```javascript
+
+import Thingy from "./js/thingy.js";
+
+const thingy = new Thingy({logEnabled: true});
+
+async function start(device) {
+    try {
+        await device.connect();
+
+        const currentLedConfiguration = await device.led.get();
+        console.log(currentLedConfiguration);
+        
+        const newLedConfiguration = {
+            mode: "breathe",
+            color: "cyan",
+            intensity: 50,
+            delay: 1000,
+        }
+        
+        await device.led.set(newLedConfiguration);  
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+start(thingy);
+```
+
 **Note**: the Web Bluetooth API requires that a function trying to connect to a BLE device is initiated by a user action such as a mouse click.
 
 ### API documentation
@@ -97,9 +98,9 @@ Thingy offers several features, all of which rely on established BLE protocols f
 
 | Operation | Description |
 | --------- | ----------- |
-| start()/stop() | Subscribes to a feature and sends notifications to the device object upon receiving the specified data |
-| get() | Reads data from the specified feature on Thingy |
-| set() | Writes data to the specified feature on Thingy |
+| start/stop | Subscribes to a feature and relays any incoming data from that feature as an event |
+| get | Reads data from the specified feature on Thingy |
+| set | Writes data to the specified feature on Thingy |
 
 # Supported operations
 
@@ -110,7 +111,7 @@ Thingy offers several features, all of which rely on established BLE protocols f
 | Cloud token | No | Yes | Yes |
 | Color | Yes | No | No |
 | Connection parameters | No | Yes | Yes |
-| DFU ( in development ) | - | - | - |
+| DFU (in development) | - | - | - |
 | Eddystone url | No | Yes | Yes |
 | Environment configuration | No | Yes | Yes |
 | Euler orientation  | Yes | No | No |
@@ -120,15 +121,15 @@ Thingy offers several features, all of which rely on established BLE protocols f
 | Heading | Yes | No | No |
 | Humidity | Yes | No | No |
 | LED | No | Yes | Yes |
-| Microphone ( in development ) | - | - | - |
+| Microphone (in development) | - | - | - |
 | Motion configuration | No | Yes | Yes |
-| MTU ( in development ) | - | - | - |
+| MTU (in development) | - | - | - |
 | Name | No | Yes | Yes |
 | Pressure | Yes | No | No |
 | Quaternion orientation | Yes | No | No |
 | Raw data | Yes | No | No |
 | Rotation matrix orientation | Yes | No | No |
-| Speaker ( in development ) | - | - | - |
+| Speaker (in development) | - | - | - |
 | Step counter | Yes | No | No |
 | Tap | Yes | No | No |
 | Temperature | Yes | No | No |
@@ -137,7 +138,7 @@ Thingy offers several features, all of which rely on established BLE protocols f
 
 
 
-Below you can find extended information on each feature Thingy supports, as well as information about the parameters required to interact with each feature
+Below you can find extended information on each feature Thingy supports, as well as information about the parameters required to interact with them.
 
 -   [Thingy](#thingy)
     -   [Absolute orientation](#absoluteorientation)

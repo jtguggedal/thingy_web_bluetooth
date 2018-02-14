@@ -8,19 +8,37 @@
     <div id="microphone"></div>
     <script type="module">
       
-		import Thingy from "./js/Thingy.js";
+      import Thingy from "./js/thingy.js";
 
-		const thingy = new Thingy({logEnabled: true});
+      const thingy = new Thingy({logEnabled: true});
 
-    let d = document.getElementById('microphone');
+      function myLoggingFunction(data) {
+        const temperatureData = data.detail;
+        console.log(temperatureData);
+      }
 
-		async function start(device) {
-      await device.connect();
-      await device.temperature.start();
-    }
+      async function start(device) {
+        try {
+          await device.connect();
+
+          const currentLedConfiguration = await device.led.get();
+          console.log(currentLedConfiguration);
+          
+          const newLedConfiguration = {
+            mode: "breathe",
+            color: "cyan",
+            intensity: 50,
+            delay: 1000,
+          }
+          
+          await device.led.set(newLedConfiguration);  
+        } catch (error) {
+          console.error(error);
+        }
+      }
       
       document.querySelector("#connectBtn").addEventListener("click", async () => {
-          start(thingy);
+        start(thingy);
       });
     </script>
   </body>
