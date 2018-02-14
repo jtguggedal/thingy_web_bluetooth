@@ -20,18 +20,8 @@
       async function start(device) {
         try {
           await device.connect();
+          await device.microphone.start();
 
-          const currentLedConfiguration = await device.led.get();
-          console.log(currentLedConfiguration);
-          
-          const newLedConfiguration = {
-            mode: "breathe",
-            color: "cyan",
-            intensity: 50,
-            delay: 1000,
-          }
-          
-          await device.led.set(newLedConfiguration);  
         } catch (error) {
           console.error(error);
         }

@@ -13,6 +13,7 @@ class Microphone extends FeatureOperations {
       default: {
         uuid: this.device.TSS_MIC_UUID,
         decoder: this.microphoneDecoder.bind(this),
+        verifier: this.verifyMicrophone.bind(this),
       },
     };
 
@@ -34,6 +35,12 @@ class Microphone extends FeatureOperations {
     };
     const decodedAudio = this._decodeAudio(adpcm);
     this._playDecodedAudio(decodedAudio);
+  }
+
+  async verifyMicrophone() {
+    await this.device.mtu.set(140);
+
+
   }
 
   _decodeAudio(adpcm) {

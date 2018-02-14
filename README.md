@@ -21,13 +21,13 @@ This is work in progress, and for now this repository will help you connect to a
 - In the browser, it will also show the current temperature measured by the device in the HTML element below the connect button.
 
 ### Examples
-The following example will first connect to a thingy:52, then subscribe to and log all incoming data from the temperature sensor. After that we will request the device's name, before setting it to "Thingy". In the end, we set a timeout for 10 secounds before we disconnect from the device.
+The following example will first connect to a thingy:52 with the option logEnabled set to false, then subscribe to and log all incoming data from the temperature sensor. After that we will request the device's name, before setting it to "Thingy". In the end, we set a timeout for 10 secounds before we disconnect from the device.
 
 ```javascript
 
 import Thingy from "./js/thingy.js";
 
-const thingy = new Thingy({logEnabled: true});
+const thingy = new Thingy({logEnabled: false});
 
 function myLoggingFunction(data) {
     const temperatureData = data.detail;
@@ -60,13 +60,13 @@ async function start(device) {
 start(thingy);
 ```
 
-The following example will first connect to a thingy:52, and then read the current LED configuration. In the end we will set the LED to breathe mode, with an intensity of 50% and a delay of 1 second
+The following example will first connect to a thingy:52, and then read the current LED configuration. In the end we will set the LED to breathe mode, with an intensity of 50% and a delay of 1 second.
 
 ```javascript
 
 import Thingy from "./js/thingy.js";
 
-const thingy = new Thingy({logEnabled: true});
+const thingy = new Thingy();
 
 async function start(device) {
     try {

@@ -55,6 +55,11 @@ class FeatureOperations extends EventTarget {
           }
         }
 
+        // litt usikker på hvordan vi bør gjøre dette, ser på det i kveld
+        if (this.characteristics.default.verifier) {
+          this.device.addEventListener(this.type, this.verifyFeature.bind(this));
+        }
+
         window.busyGatt = false;
         console.log(`Connected to the ${this.type} feature`);
       } catch (error) {
@@ -68,6 +73,10 @@ class FeatureOperations extends EventTarget {
       this.notifyError(e);
       throw e;
     }
+  }
+
+  verifyFeature(data) {
+    console.log(data);
   }
 
   notifyError(error) {
