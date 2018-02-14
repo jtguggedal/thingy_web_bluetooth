@@ -86,36 +86,70 @@ class ConnectionParametersService extends FeatureOperations {
 
   async encodeConnectionParam(params) {
     try {
-      if (typeof params !== "object" || params.minInterval === undefined || params.maxInterval === undefined) {
-        return Promise.reject(new TypeError("The argument has to be an object: {minInterval: value, maxInterval: value}"));
+      if (typeof params !== "object") {
+        return Promise.reject(new TypeError("The argument has to be an object."));
       }
 
+      if (params.timeout && undefined || params.slaveLatency && undefined || params.minInterval && undefined || params.maxInterval && undefined) {
+        return Promise.reject(new TypeError("The argument has to be an object with at least one of the properties 'timeout', 'slaveLatency', 'minInterval' or 'maxInterval'."));
+      }
+
+      let timeout = params.timeout;
+      let slaveLatency = params.slaveLatency;
       let minInterval = params.minInterval;
       let maxInterval = params.maxInterval;
 
-      if (minInterval === null || maxInterval === null) {
-        return Promise.reject(new TypeError("Both minimum and maximum acceptable interval must be passed as arguments"));
+      // Check parameters
+      if (timeout !== undefined) {
+        if (timeout < 100 || timeout > 32000) {
+          return Promise.reject(new RangeError("The supervision timeout must be in the range from 100 ms to 32 000 ms."));
+        }
+        // The supervision timeout has to be set in units of 10 ms
+        timeout = Math.round(timeout / 10);
       }
 
-      // Check parameters
-      if (minInterval < 7.5 || minInterval > maxInterval) {
-        return Promise.reject(
-          new RangeError("The minimum connection interval must be greater than 7.5 ms and <= maximum interval")
-        );
+      if (slaveLatency !== undefined) {
+        if (slaveLatency < 0 || slaveLatency > 499) {
+          return Promise.reject(
+            new RangeError("The slave latency must be in the range from 0 to 499 connection intervals.")
+          );
+        }
       }
-      if (maxInterval > 4000 || maxInterval < minInterval) {
-        return Promise.reject(
-          new RangeError("The minimum connection interval must be less than 4 000 ms and >= minimum interval")
-        );
+
+      if (minInterval !== undefined) {
+        if (minInterval < 7.5 || minInterval > maxInterval) {
+          return Promise.reject(
+            new RangeError("The minimum connection interval must be greater than 7.5 ms and <= maximum interval")
+          );
+        }
+        // Interval is in units of 1.25 ms.
+        minInterval = Math.round(minInterval * 0.8);
+      }
+
+      if (maxInterval !== undefined) {
+        if (maxInterval > 4000 || maxInterval < minInterval) {
+          return Promise.reject(
+            new RangeError("The minimum connection interval must be less than 4 000 ms and >= minimum interval")
+          );
+        }
+        // Interval is in units of 1.25 ms.
+        maxInterval = Math.round(maxInterval * 0.8);
       }
 
       const receivedData = await this._read("default", true);
+      const littleEndian = true;
+      minInterval = minInterval || receivedData.getUint16(0, littleEndian);
+      maxInterval = maxInterval || receivedData.getUint16(2, littleEndian);
+      slaveLatency = slaveLatency || receivedData.getUint16(4, littleEndian);
+      timeout = timeout || receivedData.getUint16(6, littleEndian);
+
+      // Check that the timeout obeys  conn_sup_timeout * 4 > (1 + slave_latency) * max_conn_interval
+      if (timeout * 4 < (1 + slaveLatency) * maxInterval) {
+        return Promise.reject(new Error("The supervision timeout in milliseconds must be greater than (1 + slaveLatency) * maxConnInterval * 2, where maxConnInterval is also given in milliseconds.")
+        );
+      }
+      
       const dataArray = new Uint8Array(8);
-
-      // Interval is in units of 1.25 ms.
-      minInterval = Math.round(minInterval * 0.8);
-      maxInterval = Math.round(maxInterval * 0.8);
-
       for (let i = 0; i < dataArray.length; i++) {
         dataArray[i] = receivedData.getUint8(i);
       }
@@ -124,6 +158,10 @@ class ConnectionParametersService extends FeatureOperations {
       dataArray[1] = (minInterval >> 8) & 0xff;
       dataArray[2] = maxInterval & 0xff;
       dataArray[3] = (maxInterval >> 8) & 0xff;
+      dataArray[4] = slaveLatency & 0xff;
+      dataArray[5] = (slaveLatency >> 8) & 0xff;
+      dataArray[6] = timeout & 0xff;
+      dataArray[7] = (timeout >> 8) & 0xff;
 
       return dataArray;
     } catch (error) {
