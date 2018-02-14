@@ -110,6 +110,7 @@ Thingy offers several features, all of which rely on established BLE protocols f
 | Cloud token | No | Yes | Yes |
 | Color | Yes | No | No |
 | Connection parameters | No | Yes | Yes |
+| DFU ( in development ) | - | - | - |
 | Eddystone url | No | Yes | Yes |
 | Environment configuration | No | Yes | Yes |
 | Euler orientation  | Yes | No | No |
@@ -119,19 +120,22 @@ Thingy offers several features, all of which rely on established BLE protocols f
 | Heading | Yes | No | No |
 | Humidity | Yes | No | No |
 | LED | No | Yes | Yes |
+| Microphone ( in development ) | - | - | - |
 | Motion configuration | No | Yes | Yes |
+| MTU ( in development ) | - | - | - |
 | Name | No | Yes | Yes |
 | Pressure | Yes | No | No |
 | Quaternion orientation | Yes | No | No |
 | Raw data | Yes | No | No |
 | Rotation matrix orientation | Yes | No | No |
+| Speaker ( in development ) | - | - | - |
 | Step counter | Yes | No | No |
 | Tap | Yes | No | No |
 | Temperature | Yes | No | No |
-| DFU ( in development ) | - | - | - |
-| Microphone ( in development ) | - | - | - |
-| MTU ( in development ) | - | - | - |
-| Speaker ( in development ) | - | - | - |
+
+
+
+
 
 Below you can find extended information on each feature Thingy supports, as well as information about the parameters required to interact with each feature
 
@@ -141,6 +145,7 @@ Below you can find extended information on each feature Thingy supports, as well
     -   [Cloud token](#cloudtoken)
     -   [Color](#color)
     -   [Connection parameters](#connectionparameters)
+    -   [DFU](#dfu)
     -   [Eddystone url](#eddystone)
     -   [Environment configuration](#environmentconfiguration)
     -   [Euler orientation](#eulerorientation)
@@ -162,10 +167,6 @@ Below you can find extended information on each feature Thingy supports, as well
     -   [Step counter](#stepcounter)
     -   [Tap](#tap)
     -   [Temperature](#temperature)
-
-
-
-
 
 
 ## Thingy
@@ -231,6 +232,15 @@ Allows interaction with the connected device's connection parameters
             - maxInterval (Maximum connection interval (unit 1.25ms): Number in the interval 6 - 3200 (7.5ms - 4s)
             - slaveLatency (Slave latency - number of connection events): Number in the interval 0 - 499
             - supervisionTimeout (Supervision timeout, unit 10ms): Number in the interval 10 - 3200 (100ms - 32s)
+
+### DFU
+`thingy.dfu`
+
+Allows interaction with the connected device's DFU service (Device Firmware Upgrade)
+
+**Supported operations**
+
+In development
 
 ### Eddystone Url
 `thingy.eddystone`
@@ -339,6 +349,15 @@ Allows interaction with the connected device's microphone
 -   `start` - Starts sending microphone data from the connected device
 -   `stop`  - Terminates sending microphone data from the connected device
 
+### MTU
+`thingy.mtu`
+
+Allows interaction with the connected device's MTU service (Maximum Transmission Unit)
+
+**Supported operations**
+
+In development
+
 
 ### Name
 `thingy.name`
@@ -399,7 +418,7 @@ Allows interaction with the connected device's speaker
 
 **Supported operations**
 
--   `set` - Send speaker data to the connected device. String no longer than 273 characters.
+In development
 
 
 ### Step counter
