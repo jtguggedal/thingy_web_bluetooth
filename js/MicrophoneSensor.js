@@ -56,7 +56,7 @@ class Microphone extends FeatureOperations {
         await this._notify(false, "default", true);
         this.removeEventListener("verifyReaction", this.characteristics.default.verifyReaction);
 
-        if (microphoneData.byteLength === 512) {
+        if (microphoneData.byteLength === 131) {
           await this._notify(true);
         } else {
           const e = new Error("We can't enable the microphone at the moment");
