@@ -12,8 +12,9 @@ class Microphone extends FeatureOperations {
     this.characteristics = {
       default: {
         uuid: this.device.TSS_MIC_UUID,
-        decoder: this.microphoneDecoder.bind(this),
-        verifier: this.verifyMicrophone.bind(this),
+        decoder: this.decodeMicrophoneData.bind(this),
+        verifyAction: this.verifyMicrophoneAction.bind(this),
+        verifyReaction: this.verifyMicrophoneReaction.bind(this),
       },
     };
 
@@ -27,20 +28,47 @@ class Microphone extends FeatureOperations {
       5894, 6484, 7132, 7845, 8630, 9493, 10442, 11487, 12635, 13899, 15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767];
   }
 
-  microphoneDecoder(event) {
+  decodeMicrophoneData(event) {
     const audioPacket = event.buffer;
     const adpcm = {
       header: new DataView(audioPacket.slice(0, 3)),
       data: new DataView(audioPacket.slice(3)),
     };
     const decodedAudio = this._decodeAudio(adpcm);
-    this._playDecodedAudio(decodedAudio);
+
+    return decodedAudio;
   }
 
-  async verifyMicrophone() {
-    await this.device.mtu.set(140);
+  async verifyMicrophoneAction() {
+    try {
+      await this.device.mtu.set(140);
+    } catch (error) {
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
+    }
+  }
 
+  async verifyMicrophoneReaction(data) {
+    if (!window.busyGatt) {
+      try {
+        const microphoneData = data.detail.data;
+        await this._notify(false, "default", true);
+        this.removeEventListener("verifyReaction", this.characteristics.default.verifyReaction);
 
+        if (microphoneData.byteLength === 512) {
+          await this._notify(true);
+        } else {
+          const e = new Error("We can't enable the microphone at the moment");
+          this.notifyError(e);
+          throw e;
+        }
+      } catch (error) {
+        const e = new Error(error);
+        this.notifyError(e);
+        throw e;
+      }
+    }
   }
 
   _decodeAudio(adpcm) {
@@ -116,7 +144,8 @@ class Microphone extends FeatureOperations {
     }
     return pcm;
   }
-  _playDecodedAudio(audio) {
+
+  play(audio) {
     if (this._audioStack === undefined) {
       this._audioStack = [];
     }

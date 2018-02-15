@@ -12,14 +12,16 @@
 
       const thingy = new Thingy({logEnabled: true});
 
-      function myLoggingFunction(data) {
-        const temperatureData = data.detail;
-        console.log(temperatureData);
+      const playAudio = data => {
+        const audio = data.detail;
+
+        thingy.microphone.play(audio);
       }
 
       async function start(device) {
         try {
           await device.connect();
+          device.addEventListener("microphone", playAudio);
           await device.microphone.start();
 
         } catch (error) {

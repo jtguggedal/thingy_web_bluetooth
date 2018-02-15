@@ -55,12 +55,16 @@ class FeatureOperations extends EventTarget {
           }
         }
 
-        // litt usikker på hvordan vi bør gjøre dette, ser på det i kveld
-        if (this.characteristics.default.verifier) {
-          this.device.addEventListener(this.type, this.verifyFeature.bind(this));
+        window.busyGatt = false;
+
+        if (this.characteristics.default.verifyAction && this.characteristics.default.verifyAction) {
+          await this.characteristics.default.verifyAction();
+
+          this.addEventListener("verifyReaction", this.characteristics.default.verifyReaction);
+
+          await this._notify(true, "default", true);
         }
 
-        window.busyGatt = false;
         console.log(`Connected to the ${this.type} feature`);
       } catch (error) {
         window.busyGatt = false;
@@ -73,10 +77,6 @@ class FeatureOperations extends EventTarget {
       this.notifyError(e);
       throw e;
     }
-  }
-
-  verifyFeature(data) {
-    console.log(data);
   }
 
   notifyError(error) {
@@ -166,13 +166,13 @@ class FeatureOperations extends EventTarget {
       }
     } else {
       window.busyGatt = false;
-      const e = new Error(`Could not write to  ${this.type} feature, Thingy only allows one concurrent BLE operation`);
+      const e = new Error(`Could not write to the ${this.type} feature, Thingy only allows one concurrent BLE operation`);
       this.notifyError(e);
       throw e;
     }
   }
 
-  async _notify(enable, ch = "default") {
+  async _notify(enable, ch = "default", verify = false) {
     if (!(enable === true || enable === false)) {
       const e = new Error("You have to specify the enable parameter (true/false)");
       this.notifyError(e);
@@ -189,9 +189,15 @@ class FeatureOperations extends EventTarget {
       const eventData = e.target.value;
       const decodedData = this.characteristics[ch].decoder(eventData);
 
-      const ce = new CustomEvent("characteristicvaluechanged", {detail: {feature: this.type, data: decodedData}});
+      let ce;
 
-      this.device.dispatchEvent(ce);
+      if (verify) {
+        ce = new CustomEvent("verifyReaction", {detail: {feature: this.type, data: decodedData}});
+        this.dispatchEvent(ce);
+      } else {
+        ce = new CustomEvent("characteristicvaluechanged", {detail: {feature: this.type, data: decodedData}});
+        this.device.dispatchEvent(ce);
+      }
     };
 
     if (!this.characteristics[ch].decoder) {
