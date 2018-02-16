@@ -271,7 +271,7 @@ Allows interaction with the connected device's environment configuration
             - humidityInterval (Humidity sensor update interval in ms). Integer in the range 100 ms to 60 000 ms.
             - colorInterval (Color sensor update interval in ms). Integer in the range 200 ms to 60 000 ms.
             - gasInterval (Gas sensor update interval in seconds). Allowed values are 1, 10 and 60 seconds.
-            - Object colorSensorCalibration (Configures color sensor LED calibration parameters):
+            - Object colorSensorCalibration (Configures color sensor calibration parameters):
                 - red - Integer in the range 0 to 255
                 - green - Integer in the range 0 to 255
                 - blue - Integer in the range 0 to 255
@@ -348,17 +348,17 @@ Allows interaction with the connected device's LED
     - **Parameters**:
         - Object:
             - mode - Mode of the LED. Can be one of the following: constant, breathe, oneshot, off.
-                - mode = constant:
-                    - red - Integer in the range 0 to 255
-                    - green - Integer in the range 0 to 255
-                    - blue - Integer in the range 0 to 255
-                - mode = breathe:
-                    - color - Either a recognized color (red, green, yellow, blue, purple, cyan, white), or an integer in the range 1 to 7
-                    - intensity - Integer in the range 0 to 100
-                    - delay - Delay between each breathe (unit ms). Integer in the range 50 to 10 000
-                - mode = oneshot:
-                    - color - Integer in the range 1 to 7
-                    - intensity: Integer in the range 0 to 100
+            - mode = constant:
+                - red - Integer in the range 0 to 255
+                - green - Integer in the range 0 to 255
+                - blue - Integer in the range 0 to 255
+            - mode = breathe:
+                - color - Either a recognized color (red, green, yellow, blue, purple, cyan, white), or an integer in the range 1 to 7
+                - intensity - Integer in the range 0 to 100
+                - delay - Delay between each breathe (unit ms). Integer in the range 50 to 10 000
+            - mode = oneshot:
+                - color - Integer in the range 1 to 7
+                - intensity: Integer in the range 0 to 100
 
 ### Microphone
 `thingy.microphone`

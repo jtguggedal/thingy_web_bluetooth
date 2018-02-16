@@ -196,6 +196,10 @@ class Thingy extends EventTarget {
   async disconnect() {
     try {
       await this.device.gatt.disconnect();
+      
+      if (this.logEnabled) {
+        console.log(`Disconnected from "${this.device.name}"`);
+      }
     } catch (error) {
       const e = new Error(error);
       throw e;
