@@ -190,6 +190,8 @@ Allows interaction with the connected device's absolute orientation sensor
 ### Button
 `thingy.button`
 
+`event: button`
+
 Allows interaction with the connected device's button
 
 **Supported operations**
@@ -211,6 +213,8 @@ Allows interaction with the connected device's cloud token service
 
 ### Color
 `thingy.color`
+
+`event: color`
 
 Allows interaction with the connected device's color sensor (not LED)
 
@@ -280,6 +284,8 @@ Allows interaction with the connected device's environment configuration
 ### Euler orientation
 `thingy.eulerorientation`
 
+`event: eulerorientation`
+
 Allows interaction with the connected device's euler orientation sensor
 
 **Supported operations**
@@ -300,6 +306,8 @@ Allows interaction with the connected device's firmware service
 ### Gas
 `thingy.gas`
 
+`event: gas`
+
 Allows interaction with the connected device's gas sensor (co2 and tvoc)
 
 **Supported operations**
@@ -309,6 +317,8 @@ Allows interaction with the connected device's gas sensor (co2 and tvoc)
 
 ### Gravity vector
 `thingy.gravityvector`
+
+`event: gravityvector`
 
 Allows interaction with the connected device's gravity vector sensor
 
@@ -320,6 +330,8 @@ Allows interaction with the connected device's gravity vector sensor
 ### Heading
 `thingy.heading`
 
+`event: heading`
+
 Allows interaction with the connected device's heading sensor
 
 **Supported operations**
@@ -329,6 +341,8 @@ Allows interaction with the connected device's heading sensor
 
 ### Humidity
 `thingy.humidity`
+
+`event: humidity`
 
 Allows interaction with the connected device's humidity sensor
 
@@ -363,6 +377,8 @@ Allows interaction with the connected device's LED
 
 ### Microphone
 `thingy.microphone`
+
+`event: microphone`
 
 Allows interaction with the connected device's microphone
 
@@ -413,6 +429,8 @@ Allows interaction with the connected device's name service
 ### Pressure
 `thingy.pressure`
 
+`event: pressure`
+
 Allows interaction with the connected device's pressure sensor
 
 **Supported operations**
@@ -422,6 +440,8 @@ Allows interaction with the connected device's pressure sensor
 
 ### Quaternion orientation
 `thingy.quaternionorientation`
+
+`event: quaternionorientation`
 
 Allows interaction with the connected device's quaternion orientation sensor
 
@@ -433,6 +453,8 @@ Allows interaction with the connected device's quaternion orientation sensor
 ### Raw data
 `thingy.rawdata`
 
+`event: rawdata`
+
 Allows interaction with the connected device's raw data sensor (includes accelerometer, gyroscope, and compass)
 
 **Supported operations**
@@ -442,6 +464,8 @@ Allows interaction with the connected device's raw data sensor (includes acceler
 
 ### Rotation matrix orientation
 `thingy.rotationmatrixorientation`
+
+`event: rotationmatrixorientation`
 
 Allows interaction with the connected device's rotation matrix orientation sensor
 
@@ -463,6 +487,8 @@ In development
 ### Step counter
 `thingy.stepcounter`
 
+`event: stepcounter`
+
 Allows interaction with the connected device's step counter sensor
 
 **Supported operations**
@@ -473,6 +499,8 @@ Allows interaction with the connected device's step counter sensor
 ### Tap
 `thingy.tap`
 
+`event: tap`
+
 Allows interaction with the connected device's tap sensor
 
 **Supported operations**
@@ -482,6 +510,8 @@ Allows interaction with the connected device's tap sensor
 
 ### Temperature
 `thingy.temperature`
+
+`event: temperature`
 
 Allows interaction with the connected device's temperature sensor
 
