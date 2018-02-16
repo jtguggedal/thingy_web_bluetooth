@@ -41,11 +41,10 @@ async function start(device) {
         device.addEventListener("temperature", myLoggingFunction);
         await device.temperature.start();
         
-        
-        const deviceName = await device.name.get();
+        const deviceName = await device.name.read();
         console.log(deviceName);
 
-        await device.name.set("Thingy");
+        await device.name.write("Thingy");
 
         setTimeout(async () => {
         await device.disconnect();
@@ -72,7 +71,7 @@ async function start(device) {
     try {
         await device.connect();
 
-        const currentLedConfiguration = await device.led.get();
+        const currentLedConfiguration = await device.led.read();
         console.log(currentLedConfiguration);
         
         const newLedConfiguration = {
@@ -82,7 +81,7 @@ async function start(device) {
             delay: 1000,
         }
         
-        await device.led.set(newLedConfiguration);  
+        await device.led.write(newLedConfiguration);  
     } catch (error) {
         console.error(error);
     }
@@ -99,12 +98,12 @@ Thingy offers several features, all of which rely on established BLE protocols f
 | Operation | Description |
 | --------- | ----------- |
 | start/stop | Subscribes to a feature and relays any incoming data from that feature as an event |
-| get | Reads data from the specified feature on Thingy |
-| set | Writes data to the specified feature on Thingy |
+| read | Reads data from the specified feature on Thingy |
+| write | Writes data to the specified feature on Thingy |
 
 # Supported operations
 
-| Feature | Start/Stop | Get | Set |
+| Feature | Start/Stop | Read | Write |
 | :----: | :----: | :----: | :----: |
 | Absolute orientation | Yes | No | No |
 | Button | Yes | No | No |
@@ -203,8 +202,8 @@ Allows interaction with the connected device's cloud token service
 
 **Supported operations**
 
--   `get` - Gets the cloud token currently written to the connected device
--   `set` - Sets the cloud token of the connected device.
+-   `read` - Reads the cloud token currently written to the connected device
+-   `write` - Writes the cloud token of the connected device.
     - **Parameters**:
         - Cloud token - String shorter than or equal to 250 characters.
 
@@ -225,8 +224,8 @@ Allows interaction with the connected device's connection parameters
 
 **Supported operations**
 
--   `get` - Gets the connected device's connection parameters
--   `set` - Sets the connection parameters of the connected device.
+-   `read` - Reads the connected device's connection parameters
+-   `write` - Writes the connection parameters of the connected device.
     - **Parameters**:
         - Object:
             - minInterval (Minimum connection interval, unit 1.25ms). Integer in the range 6 to 3200 (7.5ms to 4s)
@@ -250,8 +249,8 @@ Allows interaction with the connected device's eddystone url service
 
 **Supported operations**
 
--   `get` - Gets the connected device's eddystone url
--   `set` - Sets the eddystone url of the connected device.
+-   `read` - Reads the connected device's eddystone url
+-   `write` - Writes the eddystone url of the connected device.
     - **Parameters**:
         - Eddystone url - String between 3 and 17 characters, according to **[this](https://github.com/google/eddystone/tree/master/eddystone-url)** format
 
@@ -262,8 +261,8 @@ Allows interaction with the connected device's environment configuration
 
 **Supported operations**
 
--   `get` - Gets the connected device's current environment configuration
--   `set` - Sets the environment configuration of the connected device
+-   `read` - Reads the connected device's current environment configuration
+-   `write` - Writes the environment configuration of the connected device
     - **Parameters**:
         - Object:
             - temperatureInterval (Temperature sensor update interval in ms). Integer in the range 100 ms to 60 000 ms.
@@ -293,7 +292,7 @@ Allows interaction with the connected device's firmware service
 
 **Supported operations**
 
--   `get` - Gets the current firmware version deployed on the device
+-   `read` - Reads the current firmware version deployed on the device
 
 
 ### Gas
@@ -343,8 +342,8 @@ Allows interaction with the connected device's LED
 
 **Supported operations**
 
--   `get` - Gets the connected device's current LED configuration
--   `set` - Sets the LED configuration of the connected device
+-   `read` - reads the connected device's current LED configuration
+-   `write` - Writes the LED configuration of the connected device
     - **Parameters**:
         - Object:
             - mode - Mode of the LED. Can be one of the following: constant, breathe, oneshot, off.
@@ -377,8 +376,8 @@ Allows interaction with the connected device's motion configuration
 
 **Supported operations**
 
--   `get` - Gets the connected device's current motion configuration
--   `set` - Sets the motion configuration of the connected device
+-   `read` - Reads the connected device's current motion configuration
+-   `write` - Writes the motion configuration of the connected device
     - **Parameters**:
         - Object:
             - stepCounterInterval (Sets the step counter interval). Must be in the range 100 ms to 5000 ms.
@@ -404,8 +403,8 @@ Allows interaction with the connected device's name service
 
 **Supported operations**
 
--   `get` - Gets the name of the connected device
--   `set` - Sets the name of the connected device.
+-   `read` - Reads the name of the connected device
+-   `write` - Writes the name of the connected device.
     - **Parameters**:
         - Name - String shorter than or equal to 10 characters.
 
