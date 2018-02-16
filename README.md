@@ -97,7 +97,7 @@ Thingy offers several features, all of which rely on established BLE protocols f
 
 | Operation | Description |
 | --------- | ----------- |
-| start/stop | Subscribes to a feature and relays any incoming data from that feature as an event |
+| start/stop | Subscribes to a feature and relays any incoming data from that feature as an event on the device object |
 | read | Reads data from the specified feature on Thingy |
 | write | Writes data to the specified feature on Thingy |
 

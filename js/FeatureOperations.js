@@ -171,7 +171,7 @@ class FeatureOperations extends EventTarget {
 
     if (!this.characteristics[ch].notifying) {
       if (!this.hasProperty("notify", ch)) {
-        const e = new Error(`The ${this.type} feature does not support the start method`);
+        const e = new Error(`The ${this.type} feature does not support the start/stop methods`);
         throw e;
       }
 
