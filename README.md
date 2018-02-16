@@ -177,6 +177,7 @@ Below you can find extended information on each feature Thingy supports, as well
 
 ### Absolute orientation
 `thingy.absoluteorientation`
+
 `event: absoluteorientation`
 
 Allows interaction with the connected device's absolute orientation sensor
