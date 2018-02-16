@@ -90,7 +90,7 @@ class FeatureOperations extends EventTarget {
     }
   
     if (!this.hasProperty("read", ch)) {
-      const e = new Error(`The ${this.type} feature does not support the get method`);
+      const e = new Error(`The ${this.type} feature does not support the read method`);
       throw e;
     }
 
@@ -132,7 +132,7 @@ class FeatureOperations extends EventTarget {
     }
 
     if (!this.hasProperty("write", ch)) {
-      const e = new Error(`The ${this.type} feature does not support the set method`);
+      const e = new Error(`The ${this.type} feature does not support the write method`);
       throw e;
     }
 
