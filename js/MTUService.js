@@ -64,7 +64,6 @@ class MTUService extends FeatureOperations {
     try {
       if (mtuSize < 23 || mtuSize > 276) {
         const e = new Error("MTU size must be in range 23 - 276 bytes");
-        this.notifyError(e);
         throw e;
       }
 
