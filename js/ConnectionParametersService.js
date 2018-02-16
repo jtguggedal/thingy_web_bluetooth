@@ -148,7 +148,7 @@ class ConnectionParametersService extends FeatureOperations {
         return Promise.reject(new Error("The supervision timeout in milliseconds must be greater than (1 + slaveLatency) * maxConnInterval * 2, where maxConnInterval is also given in milliseconds.")
         );
       }
-      
+
       const dataArray = new Uint8Array(8);
       for (let i = 0; i < dataArray.length; i++) {
         dataArray[i] = receivedData.getUint8(i);

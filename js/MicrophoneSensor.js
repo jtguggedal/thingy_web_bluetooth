@@ -59,7 +59,8 @@ class Microphone extends FeatureOperations {
         if (microphoneData.byteLength === 131) {
           await this._notify(true);
         } else {
-          const e = new Error("We can't enable the microphone at the moment");
+          console.log(microphoneData.byteLength);
+          const e = new Error("Your device does not currently support the use of Thingy's microphone. Check back at a later date.");
           this.notifyError(e);
           throw e;
         }

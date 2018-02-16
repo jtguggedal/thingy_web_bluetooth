@@ -12,17 +12,24 @@
 
       const thingy = new Thingy({logEnabled: true});
 
-      const playAudio = data => {
-        const audio = data.detail;
+      const myLogger = data => {
+        const tempData = data.detail;
 
-        thingy.microphone.play(audio);
+        console.log(tempData);
       }
 
       async function start(device) {
         try {
           await device.connect();
-          device.addEventListener("microphone", playAudio);
-          await device.microphone.start();
+          device.addEventListener("temperature", myLogger);
+          
+          const deviceName = await device.name.get();
+          console.log(deviceName);
+
+          await device.name.set("Willis");
+
+          const newName = await device.name.get();
+          console.log(newName);
 
         } catch (error) {
           console.error(error);

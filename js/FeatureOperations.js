@@ -49,6 +49,7 @@ class FeatureOperations extends EventTarget {
         for (const ch in this.characteristics) {
           if (Object.prototype.hasOwnProperty.call(this.characteristics, ch)) {
             this.characteristics[ch].characteristic = await this.service.service.getCharacteristic(this.characteristics[ch].uuid);
+            this.characteristics[ch].connected = true;
             if (this.constructor.name !== "CustomSensor") {
               this.characteristics[ch].properties = this.characteristics[ch].characteristic.properties;
             }
@@ -67,7 +68,15 @@ class FeatureOperations extends EventTarget {
 
         console.log(`Connected to the ${this.type} feature`);
       } catch (error) {
+
+        console.log("triggered connect");
+
         window.busyGatt = false;
+
+        for (const ch in this.characteristics) {
+          this.characteristics[ch].connected = false;
+        }
+
         const e = new Error(error);
         this.notifyError(e);
         throw e;
@@ -88,12 +97,8 @@ class FeatureOperations extends EventTarget {
   }
 
   async _read(ch = "default", returnRaw = false) {
-    if (!this.characteristics[ch].characteristic) {
-      await this.connect();
-    }
-
     if (!this.hasProperty("read", ch)) {
-      const e = new Error("This characteristic does not have the necessary read property");
+      const e = new Error(`The ${this.type} feature does not support get method`);
       this.notifyError(e);
       throw e;
     }
@@ -102,6 +107,10 @@ class FeatureOperations extends EventTarget {
       const e = new Error("The characteristic you're trying to write does not have a specified decoder");
       this.notifyError(e);
       throw e;
+    }
+
+    if (!this.characteristics[ch].connected) {
+      await this.connect();
     }
 
     if (!window.busyGatt) {
@@ -136,12 +145,8 @@ class FeatureOperations extends EventTarget {
       throw e;
     }
 
-    if (!this.characteristics[ch].characteristic) {
-      await this.connect();
-    }
-
     if (!this.hasProperty("write", ch)) {
-      const e = new Error("This characteristic does not have the necessary write property");
+      const e = new Error(`The ${this.type} feature does not support the set method`);
       this.notifyError(e);
       throw e;
     }
@@ -152,9 +157,14 @@ class FeatureOperations extends EventTarget {
       throw e;
     }
 
+    if (!this.characteristics[ch].connected) {
+      await this.connect();
+    }
+
     if (!window.busyGatt) {
       try {
         const encodedValue = await this.characteristics[ch].encoder(prop);
+
         window.busyGatt = true;
         await this.characteristics[ch].characteristic.writeValue(encodedValue);
         window.busyGatt = false;
@@ -166,7 +176,7 @@ class FeatureOperations extends EventTarget {
       }
     } else {
       window.busyGatt = false;
-      const e = new Error(`Could not write to the ${this.type} feature, Thingy only allows one concurrent BLE operation`);
+      const e = new Error(`Could not write to the ${this.type} feature, as Thingy only allows one concurrent BLE operation`);
       this.notifyError(e);
       throw e;
     }
@@ -183,6 +193,10 @@ class FeatureOperations extends EventTarget {
       const e = new Error("This characteristic does not have the necessary notify property");
       this.notifyError(e);
       throw e;
+    }
+
+    if (!this.characteristics[ch].connected) {
+      await this.connect();
     }
 
     const onReading = (e) => {
@@ -215,8 +229,10 @@ class FeatureOperations extends EventTarget {
           const csn = await characteristic.startNotifications();
           csn.addEventListener("characteristicvaluechanged", onReading.bind(this));
           window.busyGatt = false;
-          console.log(`\nNotifications enabled for the ${ch} characteristic of the ${this.type} feature`);
+          this.characteristics[ch].notifying = true;
+          console.log(`\nNotifications enabled for the ${this.type} feature`);
         } catch (error) {
+          this.characteristics[ch].notifying = false;
           window.busyGatt = false;
           const e = new Error(error);
           this.notifyError(e);
@@ -228,8 +244,10 @@ class FeatureOperations extends EventTarget {
           const csn = await characteristic.stopNotifications();
           csn.removeEventListener("characteristicvaluechanged", onReading.bind(this));
           window.busyGatt = false;
-          console.log(`\nNotifications disabled for the ${ch} characteristic of the ${this.type} feature`);
+          this.characteristics[ch].notifying = false;
+          console.log(`\nNotifications disabled for the ${this.type} feature`);
         } catch (error) {
+          this.characteristics[ch].notifying = true;
           window.busyGatt = false;
           const e = new Error(error);
           this.notifyError(e);
@@ -237,7 +255,7 @@ class FeatureOperations extends EventTarget {
         }
       }
     } else {
-      const e = Error(`Could not write to  ${this.type} feature, Thingy only allows one concurrent BLE operation`);
+      const e = Error(`Could not write to  ${this.type} feature, as Thingy only allows one concurrent BLE operation`);
       this.notifyError(e);
       throw e;
     }
@@ -248,42 +266,46 @@ class FeatureOperations extends EventTarget {
   }
 
   async start(ch = "default") {
-    try {
-      if (!this.characteristics[ch].characteristic) {
-        await this.connect();
-      }
+    if (!this.characteristics[ch].notifying) {
+      try {
+        if (!this.characteristics[ch].connected) {
+          await this.connect();
+        }
 
-      if (this.hasProperty("notify", ch)) {
+        if (!this.hasProperty("notify", ch)) {
+          const e = new Error(`The ${this.type} feature does not support the start method`);
+          this.notifyError(e);
+          throw e;
+        }
+
         await this._notify(true, ch);
-      } else {
-        this.notifyWarning("This characteristic does not support the notify operation");
+      } catch (error) {
+        const e = new Error(error);
+        this.notifyError(e);
+        throw e;
       }
-    } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
     }
   }
 
   async stop(ch = "default") {
-    try {
-      if (this.characteristics[ch].characteristic) {
-        if (this.hasProperty("notify", ch)) {
-          await this._notify(false, ch);
+    if (this.characteristics[ch].notifying) {
+      try {
+        if (this.characteristics[ch].connected) {
+          if (this.hasProperty("notify", ch)) {
+            await this._notify(false, ch);
+          }
         }
-      } else {
-        this.notifyWarning("This xxxx has not been initiated yet");
+      } catch (error) {
+        const e = new Error(error);
+        this.notifyError(e);
+        throw e;
       }
-    } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
     }
   }
 
   async get(ch = "default") {
     try {
-      if (!this.characteristics[ch].characteristic) {
+      if (!this.characteristics[ch].connected) {
         await this.connect();
       }
 
@@ -300,7 +322,7 @@ class FeatureOperations extends EventTarget {
 
   async set(data, ch = "default") {
     try {
-      if (!this.characteristics[ch].characteristic) {
+      if (!this.characteristics[ch].connected) {
         await this.connect();
       }
 

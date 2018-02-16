@@ -150,9 +150,9 @@ class EddystoneUrlService extends FeatureOperations {
 
       return byteArray;
     } catch (error) {
-        const e = new Error(error);
-        this.notifyError(e);
-        throw e;
+      const e = new Error(error);
+      this.notifyError(e);
+      throw e;
     }
   }
 }
