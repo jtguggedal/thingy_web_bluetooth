@@ -255,6 +255,26 @@ Allows interaction with the connected device's eddystone url service
     - **Parameters**:
         - Eddystone url - String between 3 and 17 characters, according to **[this](https://github.com/google/eddystone/tree/master/eddystone-url)** format
 
+### Environment Configuration
+`thingy.environmentconfiguration`
+
+Allows interaction with the connected device's environment configuration
+
+**Supported operations**
+
+-   `get` - Gets the connected device's current environment configuration
+-   `set` - Sets the environment configuration of the connected device
+    - **Parameters**:
+        - Object:
+            - temperatureInterval (Temperature sensor update interval in ms). Integer in the range 100 ms to 60 000 ms.
+            - pressureInterval (Pressure sensor update interval in ms). Integer in the range 50 ms to 60 000 ms.
+            - humidityInterval (Humidity sensor update interval in ms). Integer in the range 100 ms to 60 000 ms.
+            - colorInterval (Color sensor update interval in ms). Integer in the range 200 ms to 60 000 ms.
+            - gasInterval (Gas sensor update interval in seconds). Allowed values are 1, 10 and 60 seconds.
+            - Object colorSensorCalibration (Configures color sensor LED calibration parameters):
+                - red: Number in the interval 0 - 255
+                - green - Number in the interval 0 - 255
+                - blue - Number in the interval 0 - 255
 
 ### Euler orientation
 `thingy.eulerorientation`
