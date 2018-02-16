@@ -29,8 +29,6 @@
   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// @ts-check
-
 import FeatureOperations from "./FeatureOperations.js";
 
 class EnvironmentConfigurationService extends FeatureOperations {
@@ -76,9 +74,7 @@ class EnvironmentConfigurationService extends FeatureOperations {
 
       return formattedData;
     } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
+      throw error;
     }
   }
 
@@ -132,7 +128,6 @@ class EnvironmentConfigurationService extends FeatureOperations {
           gasInterval = 3;
         } else {
           const e = new RangeError("The gas sensor sampling interval has to be 1, 10 or 60 seconds.");
-          this.notifyError(e);
           throw e;
         }
       }
@@ -185,9 +180,7 @@ class EnvironmentConfigurationService extends FeatureOperations {
 
       return dataArray;
     } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
+      throw error;
     }
   }
 }

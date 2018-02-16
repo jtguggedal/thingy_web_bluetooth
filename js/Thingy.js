@@ -29,8 +29,6 @@
   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// @ts-check
-
 import EventTarget from "./EventTarget.js";
 import MicrophoneSensor from "./MicrophoneSensor.js";
 import MTUService from "./MTUService.js";
@@ -127,7 +125,6 @@ class Thingy extends EventTarget {
     }
 
     this.receiveReading = this.receiveReading.bind(this);
-    this.logData = this.logData.bind(this);
 
     this.addEventListener("characteristicvaluechanged", this.receiveReading);
 
@@ -189,21 +186,11 @@ class Thingy extends EventTarget {
   }
 
   receiveReading(reading) {
-    const sourceFeature = reading.detail.feature;
+    const source = reading.detail.feature;
     const data = reading.detail.data;
-
-    const featureSpecificEvent = new CustomEvent(`${sourceFeature}`, {detail: data});
+    const featureSpecificEvent = new CustomEvent(`${source}`, {detail: data});
 
     this.dispatchEvent(featureSpecificEvent);
-  }
-
-  logData(data) {
-    if (data.detail) {
-      console.log("\n");
-      for (const d in data.detail) {
-        console.log(`${d}: ${data.detail[d]}`);
-      }
-    }
   }
 
   async disconnect() {

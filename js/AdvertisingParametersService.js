@@ -29,8 +29,6 @@
   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// @ts-check
-
 import FeatureOperations from "./FeatureOperations.js";
 
 class AdvertisingParametersService extends FeatureOperations {
@@ -69,18 +67,15 @@ class AdvertisingParametersService extends FeatureOperations {
       };
       return decodedAdvertisingParams;
     } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
+      throw error;
     }
   }
 
   encodeAdvertisingParam(params) {
     try {
       if (typeof params !== "object" || params.interval === undefined || params.timeout === undefined) {
-        const e = new RangeError("The argument has to be an object with key/value pairs interval' and 'timeout': {interval: someInterval, timeout: someTimeout}");
-        this.notifyError(e);
-        throw e;
+        const error = new RangeError("The argument has to be an object with key/value pairs interval' and 'timeout': {interval: someInterval, timeout: someTimeout}");
+        throw error;
       }
 
       // Interval is in units of 0.625 ms.
@@ -89,14 +84,12 @@ class AdvertisingParametersService extends FeatureOperations {
 
       // Check parameters
       if (interval < 32 || interval > 8000) {
-        const e = new RangeError("The advertising interval must be within the range of 20 ms to 5 000 ms");
-        this.notifyError(e);
-        throw e;
+        const error = new RangeError("The advertising interval must be within the range of 20 ms to 5 000 ms");
+        throw error;
       }
       if (timeout < 0 || timeout > 180) {
-        const e = new RangeError("The advertising timeout must be within the range of 0 to 180 s");
-        this.notifyError(e);
-        throw e;
+        const error = new RangeError("The advertising timeout must be within the range of 0 to 180 s");
+        throw error;
       }
 
       const dataArray = new Uint8Array(3);
@@ -106,9 +99,7 @@ class AdvertisingParametersService extends FeatureOperations {
 
       return dataArray;
     } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
+      throw error;
     }
   }
 }

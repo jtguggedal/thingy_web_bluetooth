@@ -29,8 +29,6 @@
   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// @ts-check
-
 import FeatureOperations from "./FeatureOperations.js";
 
 class RotationMatrixOrientationSensor extends FeatureOperations {
@@ -71,9 +69,7 @@ class RotationMatrixOrientationSensor extends FeatureOperations {
 
       return formattedData;
     } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
+      throw error;
     }
   }
 }

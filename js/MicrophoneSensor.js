@@ -1,3 +1,34 @@
+/*
+  Copyright (c) 2010 - 2017, Nordic Semiconductor ASA
+  All rights reserved.
+  Redistribution and use in source and binary forms, with or without modification,
+  are permitted provided that the following conditions are met:
+  1. Redistributions of source code must retain the above copyright notice, this
+     list of conditions and the following disclaimer.
+  2. Redistributions in binary form, except as embedded into a Nordic
+     Semiconductor ASA integrated circuit in a product or a software update for
+     such product, must reproduce the above copyright notice, this list of
+     conditions and the following disclaimer in the documentation and/or other
+     materials provided with the distribution.
+  3. Neither the name of Nordic Semiconductor ASA nor the names of its
+     contributors may be used to endorse or promote products derived from this
+     software without specific prior written permission.
+  4. This software, with or without modification, must only be used with a
+     Nordic Semiconductor ASA integrated circuit.
+  5. Any software provided in binary form under this license must not be reverse
+     engineered, decompiled, modified and/or disassembled.
+  THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS
+  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+  OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED. IN NO EVENT SHALL NORDIC SEMICONDUCTOR ASA OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+  GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+  OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 import FeatureOperations from "./FeatureOperations.js";
 
 class Microphone extends FeatureOperations {
@@ -43,9 +74,7 @@ class Microphone extends FeatureOperations {
     try {
       await this.device.mtu.set(140);
     } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
+      throw error;
     }
   }
 
@@ -65,85 +94,88 @@ class Microphone extends FeatureOperations {
           throw e;
         }
       } catch (error) {
-        const e = new Error(error);
-        this.notifyError(e);
-        throw e;
+        throw error;
       }
     }
   }
 
   _decodeAudio(adpcm) {
-    // Allocate output buffer
-    const audioBufferDataLength = adpcm.data.byteLength;
-    const audioBuffer = new ArrayBuffer(512);
-    const pcm = new DataView(audioBuffer);
-    let diff;
-    let bufferStep = false;
-    let inputBuffer = 0;
-    let delta = 0;
-    let sign = 0;
-    let step;
+    try {
+      // Allocate output buffer
+      const audioBufferDataLength = adpcm.data.byteLength;
+      const audioBuffer = new ArrayBuffer(512);
+      const pcm = new DataView(audioBuffer);
+      let diff;
+      let bufferStep = false;
+      let inputBuffer = 0;
+      let delta = 0;
+      let sign = 0;
+      let step;
 
-    // The first 2 bytes of ADPCM frame are the predicted value
-    let valuePredicted = adpcm.header.getInt16(0, false);
-    // The 3rd byte is the index value
-    let index = adpcm.header.getInt8(2);
-    if (index < 0) {
-      index = 0;
-    }
-    if (index > 88) {
-      index = 88;
-    }
-    step = this._MICROPHONE_STEP_SIZE_TABLE[index];
-    for (let _in = 0, _out = 0; _in < audioBufferDataLength; _out += 2) {
-      /* Step 1 - get the delta value */
-      if (bufferStep) {
-        delta = inputBuffer & 0x0F;
-        _in++;
-      } else {
-        inputBuffer = adpcm.data.getInt8(_in);
-        delta = (inputBuffer >> 4) & 0x0F;
-      }
-      bufferStep = !bufferStep;
-      /* Step 2 - Find new index value (for later) */
-      index += this._MICROPHONE_INDEX_TABLE[delta];
+      // The first 2 bytes of ADPCM frame are the predicted value
+      let valuePredicted = adpcm.header.getInt16(0, false);
+      // The 3rd byte is the index value
+      let index = adpcm.header.getInt8(2);
       if (index < 0) {
         index = 0;
       }
       if (index > 88) {
         index = 88;
       }
-      /* Step 3 - Separate sign and magnitude */
-      sign = delta & 8;
-      delta = delta & 7;
-      /* Step 4 - Compute difference and new predicted value */
-      diff = (step >> 3);
-      if ((delta & 4) > 0) {
-        diff += step;
-      }
-      if ((delta & 2) > 0) {
-        diff += (step >> 1);
-      }
-      if ((delta & 1) > 0) {
-        diff += (step >> 2);
-      }
-      if (sign > 0) {
-        valuePredicted -= diff;
-      } else {
-        valuePredicted += diff;
-      }
-      /* Step 5 - clamp output value */
-      if (valuePredicted > 32767) {
-        valuePredicted = 32767;
-      } else if (valuePredicted < -32768) {
-        valuePredicted = -32768;
-      }
-      /* Step 6 - Update step value */
       step = this._MICROPHONE_STEP_SIZE_TABLE[index];
-      /* Step 7 - Output value */
-      pcm.setInt16(_out, valuePredicted, true);
+      for (let _in = 0, _out = 0; _in < audioBufferDataLength; _out += 2) {
+        /* Step 1 - get the delta value */
+        if (bufferStep) {
+          delta = inputBuffer & 0x0F;
+          _in++;
+        } else {
+          inputBuffer = adpcm.data.getInt8(_in);
+          delta = (inputBuffer >> 4) & 0x0F;
+        }
+        bufferStep = !bufferStep;
+        /* Step 2 - Find new index value (for later) */
+        index += this._MICROPHONE_INDEX_TABLE[delta];
+        if (index < 0) {
+          index = 0;
+        }
+        if (index > 88) {
+          index = 88;
+        }
+        /* Step 3 - Separate sign and magnitude */
+        sign = delta & 8;
+        delta = delta & 7;
+        /* Step 4 - Compute difference and new predicted value */
+        diff = (step >> 3);
+        if ((delta & 4) > 0) {
+          diff += step;
+        }
+        if ((delta & 2) > 0) {
+          diff += (step >> 1);
+        }
+        if ((delta & 1) > 0) {
+          diff += (step >> 2);
+        }
+        if (sign > 0) {
+          valuePredicted -= diff;
+        } else {
+          valuePredicted += diff;
+        }
+        /* Step 5 - clamp output value */
+        if (valuePredicted > 32767) {
+          valuePredicted = 32767;
+        } else if (valuePredicted < -32768) {
+          valuePredicted = -32768;
+        }
+        /* Step 6 - Update step value */
+        step = this._MICROPHONE_STEP_SIZE_TABLE[index];
+        /* Step 7 - Output value */
+        pcm.setInt16(_out, valuePredicted, true);
+      }
+
+      return pcm;
+    } catch (error) {
+      throw error;
     }
-    return pcm;
   }
 
   play(audio) {

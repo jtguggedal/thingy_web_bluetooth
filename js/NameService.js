@@ -29,8 +29,6 @@
   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// @ts-check
-
 import FeatureOperations from "./FeatureOperations.js";
 
 class NameService extends FeatureOperations {
@@ -62,9 +60,7 @@ class NameService extends FeatureOperations {
       };
       return decodedName;
     } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
+      throw error;
     }
   }
 
@@ -80,9 +76,7 @@ class NameService extends FeatureOperations {
       }
       return encodedName;
     } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
+      throw error;
     }
   }
 }

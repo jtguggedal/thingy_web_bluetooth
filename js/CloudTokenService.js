@@ -29,8 +29,6 @@
   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// @ts-check
-
 import FeatureOperations from "./FeatureOperations.js";
 
 class CloudTokenService extends FeatureOperations {
@@ -63,27 +61,22 @@ class CloudTokenService extends FeatureOperations {
       };
       return decodedToken;
     } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
+      throw error;
     }
   }
 
   encodeCloudToken(token) {
     try {
       if (token.length > 250) {
-        const e = new Error("The cloud token can not exceed 250 characters.");
-        this.notifyError(e);
-        throw e;
+        const error = new Error("The length of the cloud token can not exceed 250 characters.");
+        throw error;
       }
 
       const encoder = new TextEncoder("utf-8").encode(token);
 
       return encoder;
     } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
+      throw error;
     }
   }
 }

@@ -29,8 +29,6 @@
   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// @ts-check
-
 import FeatureOperations from "./FeatureOperations.js";
 
 class MTUService extends FeatureOperations {
@@ -58,9 +56,7 @@ class MTUService extends FeatureOperations {
 
       return mtu;
     } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
+      throw error;
     }
   }
 
@@ -78,9 +74,7 @@ class MTUService extends FeatureOperations {
       dataArray[2] = (mtuSize >> 8) & 0xff;
       return dataArray;
     } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
+      throw error;
     }
   }
 }

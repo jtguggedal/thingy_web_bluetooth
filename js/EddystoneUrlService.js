@@ -29,8 +29,6 @@
   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// @ts-check
-
 import FeatureOperations from "./FeatureOperations.js";
 
 class EddystoneUrlService extends FeatureOperations {
@@ -83,9 +81,7 @@ class EddystoneUrlService extends FeatureOperations {
 
       return new URL(url);
     } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
+      throw error;
     }
   }
 
@@ -137,9 +133,8 @@ class EddystoneUrlService extends FeatureOperations {
       });
 
       if (len < 1 || len > 14) {
-        const e = new Error("The URL can't be longer than 14 characters, excluding URL scheme such as \"https://\" and \".com/\".");
-        this.notifyError(e);
-        throw e;
+        const error = new Error("The URL can't be longer than 14 characters, excluding URL scheme such as \"https://\" and \".com/\".");
+        throw error;
       }
 
       const byteArray = new Uint8Array(eddystoneUrl.length);
@@ -150,9 +145,7 @@ class EddystoneUrlService extends FeatureOperations {
 
       return byteArray;
     } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
+      throw error;
     }
   }
 }

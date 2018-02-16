@@ -29,8 +29,6 @@
   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// @ts-check
-
 import EventTarget from "./EventTarget.js";
 
 class FeatureOperations extends EventTarget {
@@ -68,32 +66,22 @@ class FeatureOperations extends EventTarget {
 
         console.log(`Connected to the ${this.type} feature`);
       } catch (error) {
-
-        console.log("triggered connect");
-
         window.busyGatt = false;
 
         for (const ch in this.characteristics) {
           this.characteristics[ch].connected = false;
         }
 
-        const e = new Error(error);
-        this.notifyError(e);
-        throw e;
+        throw error;
       }
     } else {
       const e = new Error(`Could not connect to the ${this.type} feature at this moment, as Thingy only allows one concurrent BLE operation`);
-      this.notifyError(e);
       throw e;
     }
   }
 
   notifyError(error) {
-    console.log(`The ${this.type} feature has reported an error: ${error}`);
-  }
-
-  notifyWarning(warning) {
-    console.log(`The ${this.type} feature has reported a warning: ${warning}`);
+    console.error(`The ${this.type} feature has reported an error: ${error}`);
   }
 
   async _read(ch = "default", returnRaw = false) {
@@ -125,8 +113,7 @@ class FeatureOperations extends EventTarget {
         }
       } catch (error) {
         window.busyGatt = false;
-        const e = new Error(error);
-        throw e;
+        throw error;
       }
     } else {
       const e = new Error(`Could not read the ${this.type} feature at this moment, as Thingy only allows one concurrent BLE operation`);
@@ -163,8 +150,7 @@ class FeatureOperations extends EventTarget {
         window.busyGatt = false;
         return;
       } catch (error) {
-        const e = new Error(error);
-        throw e;
+        throw error;
       }
     } else {
       window.busyGatt = false;
@@ -223,8 +209,7 @@ class FeatureOperations extends EventTarget {
           } catch (error) {
             this.characteristics[ch].notifying = false;
             window.busyGatt = false;
-            const e = new Error(error);
-            throw e;
+            throw error;
           }
         } else {
           try {
@@ -237,8 +222,7 @@ class FeatureOperations extends EventTarget {
           } catch (error) {
             this.characteristics[ch].notifying = true;
             window.busyGatt = false;
-            const e = new Error(error);
-            throw e;
+            throw error;
           }
         }
       } else {

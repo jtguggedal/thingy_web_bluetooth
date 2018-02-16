@@ -29,8 +29,6 @@
   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// @ts-check
-
 import FeatureOperations from "./FeatureOperations.js";
 
 class LEDService extends FeatureOperations {
@@ -87,9 +85,7 @@ class LEDService extends FeatureOperations {
       }
       return status;
     } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
+      throw error;
     }
   }
 
@@ -98,16 +94,14 @@ class LEDService extends FeatureOperations {
       let dataArray;
 
       if (!data.mode) {
-        const e = new Error("You must specify a LED mode");
-        this.notifyError(e);
-        throw e;
+        const error = new Error("You must specify a LED mode");
+        throw error;
       }
 
       switch (data.mode) {
       case "constant": {
         if (data.red === undefined || data.green === undefined || data.blue === undefined) {
           const e = new Error("The options object for constant mode must contain the properties 'red', 'green', and 'blue'.");
-          this.notifyError(e);
           throw e;
         }
 
@@ -120,7 +114,6 @@ class LEDService extends FeatureOperations {
           data.blue > 255
         ) {
           const e = new Error("The color values must be in the range 0 - 255");
-          this.notifyError(e);
           throw e;
         }
 
@@ -131,7 +124,6 @@ class LEDService extends FeatureOperations {
       case "breathe": {
         if (data.color === undefined || data.intensity === undefined || data.delay === undefined) {
           const e = new Error("The options object for breathe mode must have the properties 'color', 'intensity' and 'delay'.");
-          this.notifyError(e);
           throw e;
         }
 
@@ -144,19 +136,16 @@ class LEDService extends FeatureOperations {
           colorCode = data.color;
         } else {
           const e = new Error(`The color must either be a recognized color (${colors.join(", ")}), or an integer in the interval 1 - 7`);
-          this.notifyError(e);
           throw e;
         }
 
         if (data.intensity < 0 || data.intensity > 100) {
           const e = new Error("The intensity must be an integer in the interval 0 - 100");
-          this.notifyError(e);
           throw e;
         }
 
         if (data.delay < 50 || data.delay > 10000) {
           const e = new Error("The delay must be an integer in the interval 50 - 10 000");
-          this.notifyError(e);
           throw e;
         }
 
@@ -167,19 +156,16 @@ class LEDService extends FeatureOperations {
       case "oneshot": {
         if (data.color === undefined || data.intensity === undefined) {
           const e = new Error("The options object for the one shot mode must have the properties 'color' and 'intensity.");
-          this.notifyError(e);
           throw e;
         }
 
         if (data.color < 1 || data.color > 7) {
           const e = new Error("The color must either be a recognized color or an integer in the interval 1 - 7");
-          this.notifyError(e);
           throw e;
         }
 
         if (data.intensity < 0 || data.intensity > 100) {
           const e = new Error("The intensity must be an integer in the interval 0 - 100");
-          this.notifyError(e);
           throw e;
         }
 
@@ -193,7 +179,6 @@ class LEDService extends FeatureOperations {
       }
 
       default: {
-        this.notifyWarning("An invalid LED mode has been registered. Default LED values applied.");
         dataArray = new Uint8Array([2, 6, 20, 3500]);
         break;
       }
@@ -201,9 +186,7 @@ class LEDService extends FeatureOperations {
 
       return dataArray;
     } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
+      throw error;
     }
   }
 }
