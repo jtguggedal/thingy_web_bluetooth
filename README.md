@@ -229,10 +229,10 @@ Allows interaction with the connected device's connection parameters
 -   `set` - Sets the connection parameters of the connected device.
     - **Parameters**:
         - Object:
-            - minInterval (Minimum connection interval, unit 1.25ms): Number in the interval 6 - 3200 (7.5ms - 4s)
-            - maxInterval (Maximum connection interval (unit 1.25ms): Number in the interval 6 - 3200 (7.5ms - 4s)
-            - slaveLatency (Slave latency - number of connection events): Number in the interval 0 - 499
-            - supervisionTimeout (Supervision timeout, unit 10ms): Number in the interval 10 - 3200 (100ms - 32s)
+            - minInterval (Minimum connection interval, unit 1.25ms). Integer in the range 6 to 3200 (7.5ms to 4s)
+            - maxInterval (Maximum connection interval (unit 1.25ms). Integer in the range 6 to 3200 (7.5ms to 4s)
+            - slaveLatency (Slave latency - number of connection events). Integer in the range 0 to 499
+            - supervisionTimeout (Supervision timeout, unit 10ms). Integer in the range 10 to 3200 (100ms to 32s)
 
 ### DFU
 `thingy.dfu`
@@ -272,9 +272,9 @@ Allows interaction with the connected device's environment configuration
             - colorInterval (Color sensor update interval in ms). Integer in the range 200 ms to 60 000 ms.
             - gasInterval (Gas sensor update interval in seconds). Allowed values are 1, 10 and 60 seconds.
             - Object colorSensorCalibration (Configures color sensor LED calibration parameters):
-                - red: Number in the interval 0 - 255
-                - green - Number in the interval 0 - 255
-                - blue - Number in the interval 0 - 255
+                - red: Integer in the range 0 to 255
+                - green - Integer in the range 0 to 255
+                - blue - Integer in the range 0 to 255
 
 ### Euler orientation
 `thingy.eulerorientation`
@@ -349,16 +349,16 @@ Allows interaction with the connected device's LED
         - Object:
             - mode - Mode of the LED. Can be one of the following: constant, breathe, oneshot, off.
                 - mode = constant:
-                    - red - Number in the interval 0 - 255
-                    - green - Number in the interval 0 - 255
-                    - blue - Number in the interval 0 - 255
+                    - red - Integer in the range 0 to 255
+                    - green - Integer in the range 0 to 255
+                    - blue - Integer in the range 0 to 255
                 - mode = breathe:
-                    - color - Either a recognized color (red, green, yellow, blue, purple, cyan, white), or a number in the interval 1 - 7
-                    - intensity - Number in the interval 0 - 100
-                    - delay - Delay between each breathe (unit ms), number in the interval 50 - 10 000
+                    - color - Either a recognized color (red, green, yellow, blue, purple, cyan, white), or an integer in the range 1 to 7
+                    - intensity - Integer in the range 0 to 100
+                    - delay - Delay between each breathe (unit ms). Integer in the range 50 to 10 000
                 - mode = oneshot:
-                    - color - Number in the interval 1 - 7
-                    - intensity: Number in the interval 0 - 100
+                    - color - Integer in the range 1 to 7
+                    - intensity: Integer in the range 0 to 100
 
 ### Microphone
 `thingy.microphone`
