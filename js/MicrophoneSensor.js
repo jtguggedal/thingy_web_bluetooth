@@ -72,7 +72,7 @@ class Microphone extends FeatureOperations {
 
   async verifyMicrophoneAction() {
     try {
-      await this.device.mtu.set(140);
+      await this.device.mtu._write(140);
     } catch (error) {
       throw error;
     }
