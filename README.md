@@ -266,15 +266,21 @@ Allows interaction with the connected device's environment configuration
 -   `set` - Sets the environment configuration of the connected device
     - **Parameters**:
         - Object:
-            - temperatureInterval (Temperature sensor update interval in ms). Integer in the range 100 ms to 60 000 ms.
-            - pressureInterval (Pressure sensor update interval in ms). Integer in the range 50 ms to 60 000 ms.
-            - humidityInterval (Humidity sensor update interval in ms). Integer in the range 100 ms to 60 000 ms.
-            - colorInterval (Color sensor update interval in ms). Integer in the range 200 ms to 60 000 ms.
+            - temperatureInterval (Temperature sensor update interval in ms). Must be in the range 100 ms to 60 000 ms.
+            - pressureInterval (Pressure sensor update interval in ms). Must be in the range 50 ms to 60 000 ms.
+            - humidityInterval (Humidity sensor update interval in ms). Must be in the range 100 ms to 60 000 ms.
+            - colorInterval (Color sensor update interval in ms). Must be in the range 200 ms to 60 000 ms.
             - gasInterval (Gas sensor update interval in seconds). Allowed values are 1, 10 and 60 seconds.
             - Object colorSensorCalibration (Configures color sensor LED calibration parameters):
+<<<<<<< Updated upstream
                 - red: Integer in the range 0 to 255
                 - green - Integer in the range 0 to 255
                 - blue - Integer in the range 0 to 255
+=======
+                - red - Number in the interval 0 - 255
+                - green - Number in the interval 0 - 255
+                - blue - Number in the interval 0 - 255
+>>>>>>> Stashed changes
 
 ### Euler orientation
 `thingy.eulerorientation`
@@ -369,6 +375,23 @@ Allows interaction with the connected device's microphone
 
 -   `start` - Starts sending microphone data from the connected device
 -   `stop`  - Terminates sending microphone data from the connected device
+
+### Motion Configuration
+`thingy.motionconfiguration`
+
+Allows interaction with the connected device's motion configuration
+
+**Supported operations**
+
+-   `get` - Gets the connected device's current motion configuration
+-   `set` - Sets the motion configuration of the connected device
+    - **Parameters**:
+        - Object:
+            - stepCounterInterval (Sets the step counter interval). Must be in the range 100 ms to 5 000 ms.
+            - tempCompensationInterval (Sets the temperature compensation interval). Must be in the range 100 ms to 5 000 ms.
+            - magnetCompInterval (Sets the magnetometer compensation interval). Must be in the range 100 ms to 1 000 ms.
+            - motionProcessFrequency (Sets motion processing unit update frequency). Must be in the range 5 Hz to 200 Hz.
+            - wakeOnMotion (Sets wake-on-motion feature to enabled or disabled state). Set to true to enable or false to disable wake-on-motion feature.
 
 ### MTU
 `thingy.mtu`

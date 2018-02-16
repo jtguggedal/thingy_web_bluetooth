@@ -89,7 +89,7 @@ class EnvironmentConfigurationService extends FeatureOperations {
       }
 
       if ((params.temperatureInterval === undefined) && (params.pressureInterval === undefined) && (params.humidityInterval === undefined) && (params.colorInterval === undefined) && (params.gasInterval === undefined) && (params.colorSensorCalibration === undefined)) {
-        return Promise.reject(new TypeError("The argument has to be an object with at least one of the properties 'timeout', 'slaveLatency', 'minInterval' or 'maxInterval'."));
+        return Promise.reject(new TypeError("The argument has to be an object with at least one of the properties 'temperatureInterval', 'pressureInterval', 'humidityInterval', 'colorInterval', 'gasInterval' or 'colorSensorCalibration'."));
       }
 
       let temperatureInterval = params.temperatureInterval;

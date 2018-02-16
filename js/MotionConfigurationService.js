@@ -76,143 +76,82 @@ class MotionConfigurationService extends FeatureOperations {
     }
   }
 
-  encodeConfigData(data) {
+  async encodeConfigData(params) {
     try {
-      return data;
-    } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
-    }
-  }
-
-  async setStepCounterInterval(interval) {
-    try {
-      if (interval < 100 || interval > 5000) {
-        const e = new RangeError("The step counter interval must be in the range 100 ms - 5000 ms");
-        this.notifyError(e);
-        throw e;
+      if (typeof params !== "object") {
+        return Promise.reject(new TypeError("The argument has to be an object."));
       }
 
-      // Preserve values for those settings that are not being changed
-      const receivedData = await this._read("default", true);
-      const dataArray = new Uint8Array(9);
+      if ((params.stepCounterInterval === undefined) && (params.tempCompensationInterval === undefined) && (params.magnetCompInterval === undefined) && (params.motionProcessFrequency === undefined) && (params.wakeOnMotion === undefined)) {
+        return Promise.reject(new TypeError("The argument has to be an object with at least one of the properties 'stepCounterInterval', 'tempCompensationInterval', 'magnetCompInterval', 'motionProcessFrequency' or 'wakeOnMotion'."));
+      }
 
+      let stepCounterInterval = params.stepCounterInterval;
+      let tempCompensationInterval = params.tempCompensationInterval;
+      let magnetCompInterval = params.magnetCompInterval;
+      let motionProcessFrequency = params.motionProcessFrequency;
+      let wakeOnMotion = params.wakeOnMotion;
+
+      if (stepCounterInterval !== undefined) {
+        if (stepCounterInterval < 100 || stepCounterInterval > 5000) {
+          return Promise.reject(new RangeError("The step counter interval must be in the range 100 ms - 5000 ms"));
+        }
+      }
+
+      if (tempCompensationInterval !== undefined) {
+        if (tempCompensationInterval < 100 || tempCompensationInterval > 5000) {
+          return Promise.reject(new RangeError("The temperature compensation interval must be in the range 100 ms - 5000 ms"));
+        }
+      }
+
+      if (magnetCompInterval !== undefined) {
+        if (magnetCompInterval < 100 || magnetCompInterval > 1000) {
+          return Promise.reject(new RangeError("The magnetometer compensation interval must be in the range 100 ms - 1000 ms"));
+        }
+      }
+
+      if (motionProcessFrequency !== undefined) {
+        if (motionProcessFrequency < 5 || motionProcessFrequency > 200) {
+          return Promise.reject(new RangeError("The motion processing unit frequency must be in the range 5 hz - 200 hz"));
+        }
+      }
+
+      if (wakeOnMotion !== undefined) {
+        if (typeof wakeOnMotion !== "boolean") {
+          return Promise.reject(new RangeError("The argument must be true or false."));
+        }
+        wakeOnMotion = wakeOnMotion ? 1 : 0;
+      }
+
+      const receivedData = await this._read("default", true);
+      const littleEndian = true;
+      stepCounterInterval = stepCounterInterval || receivedData.getUint16(0, littleEndian);
+      tempCompensationInterval = tempCompensationInterval || receivedData.getUint16(2, littleEndian);
+      magnetCompInterval = magnetCompInterval || receivedData.getUint16(4, littleEndian);
+      motionProcessFrequency = motionProcessFrequency || receivedData.getUint16(6, littleEndian);
+
+      // Do it this way because otherwise it would evaluate a truth statement, i.e. wakeOnMotion = 0 || 1.
+      // This would result in never being able to turn wakeOnMotion off once it was on.
+      if (wakeOnMotion === undefined) {
+        wakeOnMotion = receivedData.getUint8(8);
+      }
+
+      const dataArray = new Uint8Array(9);
       for (let i = 0; i < dataArray.length; i++) {
         dataArray[i] = receivedData.getUint8(i);
       }
 
-      dataArray[0] = interval & 0xff;
-      dataArray[1] = (interval >> 8) & 0xff;
+      dataArray[0] = stepCounterInterval & 0xff;
+      dataArray[1] = (stepCounterInterval >> 8) & 0xff;
+      dataArray[2] = tempCompensationInterval & 0xff;
+      dataArray[3] = (tempCompensationInterval >> 8) & 0xff;
+      dataArray[4] = magnetCompInterval & 0xff;
+      dataArray[5] = (magnetCompInterval >> 8) & 0xff;
+      dataArray[6] = motionProcessFrequency & 0xff;
+      dataArray[7] = (motionProcessFrequency >> 8) & 0xff;
+      dataArray[8] = wakeOnMotion;
 
-      await this._write(dataArray, "default");
-    } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
-    }
-  }
-
-  async setTempCompensationInterval(interval) {
-    try {
-      if (interval < 100 || interval > 5000) {
-        const e = new RangeError("The temperature compensation interval must be in the range 100 ms - 5000 ms");
-        this.notifyError(e);
-        throw e;
-      }
-
-      // Preserve values for those settings that are not being changed
-      const receivedData = await this._read("default", true);
-      const dataArray = new Uint8Array(9);
-
-      for (let i = 0; i < dataArray.length; i++) {
-        dataArray[i] = receivedData.getUint8(i);
-      }
-
-      dataArray[2] = interval & 0xff;
-      dataArray[3] = (interval >> 8) & 0xff;
-
-      await this._write(dataArray, "default");
-    } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
-    }
-  }
-
-  async setMagnetCompInterval(interval) {
-    try {
-      if (interval < 100 || interval > 1000) {
-        const e = new RangeError("The magnetometer compensation interval must be in the range 100 ms - 1000 ms");
-        this.notifyError(e);
-        throw e;
-      }
-
-      // Preserve values for those settings that are not being changed
-      const receivedData = await this._read("default", true);
-      const dataArray = new Uint8Array(9);
-
-      for (let i = 0; i < dataArray.length; i++) {
-        dataArray[i] = receivedData.getUint8(i);
-      }
-
-      dataArray[4] = interval & 0xff;
-      dataArray[5] = (interval >> 8) & 0xff;
-
-      await this._write(dataArray, "default");
-    } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
-    }
-  }
-
-  async setMotionProcessFrequency(frequency) {
-    try {
-      if (frequency < 5 || frequency > 200) {
-        const e = new RangeError("The motion processing unit frequency must be in the range 5 hz - 200 hz");
-        this.notifyError(e);
-        throw e;
-      }
-
-      // Preserve values for those settings that are not being changed
-      const receivedData = await this._read("default", true);
-      const dataArray = new Uint8Array(9);
-
-      for (let i = 0; i < dataArray.length; i++) {
-        dataArray[i] = receivedData.getUint8(i);
-      }
-
-      dataArray[6] = frequency & 0xff;
-      dataArray[7] = (frequency >> 8) & 0xff;
-
-      await this._write(dataArray, "default");
-    } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
-    }
-  }
-
-  async setWakeOnMotion(enable) {
-    try {
-      if (typeof enable !== "boolean") {
-        const e = new RangeError("The argument must be true or false.");
-        this.notifyError(e);
-        throw e;
-      }
-
-      // Preserve values for those settings that are not being changed
-      const receivedData = await this._read("default", true);
-      const dataArray = new Uint8Array(9);
-
-      for (let i = 0; i < dataArray.length; i++) {
-        dataArray[i] = receivedData.getUint8(i);
-      }
-
-      dataArray[8] = enable ? 1 : 0;
-
-      return await this._write(dataArray, "default");
+      return dataArray;
     } catch (error) {
       const e = new Error(error);
       this.notifyError(e);
