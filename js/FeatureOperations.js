@@ -97,20 +97,18 @@ class FeatureOperations extends EventTarget {
   }
 
   async _read(ch = "default", returnRaw = false) {
+    if (!this.characteristics[ch].connected) {
+      await this.connect();
+    }
+  
     if (!this.hasProperty("read", ch)) {
-      const e = new Error(`The ${this.type} feature does not support get method`);
-      this.notifyError(e);
+      const e = new Error(`The ${this.type} feature does not support the get method`);
       throw e;
     }
 
     if (!this.characteristics[ch].decoder) {
       const e = new Error("The characteristic you're trying to write does not have a specified decoder");
-      this.notifyError(e);
       throw e;
-    }
-
-    if (!this.characteristics[ch].connected) {
-      await this.connect();
     }
 
     if (!window.busyGatt) {
@@ -128,12 +126,10 @@ class FeatureOperations extends EventTarget {
       } catch (error) {
         window.busyGatt = false;
         const e = new Error(error);
-        this.notifyError(e);
         throw e;
       }
     } else {
       const e = new Error(`Could not read the ${this.type} feature at this moment, as Thingy only allows one concurrent BLE operation`);
-      this.notifyError(e);
       throw e;
     }
   }
@@ -141,24 +137,21 @@ class FeatureOperations extends EventTarget {
   async _write(prop, ch = "default") {
     if (prop === undefined) {
       const e = new Error("You have to write a non-empty body");
-      this.notifyError(e);
-      throw e;
-    }
-
-    if (!this.hasProperty("write", ch)) {
-      const e = new Error(`The ${this.type} feature does not support the set method`);
-      this.notifyError(e);
-      throw e;
-    }
-
-    if (!this.characteristics[ch].encoder) {
-      const e = new Error("The characteristic you're trying to write does not have a specified encoder");
-      this.notifyError(e);
       throw e;
     }
 
     if (!this.characteristics[ch].connected) {
       await this.connect();
+    }
+
+    if (!this.hasProperty("write", ch)) {
+      const e = new Error(`The ${this.type} feature does not support the set method`);
+      throw e;
+    }
+
+    if (!this.characteristics[ch].encoder) {
+      const e = new Error("The characteristic you're trying to write does not have a specified encoder");
+      throw e;
     }
 
     if (!window.busyGatt) {
@@ -171,13 +164,11 @@ class FeatureOperations extends EventTarget {
         return;
       } catch (error) {
         const e = new Error(error);
-        this.notifyError(e);
         throw e;
       }
     } else {
       window.busyGatt = false;
       const e = new Error(`Could not write to the ${this.type} feature, as Thingy only allows one concurrent BLE operation`);
-      this.notifyError(e);
       throw e;
     }
   }
@@ -185,13 +176,6 @@ class FeatureOperations extends EventTarget {
   async _notify(enable, ch = "default", verify = false) {
     if (!(enable === true || enable === false)) {
       const e = new Error("You have to specify the enable parameter (true/false)");
-      this.notifyError(e);
-      throw e;
-    }
-
-    if (!this.hasProperty("notify", ch)) {
-      const e = new Error("This characteristic does not have the necessary notify property");
-      this.notifyError(e);
       throw e;
     }
 
@@ -199,65 +183,68 @@ class FeatureOperations extends EventTarget {
       await this.connect();
     }
 
-    const onReading = (e) => {
-      const eventData = e.target.value;
-      const decodedData = this.characteristics[ch].decoder(eventData);
-
-      let ce;
-
-      if (verify) {
-        ce = new CustomEvent("verifyReaction", {detail: {feature: this.type, data: decodedData}});
-        this.dispatchEvent(ce);
-      } else {
-        ce = new CustomEvent("characteristicvaluechanged", {detail: {feature: this.type, data: decodedData}});
-        this.device.dispatchEvent(ce);
+    if (!this.characteristics[ch].notifying) {
+      if (!this.hasProperty("notify", ch)) {
+        const e = new Error(`The ${this.type} feature does not support the start method`);
+        throw e;
       }
-    };
 
-    if (!this.characteristics[ch].decoder) {
-      const e = new Error("The characteristic you're trying to notify does not have a specified decoder");
-      this.notifyError(e);
-      throw e;
-    }
+      const onReading = (e) => {
+        const eventData = e.target.value;
+        const decodedData = this.characteristics[ch].decoder(eventData);
 
-    const characteristic = this.characteristics[ch].characteristic;
+        let ce;
 
-    if (!window.busyGatt) {
-      if (enable) {
-        try {
-          window.busyGatt = true;
-          const csn = await characteristic.startNotifications();
-          csn.addEventListener("characteristicvaluechanged", onReading.bind(this));
-          window.busyGatt = false;
-          this.characteristics[ch].notifying = true;
-          console.log(`\nNotifications enabled for the ${this.type} feature`);
-        } catch (error) {
-          this.characteristics[ch].notifying = false;
-          window.busyGatt = false;
-          const e = new Error(error);
-          this.notifyError(e);
-          throw e;
+        if (verify) {
+          ce = new CustomEvent("verifyReaction", {detail: {feature: this.type, data: decodedData}});
+          this.dispatchEvent(ce);
+        } else {
+          ce = new CustomEvent("characteristicvaluechanged", {detail: {feature: this.type, data: decodedData}});
+          this.device.dispatchEvent(ce);
+        }
+      };
+
+      if (!this.characteristics[ch].decoder) {
+        const e = new Error("The characteristic you're trying to notify does not have a specified decoder");
+        throw e;
+      }
+
+      const characteristic = this.characteristics[ch].characteristic;
+
+      if (!window.busyGatt) {
+        if (enable) {
+          try {
+            window.busyGatt = true;
+            const csn = await characteristic.startNotifications();
+            csn.addEventListener("characteristicvaluechanged", onReading.bind(this));
+            window.busyGatt = false;
+            this.characteristics[ch].notifying = true;
+            console.log(`\nNotifications enabled for the ${this.type} feature`);
+          } catch (error) {
+            this.characteristics[ch].notifying = false;
+            window.busyGatt = false;
+            const e = new Error(error);
+            throw e;
+          }
+        } else {
+          try {
+            window.busyGatt = true;
+            const csn = await characteristic.stopNotifications();
+            csn.removeEventListener("characteristicvaluechanged", onReading.bind(this));
+            window.busyGatt = false;
+            this.characteristics[ch].notifying = false;
+            console.log(`\nNotifications disabled for the ${this.type} feature`);
+          } catch (error) {
+            this.characteristics[ch].notifying = true;
+            window.busyGatt = false;
+            const e = new Error(error);
+            throw e;
+          }
         }
       } else {
-        try {
-          window.busyGatt = true;
-          const csn = await characteristic.stopNotifications();
-          csn.removeEventListener("characteristicvaluechanged", onReading.bind(this));
-          window.busyGatt = false;
-          this.characteristics[ch].notifying = false;
-          console.log(`\nNotifications disabled for the ${this.type} feature`);
-        } catch (error) {
-          this.characteristics[ch].notifying = true;
-          window.busyGatt = false;
-          const e = new Error(error);
-          this.notifyError(e);
-          throw e;
-        }
+        const e = Error(`Could not write to  ${this.type} feature, as Thingy only allows one concurrent BLE operation`);
+        throw e;
       }
-    } else {
-      const e = Error(`Could not write to  ${this.type} feature, as Thingy only allows one concurrent BLE operation`);
-      this.notifyError(e);
-      throw e;
     }
   }
 
@@ -266,73 +253,39 @@ class FeatureOperations extends EventTarget {
   }
 
   async start(ch = "default") {
-    if (!this.characteristics[ch].notifying) {
-      try {
-        if (!this.characteristics[ch].connected) {
-          await this.connect();
-        }
-
-        if (!this.hasProperty("notify", ch)) {
-          const e = new Error(`The ${this.type} feature does not support the start method`);
-          this.notifyError(e);
-          throw e;
-        }
-
-        await this._notify(true, ch);
-      } catch (error) {
-        const e = new Error(error);
-        this.notifyError(e);
-        throw e;
-      }
+    try {
+      await this._notify(true, ch);
+    } catch (error) {
+      this.notifyError(error);
+      throw error;
     }
   }
 
   async stop(ch = "default") {
-    if (this.characteristics[ch].notifying) {
-      try {
-        if (this.characteristics[ch].connected) {
-          if (this.hasProperty("notify", ch)) {
-            await this._notify(false, ch);
-          }
-        }
-      } catch (error) {
-        const e = new Error(error);
-        this.notifyError(e);
-        throw e;
-      }
+    try {
+      await this._notify(false, ch);
+    } catch (error) {
+      this.notifyError(error);
+      throw error;
     }
   }
 
   async get(ch = "default") {
     try {
-      if (!this.characteristics[ch].connected) {
-        await this.connect();
-      }
-
-      if (this.hasProperty("read", ch)) {
-        const d = await this._read(ch);
-        return d;
-      }
+      const val = await this._read(ch);
+      return val;
     } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
+      this.notifyError(error);
+      throw error;
     }
   }
 
   async set(data, ch = "default") {
     try {
-      if (!this.characteristics[ch].connected) {
-        await this.connect();
-      }
-
-      if (this.hasProperty("write", ch)) {
-        await this._write(data, ch);
-      }
+      await this._write(data, ch);
     } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
+      this.notifyError(error);
+      throw error;
     }
   }
 }
