@@ -45,11 +45,6 @@ class GravityVectorSensor extends FeatureOperations {
         uuid: this.device.TMS_GRAVITY_UUID,
         decoder: this.decodeGravityVectorData.bind(this),
       },
-      config: {
-        uuid: this.device.TMS_CONFIG_UUID,
-        decoder: this.decodeConfigData.bind(this),
-        encoder: this.encodeConfigData.bind(this),
-      },
     };
   }
 

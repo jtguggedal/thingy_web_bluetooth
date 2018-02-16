@@ -121,7 +121,7 @@ Thingy offers several features, all of which rely on established BLE protocols f
 | Heading | Yes | No | No |
 | Humidity | Yes | No | No |
 | LED | No | Yes | Yes |
-| Microphone (in development) | - | - | - |
+| Microphone (in development) | Yes | No | No |
 | Motion configuration | No | Yes | Yes |
 | MTU (in development) | - | - | - |
 | Name | No | Yes | Yes |
@@ -381,9 +381,9 @@ Allows interaction with the connected device's motion configuration
 -   `set` - Sets the motion configuration of the connected device
     - **Parameters**:
         - Object:
-            - stepCounterInterval (Sets the step counter interval). Must be in the range 100 ms to 5 000 ms.
-            - tempCompensationInterval (Sets the temperature compensation interval). Must be in the range 100 ms to 5 000 ms.
-            - magnetCompInterval (Sets the magnetometer compensation interval). Must be in the range 100 ms to 1 000 ms.
+            - stepCounterInterval (Sets the step counter interval). Must be in the range 100 ms to 5000 ms.
+            - tempCompensationInterval (Sets the temperature compensation interval). Must be in the range 100 ms to 5000 ms.
+            - magnetCompInterval (Sets the magnetometer compensation interval). Must be in the range 100 ms to 1000 ms.
             - motionProcessFrequency (Sets motion processing unit update frequency). Must be in the range 5 Hz to 200 Hz.
             - wakeOnMotion (Sets wake-on-motion feature to enabled or disabled state). Set to true to enable or false to disable wake-on-motion feature.
 
