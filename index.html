@@ -22,15 +22,9 @@
         try {
           await device.connect();
           device.addEventListener("temperature", myLogger);
-          
-          const deviceName = await device.name.get();
-          console.log(deviceName);
-
-          await device.name.set("Willis");
-
-          const newName = await device.name.get();
-          console.log(newName);
-
+          await device.temperature.start();
+          const tempName = await device.temperature.get();
+          console.log(tempName);
         } catch (error) {
           console.error(error);
         }
