@@ -254,7 +254,7 @@ class FeatureOperations extends EventTarget {
     }
   }
 
-  async get(ch = "default") {
+  async read(ch = "default") {
     try {
       const val = await this._read(ch);
       return val;
@@ -264,7 +264,7 @@ class FeatureOperations extends EventTarget {
     }
   }
 
-  async set(data, ch = "default") {
+  async write(data, ch = "default") {
     try {
       await this._write(data, ch);
     } catch (error) {
