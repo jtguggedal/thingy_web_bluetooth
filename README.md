@@ -177,13 +177,13 @@ Below you can find extended information on each feature Thingy supports, as well
 
 ### Absolute orientation
 `thingy.absoluteorientation`
+`event: absoluteorientation`
 
 Allows interaction with the connected device's absolute orientation sensor
 
 **Supported operations**
 
 -   `start` - Starts sending absolute orientation data from the connected device
-    - `event: absoluteorientation` - Receives event data in data.detail
 -   `stop`  - Terminates sending absolute orientation data from the connected device
 
 ### Button
