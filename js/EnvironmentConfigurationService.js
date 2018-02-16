@@ -82,173 +82,108 @@ class EnvironmentConfigurationService extends FeatureOperations {
     }
   }
 
-  encodeConfigData(data) {
+  async encodeConfigData(params) {
     try {
-      return data;
-    } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
-    }
-  }
+      if (typeof params !== "object") {
+        return Promise.reject(new TypeError("The argument has to be an object."));
+      }
 
-  async setTemperatureInterval(interval) {
-    try {
-      if (interval < 100 || interval > 60000) {
-        const e = new RangeError("The temperature sensor sampling interval must be in the range 100 ms - 60 000 ms");
-        this.notifyError(e);
-        throw e;
+      if ((params.temperatureInterval === undefined) && (params.pressureInterval === undefined) && (params.humidityInterval === undefined) && (params.colorInterval === undefined) && (params.gasInterval === undefined) && (params.colorSensorCalibration === undefined)) {
+        return Promise.reject(new TypeError("The argument has to be an object with at least one of the properties 'timeout', 'slaveLatency', 'minInterval' or 'maxInterval'."));
+      }
+
+      let temperatureInterval = params.temperatureInterval;
+      let pressureInterval = params.pressureInterval;
+      let humidityInterval = params.humidityInterval;
+      let colorInterval = params.colorInterval;
+      let gasInterval = params.gasInterval;
+      const colorSensorCalibration = params.colorSensorCalibration;
+
+      if (temperatureInterval !== undefined) {
+        if (temperatureInterval < 100 || temperatureInterval > 60000) {
+          return Promise.reject(new RangeError("The temperature sensor sampling interval must be in the range 100 ms - 60 000 ms"));
+        }
+      }
+
+      if (pressureInterval !== undefined) {
+        if (pressureInterval < 50 || pressureInterval > 60000) {
+          return Promise.reject(new RangeError("The pressure sensor sampling interval must be in the range 50 ms - 60 000 ms"));
+        }
+      }
+
+      if (humidityInterval !== undefined) {
+        if (humidityInterval < 100 || humidityInterval > 60000) {
+          return Promise.reject(new RangeError("The humidity sensor sampling interval must be in the range 100 ms - 60 000 ms"));
+        }
+      }
+
+      if (colorInterval !== undefined) {
+        if (colorInterval < 200 || colorInterval > 60000) {
+          return Promise.reject(new RangeError("The color sensor sampling interval must be in the range 200 ms - 60 000 ms"));
+        }
+      }
+
+      if (gasInterval !== undefined) {
+        if (gasInterval === 1) {
+          gasInterval = 1;
+        } else if (gasInterval === 10) {
+          gasInterval = 2;
+        } else if (gasInterval === 60) {
+          gasInterval = 3;
+        } else {
+          const e = new RangeError("The gas sensor sampling interval has to be 1, 10 or 60 seconds.");
+          this.notifyError(e);
+          throw e;
+        }
+      }
+
+      let colorSensorRed;
+      let colorSensorGreen;
+      let colorSensorBlue;
+      if (colorSensorCalibration !== undefined) {
+        if (typeof colorSensorCalibration !== "object") {
+          return Promise.reject(new TypeError("The colorSensorCalibration argument has to be an object."));
+        }
+        if (colorSensorCalibration.red === undefined || colorSensorCalibration.green === undefined || colorSensorCalibration.blue === undefined) {
+          return Promise.reject(new TypeError("The colorSensorCalibration argument has to be an object with the properties red, green and blue."));
+        }
+
+        colorSensorRed = colorSensorCalibration.red;
+        colorSensorGreen = colorSensorCalibration.green;
+        colorSensorBlue = colorSensorCalibration.blue;
       }
 
       // Preserve values for those settings that are not being changed
       const receivedData = await this._read("default", true);
-      const dataArray = new Uint8Array(12);
+      const littleEndian = true;
+      temperatureInterval = temperatureInterval || receivedData.getUint16(0, littleEndian);
+      pressureInterval = pressureInterval || receivedData.getUint16(2, littleEndian);
+      humidityInterval = humidityInterval || receivedData.getUint16(4, littleEndian);
+      colorInterval = colorInterval || receivedData.getUint16(6, littleEndian);
+      gasInterval = gasInterval || receivedData.getUint8(8);
+      colorSensorRed = colorSensorRed || receivedData.getUint8(9);
+      colorSensorGreen = colorSensorGreen|| receivedData.getUint8(10);
+      colorSensorBlue = colorSensorBlue || receivedData.getUint8(11);
 
+      const dataArray = new Uint8Array(12);
       for (let i = 0; i < dataArray.length; i++) {
         dataArray[i] = receivedData.getUint8(i);
       }
 
-      dataArray[0] = interval & 0xff;
-      dataArray[1] = (interval >> 8) & 0xff;
+      dataArray[0] = temperatureInterval & 0xff;
+      dataArray[1] = (temperatureInterval >> 8) & 0xff;
+      dataArray[2] = pressureInterval & 0xff;
+      dataArray[3] = (pressureInterval >> 8) & 0xff;
+      dataArray[4] = humidityInterval & 0xff;
+      dataArray[5] = (humidityInterval >> 8) & 0xff;
+      dataArray[6] = colorInterval & 0xff;
+      dataArray[7] = (colorInterval >> 8) & 0xff;
+      dataArray[8] = gasInterval;
+      dataArray[9] = colorSensorRed;
+      dataArray[10] = colorSensorGreen;
+      dataArray[11] = colorSensorBlue;
 
-      await this._write(dataArray, "default");
-    } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
-    }
-  }
-
-  async setPressureInterval(interval) {
-    try {
-      if (interval < 50 || interval > 60000) {
-        const e = new RangeError("The pressure sensor sampling interval must be in the range 50 ms - 60 000 ms");
-        this.notifyError(e);
-        throw e;
-      }
-
-      // Preserve values for those settings that are not being changed
-      const receivedData = await this._read("default", true);
-      const dataArray = new Uint8Array(12);
-
-      for (let i = 0; i < dataArray.length; i++) {
-        dataArray[i] = receivedData.getUint8(i);
-      }
-
-      dataArray[2] = interval & 0xff;
-      dataArray[3] = (interval >> 8) & 0xff;
-
-      await this._write(dataArray, "default");
-    } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
-    }
-  }
-
-  async setHumidityInterval(interval) {
-    try {
-      if (interval < 100 || interval > 60000) {
-        const e = new RangeError("The humidity sensor sampling interval must be in the range 100 ms - 60 000 ms");
-        this.notifyError(e);
-        throw e;
-      }
-
-      // Preserve values for those settings that are not being changed
-      const receivedData = await this._read("default", true);
-      const dataArray = new Uint8Array(12);
-
-      for (let i = 0; i < dataArray.length; i++) {
-        dataArray[i] = receivedData.getUint8(i);
-      }
-
-      dataArray[4] = interval & 0xff;
-      dataArray[5] = (interval >> 8) & 0xff;
-
-      await this._write(dataArray, "default");
-    } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
-    }
-  }
-
-  async setColorInterval(interval) {
-    try {
-      if (interval < 200 || interval > 60000) {
-        const e = new RangeError("The color sensor sampling interval must be in the range 200 ms - 60 000 ms");
-        this.notifyError(e);
-        throw e;
-      }
-
-      // Preserve values for those settings that are not being changed
-      const receivedData = await this._read("default", true);
-      const dataArray = new Uint8Array(12);
-
-      for (let i = 0; i < dataArray.length; i++) {
-        dataArray[i] = receivedData.getUint8(i);
-      }
-
-      dataArray[6] = interval & 0xff;
-      dataArray[7] = (interval >> 8) & 0xff;
-
-      await this._write(dataArray, "default");
-    } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
-    }
-  }
-
-  async setGasInterval(interval) {
-    try {
-      let mode;
-
-      if (interval === 1) {
-        mode = 1;
-      } else if (interval === 10) {
-        mode = 2;
-      } else if (interval === 60) {
-        mode = 3;
-      } else {
-        const e = new RangeError("The gas sensor sampling interval has to be 1, 10 or 60 seconds.");
-        this.notifyError(e);
-        throw e;
-      }
-
-      // Preserve values for those settings that are not being changed
-      const receivedData = await this._read("default", true);
-      const dataArray = new Uint8Array(12);
-
-      for (let i = 0; i < dataArray.length; i++) {
-        dataArray[i] = receivedData.getUint8(i);
-      }
-
-      dataArray[8] = mode;
-
-      await this._write(dataArray, "default");
-    } catch (error) {
-      const e = new Error(error);
-      this.notifyError(e);
-      throw e;
-    }
-  }
-
-  async calibrateColorSensor(red, green, blue) {
-    try {
-      // Preserve values for those settings that are not being changed
-      const receivedData = await this._read("default", true);
-      const dataArray = new Uint8Array(12);
-
-      for (let i = 0; i < dataArray.length; i++) {
-        dataArray[i] = receivedData.getUint8(i);
-      }
-
-      dataArray[9] = red;
-      dataArray[10] = green;
-      dataArray[11] = blue;
-
-      await this._write(dataArray, "default");
+      return dataArray;
     } catch (error) {
       const e = new Error(error);
       this.notifyError(e);
