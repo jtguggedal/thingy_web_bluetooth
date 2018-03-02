@@ -1053,7 +1053,7 @@ export class Thingy {
 
   _temperatureNotifyHandler(event) {
     const data = event.target.value;
-    const integer = data.getUint8(0);
+    const integer = data.getInt8(0);
     const decimal = data.getUint8(1);
     const temperature = integer + decimal / 100;
     this.tempEventListeners[1].forEach((eventHandler) => {
